@@ -1,0 +1,135 @@
+---
+/**
+ * Input — campo de formulario completo con WCAG 2.1 AA.
+ * Siempre visible: label nunca se oculta (no se usa placeholder como sustituto).
+ * ARIA: aria-describedby combina hint + error, aria-invalid en error, role=alert en mensaje.
+ * Trade-off: componente unificado (label + input + mensajes) para garantizar asociación correcta.
+ */
+
+type InputType = 'text' | 'email' | 'tel' | 'password' | 'search' | 'url' | 'number' | 'date';
+
+interface Props {
+  /** Requerido para asociar <label> con <input> */
+  id: string;
+  label: string;
+  type?: InputType;
+  name?: string;
+  value?: string;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+  readonly?: boolean;
+  autocomplete?: string;
+  /** Mensaje de error — activa aria-invalid y role=alert */
+  error?: string;
+  /** Texto de ayuda visible bajo el input */
+  hint?: string;
+  class?: string;
+  inputClass?: string;
+}
+
+const {
+  id,
+  label,
+  type = 'text',
+  name,
+  value,
+  placeholder,
+  required = false,
+  disabled = false,
+  readonly = false,
+  autocomplete,
+  error,
+  hint,
+  class: className,
+  inputClass,
+} = Astro.props;
+
+const hasError = Boolean(error);
+const hintId = hint ? `${id}-hint` : undefined;
+const errorId = error ? `${id}-error` : undefined;
+const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+
+const inputStyles = [
+  'w-full rounded-md border px-3 py-2',
+  'font-sans text-base text-brand-dark bg-white',
+  'placeholder:text-neutral-400',
+  'transition-colors duration-150',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-brand-primary',
+  hasError
+    ? 'border-red-600 focus-visible:ring-red-600'
+    : 'border-neutral-300 focus-visible:border-brand-primary',
+  disabled && 'opacity-50 cursor-not-allowed bg-brand-accent',
+  readonly && 'bg-brand-accent cursor-default',
+  inputClass,
+]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<div class:list={['flex flex-col gap-1', className]}>
+  <label
+    for={id}
+    class:list={['font-sans text-sm font-medium text-brand-dark', disabled && 'opacity-50']}
+  >
+    {label}
+    {
+      required && (
+        /* aria-hidden: el asterisco es decorativo; "required" comunica la obligatoriedad */
+        <span aria-hidden="true" class="ml-0.5 text-red-600">
+          *
+        </span>
+      )
+    }
+  </label>
+
+  {
+    hint && (
+      <p id={hintId} class="font-sans text-sm text-neutral-500">
+        {hint}
+      </p>
+    )
+  }
+
+  <input
+    id={id}
+    name={name ?? id}
+    type={type}
+    value={value}
+    placeholder={placeholder}
+    required={required}
+    disabled={disabled}
+    readonly={readonly}
+    autocomplete={autocomplete}
+    aria-required={required ? 'true' : undefined}
+    aria-invalid={hasError ? 'true' : undefined}
+    aria-describedby={describedBy}
+    class={inputStyles}
+  />
+
+  {
+    error && (
+      <p
+        id={errorId}
+        role="alert"
+        aria-live="polite"
+        class="flex items-center gap-1 font-sans text-sm text-red-600"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        {error}
+      </p>
+    )
+  }
+</div>

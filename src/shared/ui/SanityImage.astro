@@ -1,0 +1,123 @@
+---
+/**
+ * SanityImage — carga progresiva con Sanity CDN.
+ * Genera <picture> con fuentes AVIF → WebP → original + srcset responsivo.
+ * Fuerza width/height para prevenir CLS (Layout Shift).
+ * Trade-off: bypass de Astro Image pipeline — se compensa con Sanity CDN
+ * (edge cache global, transformaciones on-demand, sin cold-start en Netlify).
+ */
+
+import type { SanityImageSchema } from '../../lib/validations';
+import type { z } from 'zod';
+
+type SanityImageRef = z.infer<typeof SanityImageSchema>;
+
+interface Props {
+  image: SanityImageRef;
+  width: number;
+  /** Si se omite, se calcula del aspect ratio original para evitar CLS */
+  height?: number;
+  /** CSS sizes hint para srcset — default: 100vw */
+  sizes?: string;
+  loading?: 'lazy' | 'eager';
+  /** fetchpriority="high" para imágenes LCP */
+  fetchpriority?: 'high' | 'low' | 'auto';
+  quality?: number;
+  fit?: 'clip' | 'crop' | 'fill' | 'fillmax' | 'max' | 'scale' | 'min';
+  class?: string;
+}
+
+const {
+  image,
+  width,
+  height: heightProp,
+  sizes = '100vw',
+  loading = 'lazy',
+  fetchpriority = loading === 'eager' ? 'high' : 'auto',
+  quality = 80,
+  fit = 'crop',
+  class: className,
+} = Astro.props;
+
+const projectId = import.meta.env.PUBLIC_SANITY_PROJECT_ID;
+const dataset = import.meta.env.PUBLIC_SANITY_DATASET ?? 'production';
+
+/**
+ * Parsea el _ref de un asset de Sanity.
+ * Formato: "image-{id}-{width}x{height}-{ext}"
+ * El id es un hash SHA1 sin guiones, por lo que el split es seguro.
+ */
+function parseSanityRef(ref: string): {
+  assetPath: string;
+  originalWidth: number;
+  originalHeight: number;
+} {
+  const match = ref.match(/^image-(.+)-(\d+)x(\d+)-(\w+)$/);
+  if (!match) {
+    throw new Error(`[SanityImage] Invalid asset ref format: "${ref}"`);
+  }
+  const [, id, w, h, ext] = match;
+  return {
+    assetPath: `${id}-${w}x${h}.${ext}`,
+    originalWidth: parseInt(w, 10),
+    originalHeight: parseInt(h, 10),
+  };
+}
+
+function buildUrl(assetPath: string, params: Record<string, string | number>): string {
+  const base = `https://cdn.sanity.io/images/${projectId}/${dataset}/${assetPath}`;
+  const qs = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString();
+  return `${base}?${qs}`;
+}
+
+const { assetPath, originalWidth, originalHeight } = parseSanityRef(image.asset._ref);
+
+// Calcular height manteniendo aspect ratio original si no se provee
+const height = heightProp ?? Math.round((originalHeight / originalWidth) * width);
+
+// Srcset responsivo: filtrar anchos mayores al original para no upscale
+const breakpoints = [320, 480, 640, 768, 960, 1024, 1280, 1536, 1920];
+const srcWidths = [...new Set(breakpoints.filter((w) => w <= originalWidth).concat(width))].sort(
+  (a, b) => a - b
+);
+
+function buildSrcset(format: string): string {
+  return srcWidths
+    .map((w) => {
+      const h = Math.round((originalHeight / originalWidth) * w);
+      return `${buildUrl(assetPath, { w, h, fit, fm: format, q: quality })} ${w}w`;
+    })
+    .join(', ');
+}
+
+// URL de fallback para el <img> (sin formato forzado — el servidor sirve el original)
+const fallbackSrc = buildUrl(assetPath, { w: width, h: height, fit, q: quality });
+
+const alt = image.alt ?? '';
+---
+
+<picture>
+  {/* AVIF: mejor compresión, soporte moderno */}
+  <source type="image/avif" srcset={buildSrcset('avif')} {sizes} />
+  {/* WebP: amplio soporte, fallback de AVIF */}
+  <source type="image/webp" srcset={buildSrcset('webp')} {sizes} />
+  {
+    /*
+    <img> base:
+    - width/height previenen CLS al reservar espacio antes de cargar
+    - object-fit:cover junto al aspect-ratio mantiene el encuadre
+    - decoding=async evita bloqueo del hilo principal
+  */
+  }
+  <img
+    src={fallbackSrc}
+    alt={alt}
+    width={width}
+    height={height}
+    {loading}
+    fetchpriority={fetchpriority}
+    decoding="async"
+    style={`aspect-ratio: ${width} / ${height}; object-fit: cover;`}
+    class={className}
+  />
+</picture>

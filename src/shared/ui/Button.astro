@@ -1,0 +1,168 @@
+---
+/**
+ * Button — WCAG 2.1 AA
+ * Renderiza <button> o <a> según si se provee href.
+ * Contraste verificado: primary 12.6:1 · secondary 7.1:1 · danger ~5.5:1
+ */
+
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type Size = 'sm' | 'md' | 'lg';
+
+interface BaseProps {
+  variant?: Variant;
+  size?: Size;
+  loading?: boolean;
+  class?: string;
+  'aria-label'?: string;
+  'aria-describedby'?: string;
+  'aria-expanded'?: boolean;
+  'aria-controls'?: string;
+  'aria-pressed'?: boolean;
+}
+
+interface ButtonProps extends BaseProps {
+  href?: never;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+}
+
+interface LinkProps extends BaseProps {
+  href: string;
+  target?: '_blank' | '_self' | '_parent' | '_top';
+  rel?: string;
+  disabled?: boolean;
+}
+
+type Props = ButtonProps | LinkProps;
+
+const {
+  variant = 'primary',
+  size = 'md',
+  loading = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const isDisabled = ('disabled' in rest && rest.disabled) || loading;
+const isLink = 'href' in rest && typeof rest.href === 'string';
+
+const variantMap: Record<Variant, string> = {
+  primary: 'bg-brand-primary text-white border-transparent hover:bg-[#002244] active:bg-[#001a33]',
+  secondary:
+    'bg-brand-secondary text-brand-dark border-transparent hover:bg-[#b8923f] active:bg-[#a07d30]',
+  ghost:
+    'bg-transparent text-brand-primary border-brand-primary hover:bg-brand-primary/10 active:bg-brand-primary/20',
+  danger: 'bg-red-700 text-white border-transparent hover:bg-red-800 active:bg-red-900',
+};
+
+const sizeMap: Record<Size, string> = {
+  sm: 'px-3 py-1.5 text-sm gap-1.5 min-h-[2rem]',
+  md: 'px-4 py-2 text-base gap-2 min-h-[2.5rem]',
+  lg: 'px-6 py-3 text-lg gap-2.5 min-h-[3rem]',
+};
+
+// min-h garantiza el target de 24×24 px mínimo (WCAG 2.5.5 recomendado: 44×44)
+const base = [
+  'inline-flex items-center justify-center',
+  'font-sans font-medium rounded-md border',
+  'transition-colors duration-150 select-none',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-primary',
+  variantMap[variant],
+  sizeMap[size],
+  isDisabled && 'opacity-50 pointer-events-none cursor-not-allowed',
+  loading && 'cursor-wait',
+  className,
+]
+  .filter(Boolean)
+  .join(' ');
+
+// Seguridad: siempre añadir noopener noreferrer en _blank
+const linkRel =
+  isLink && (rest as LinkProps).target === '_blank'
+    ? ['noopener', 'noreferrer', (rest as LinkProps).rel].filter(Boolean).join(' ')
+    : (rest as LinkProps).rel;
+---
+
+{
+  isLink ? (
+    <a
+      href={(rest as LinkProps).href}
+      target={(rest as LinkProps).target}
+      rel={linkRel}
+      aria-disabled={isDisabled ? 'true' : undefined}
+      aria-busy={loading ? 'true' : undefined}
+      aria-label={rest['aria-label']}
+      aria-describedby={rest['aria-describedby']}
+      tabindex={isDisabled ? -1 : undefined}
+      class={base}
+    >
+      {loading && (
+        <Fragment>
+          <svg
+            class="h-4 w-4 shrink-0 animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+          <span class="sr-only">Cargando…</span>
+        </Fragment>
+      )}
+      <slot />
+    </a>
+  ) : (
+    <button
+      type={(rest as ButtonProps).type ?? 'button'}
+      disabled={isDisabled}
+      aria-busy={loading ? 'true' : undefined}
+      aria-label={rest['aria-label']}
+      aria-describedby={rest['aria-describedby']}
+      aria-expanded={(rest as ButtonProps)['aria-expanded']}
+      aria-controls={(rest as ButtonProps)['aria-controls']}
+      aria-pressed={(rest as ButtonProps)['aria-pressed']}
+      class={base}
+    >
+      {loading && (
+        <Fragment>
+          <svg
+            class="h-4 w-4 shrink-0 animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+          <span class="sr-only">Cargando…</span>
+        </Fragment>
+      )}
+      <slot />
+    </button>
+  )
+}

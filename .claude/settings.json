@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(node -e \"const p = require\\('/home/jer/projects/antonio-ante/node_modules/astro/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(npm show:*)",
+      "Bash(npm install:*)",
+      "WebSearch",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:eslint.org)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/astro/package.json'\\).version\\)\")",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/typescript/package.json'\\).version\\)\")",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/eslint/package.json'\\).version\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/eslint-plugin-jsx-a11y'\\); console.log\\(Object.keys\\(p\\)\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/astro/node_modules/typescript/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/eslint-plugin-jsx-a11y'\\); console.log\\(Object.keys\\(p.flatConfigs\\)\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/eslint-plugin-prettier'\\); console.log\\(Object.keys\\(p\\)\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/eslint-plugin-prettier'\\); console.log\\(Object.keys\\(p.configs\\)\\)\")",
+      "Bash(npx eslint:*)",
+      "Bash(node -e \"console.log\\(require\\('/home/jer/projects/antonio-ante/node_modules/astro/package.json'\\).version\\)\")",
+      "Bash(node -e ':*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npm run:*)",
+      "Bash(npx tsx:*)",
+      "Bash(node -e \"const a = require\\('./node_modules/astro/package.json'\\); console.log\\(a.version\\)\")",
+      "Bash(node -e \"const c = require\\('./node_modules/astro/dist/types/public/config.d.ts'\\); console.log\\(c\\)\")",
+      "Bash(git remote:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(npx prettier:*)"
+    ]
+  }
+}

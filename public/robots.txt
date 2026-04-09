@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Excluir rutas internas y de API
+Disallow: /api/
+Disallow: /admin/
+Disallow: /preview/
+
+# Sitemap generado por @astrojs/sitemap en el build
+Sitemap: https://antonio-ante.gob.ec/sitemap-index.xml

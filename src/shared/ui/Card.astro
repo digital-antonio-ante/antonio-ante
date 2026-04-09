@@ -1,0 +1,77 @@
+---
+/**
+ * Card — contenedor semántico con soporte de stretched-link.
+ * WCAG: si se usa href, el enlace cubre toda la tarjeta (un único foco).
+ * Trade-off: stretched-link requiere position:relative en el contenedor.
+ */
+
+type CardTag = 'article' | 'section' | 'div' | 'li';
+type Padding = 'none' | 'sm' | 'md' | 'lg';
+
+interface Props {
+  as?: CardTag;
+  /** Convierte la card completa en un enlace mediante stretched-link */
+  href?: string;
+  /** Texto accesible del enlace cuando se usa href */
+  linkLabel?: string;
+  target?: '_blank' | '_self';
+  padding?: Padding;
+  /** Aplica sombra hover cuando la card es interactiva */
+  interactive?: boolean;
+  class?: string;
+  'aria-label'?: string;
+  'aria-labelledby'?: string;
+}
+
+const {
+  as: Tag = 'article' as CardTag,
+  href,
+  linkLabel,
+  target,
+  padding = 'md',
+  interactive = !!href,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const paddingMap: Record<Padding, string> = {
+  none: '',
+  sm: 'p-4',
+  md: 'p-6',
+  lg: 'p-8',
+};
+
+const base = [
+  'relative rounded-lg bg-white border border-brand-accent overflow-hidden',
+  'shadow-[var(--shadow-card)]',
+  interactive && 'transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)]',
+  paddingMap[padding],
+  className,
+]
+  .filter(Boolean)
+  .join(' ');
+
+const linkRel = target === '_blank' ? 'noopener noreferrer' : undefined;
+---
+
+<Tag class={base} aria-label={rest['aria-label']} aria-labelledby={rest['aria-labelledby']}>
+  {
+    href && (
+      <a
+        href={href}
+        target={target}
+        rel={linkRel}
+        aria-label={linkLabel}
+        class="after:absolute after:inset-0 after:rounded-lg focus-visible:after:outline focus-visible:after:outline-3 focus-visible:after:outline-brand-primary focus-visible:after:outline-offset-2"
+      >
+        {/*
+          El texto del slot se muestra visualmente dentro de la card.
+          Este enlace usa ::after para cubrir el área completa (stretched-link),
+          garantizando un único target de foco para lectores de pantalla.
+        */}
+        {linkLabel && <span class="sr-only">{linkLabel}</span>}
+      </a>
+    )
+  }
+  <slot />
+</Tag>

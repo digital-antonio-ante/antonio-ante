@@ -1,0 +1,13 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+
+// Prerenderizar como página estática (SSG). El API route /api/contact es SSR.
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Inicio"
+  description="Portal digital del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador."
+>
+  <h1 class="text-3xl font-bold text-brand-primary p-8">GAD Municipal de Antonio Ante</h1>
+</BaseLayout>
