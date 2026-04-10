@@ -1,5 +1,4 @@
-/* Space Grotesk: tipografía display del hero del cantón (debe ir antes de tailwindcss) */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&display=swap');
+/* Space Grotesk se carga en BaseLayout.astro via <link> para evitar bloqueo de render */
 @import "tailwindcss";
 
 @theme {
