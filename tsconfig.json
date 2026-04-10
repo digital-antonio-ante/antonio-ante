@@ -5,6 +5,7 @@
     "suppressImplicitAnyIndexErrors": false,
     "paths": {
       "@ui/*": ["./src/shared/ui/*"],
+      "@shared/*": ["./src/shared/*"],
       "@modules/*": ["./src/modules/*"],
       "@api/*": ["./src/api/*"],
       "@lib/*": ["./src/lib/*"],

@@ -206,6 +206,10 @@ const noticias = [
   },
 ];
 
+// Nota: campo `archivo` omitido intencionalmente en el seed.
+// Las referencias a assets de Sanity requieren subir el archivo real desde el Studio.
+// Insertar una referencia falsa ({_ref: 'placeholder-pdf'}) crea una referencia rota
+// que el Studio marca como error de validación para los editores.
 const documentos = [
   {
     _id: 'doc-ordenanza-uso-suelo',
@@ -218,7 +222,6 @@ const documentos = [
     descripcion:
       'Regula el uso, ocupación y zonificación del suelo en el área urbana y rural del cantón.',
     vigente: true,
-    archivo: { _type: 'file', asset: { _type: 'reference', _ref: 'placeholder-pdf' } },
   },
   {
     _id: 'doc-presupuesto-2026',
@@ -230,7 +233,6 @@ const documentos = [
     numero: 'Res. GAD-AA-2026-001',
     descripcion: 'Presupuesto aprobado por el Concejo Municipal para el ejercicio fiscal 2026.',
     vigente: true,
-    archivo: { _type: 'file', asset: { _type: 'reference', _ref: 'placeholder-pdf' } },
   },
   {
     _id: 'doc-plan-desarrollo',
@@ -243,7 +245,6 @@ const documentos = [
     descripcion:
       'PDOT que guía el desarrollo cantonal para el período 2023–2027 en los ejes económico, social, ambiental y de movilidad.',
     vigente: true,
-    archivo: { _type: 'file', asset: { _type: 'reference', _ref: 'placeholder-pdf' } },
   },
 ];
 
@@ -282,7 +283,7 @@ async function seed() {
 
   console.log(`\n[seed] Completado. ${docs.length} documento(s) procesados.`);
   console.log(
-    '[seed] Nota: Los documentos con archivo=placeholder requieren subir el PDF real desde el Studio.'
+    '[seed] Nota: Los documentos oficiales no incluyen archivo PDF — súbelos desde el Studio manualmente.'
   );
 }
 

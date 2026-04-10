@@ -8,15 +8,7 @@
  * - Escape cierra el menú y devuelve el foco al botón
  * - Contraste mínimo 7.1:1 en todos los estados de texto
  */
-
-const navItems = [
-  { href: '/', label: 'Inicio' },
-  { href: '/noticias', label: 'Noticias' },
-  { href: '/parroquias', label: 'Parroquias' },
-  { href: '/documentos', label: 'Documentos' },
-  { href: '/transparencia', label: 'Transparencia' },
-  { href: '/contacto', label: 'Contacto' },
-];
+import { NAV_ITEMS } from '@shared/config/nav';
 
 const pathname = Astro.url.pathname;
 
@@ -51,7 +43,7 @@ function isActive(href: string): boolean {
       <nav aria-label="Navegación principal" class="hidden lg:block">
         <ul class="flex items-center gap-1" role="list">
           {
-            navItems.map(({ href, label }) => {
+            NAV_ITEMS.map(({ href, label }) => {
               const active = isActive(href);
               return (
                 <li>
@@ -127,7 +119,7 @@ function isActive(href: string): boolean {
     <nav aria-label="Navegación móvil">
       <ul class="px-4 py-3 space-y-1" role="list">
         {
-          navItems.map(({ href, label }) => {
+          NAV_ITEMS.map(({ href, label }) => {
             const active = isActive(href);
             return (
               <li>

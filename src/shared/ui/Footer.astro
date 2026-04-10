@@ -5,19 +5,14 @@
  * WCAG 2.1 AA:
  * - role="contentinfo" implícito en <footer>
  * - aria-label descriptivos en enlaces de redes sociales
- * - Contraste mínimo 4.5:1 en texto sobre fondo oscuro (#003366)
- *   Blanco puro (#fff) sobre #003366: 12.6:1 ✓
- *   #c5a059 (secondary) sobre #003366: 4.7:1 ✓
+ * - Contraste mínimo 4.5:1 en texto sobre fondo oscuro (#003366):
+ *     Blanco puro (#fff) sobre #003366: 12.6:1 ✓
+ *     #c5a059 (secondary) sobre #003366: 4.7:1 ✓
+ *
+ * Trade-off: contact info hardcoded mientras el Studio no esté deployado.
+ * TODO: reemplazar con fetch a configSitio de Sanity (Fase 3).
  */
-
-const navLinks = [
-  { href: '/', label: 'Inicio' },
-  { href: '/noticias', label: 'Noticias' },
-  { href: '/parroquias', label: 'Parroquias' },
-  { href: '/documentos', label: 'Documentos Oficiales' },
-  { href: '/transparencia', label: 'Transparencia' },
-  { href: '/contacto', label: 'Contacto' },
-];
+import { NAV_ITEMS } from '@shared/config/nav';
 
 const year = new Date().getFullYear();
 ---
@@ -41,7 +36,7 @@ const year = new Date().getFullYear();
           </div>
         </div>
 
-        <p class="text-sm leading-relaxed mb-6" style="color: rgba(255,255,255,0.8);">
+        <p class="text-sm leading-relaxed mb-6 text-white/80">
           Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador.
         </p>
 
@@ -52,10 +47,7 @@ const year = new Date().getFullYear();
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GAD Antonio Ante en Facebook (abre en nueva pestaña)"
-            class="flex items-center justify-center w-9 h-9 rounded-md transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-1 focus-visible:ring-offset-brand-primary outline-none"
-            style="background-color: rgba(255,255,255,0.1);"
-            onmouseover="this.style.backgroundColor='var(--color-brand-secondary)'"
-            onmouseout="this.style.backgroundColor='rgba(255,255,255,0.1)'"
+            class="footer-social-link"
           >
             <svg
               class="w-5 h-5"
@@ -74,10 +66,7 @@ const year = new Date().getFullYear();
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GAD Antonio Ante en Instagram (abre en nueva pestaña)"
-            class="flex items-center justify-center w-9 h-9 rounded-md transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-1 focus-visible:ring-offset-brand-primary outline-none"
-            style="background-color: rgba(255,255,255,0.1);"
-            onmouseover="this.style.backgroundColor='var(--color-brand-secondary)'"
-            onmouseout="this.style.backgroundColor='rgba(255,255,255,0.1)'"
+            class="footer-social-link"
           >
             <svg
               class="w-5 h-5"
@@ -101,14 +90,11 @@ const year = new Date().getFullYear();
         </h2>
         <ul class="space-y-2" role="list">
           {
-            navLinks.map(({ href, label }) => (
+            NAV_ITEMS.map(({ href, label }) => (
               <li>
                 <a
                   href={href}
-                  class="text-sm transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-1 focus-visible:ring-offset-brand-primary rounded outline-none"
-                  style="color: rgba(255,255,255,0.8);"
-                  onmouseover="this.style.color='var(--color-brand-secondary)'"
-                  onmouseout="this.style.color='rgba(255,255,255,0.8)'"
+                  class="text-sm text-white/80 hover:text-brand-secondary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary rounded"
                 >
                   {label}
                 </a>
@@ -123,7 +109,7 @@ const year = new Date().getFullYear();
         <h2 class="text-sm font-semibold uppercase tracking-wider text-brand-secondary mb-4">
           Contacto
         </h2>
-        <ul class="space-y-3 text-sm" role="list" style="color: rgba(255,255,255,0.8);">
+        <ul class="space-y-3 text-sm text-white/80" role="list">
           <!-- Dirección -->
           <li class="flex items-start gap-2">
             <svg
@@ -171,9 +157,7 @@ const year = new Date().getFullYear();
             </svg>
             <a
               href="tel:+59362908200"
-              class="transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary rounded"
-              onmouseover="this.style.color='var(--color-brand-secondary)'"
-              onmouseout="this.style.color='inherit'"
+              class="hover:text-brand-secondary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary rounded"
             >
               +593 6 2908-200
             </a>
@@ -198,9 +182,7 @@ const year = new Date().getFullYear();
             </svg>
             <a
               href="mailto:comunicacion@antonioante.gob.ec"
-              class="break-all transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary rounded"
-              onmouseover="this.style.color='var(--color-brand-secondary)'"
-              onmouseout="this.style.color='inherit'"
+              class="break-all hover:text-brand-secondary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary rounded"
             >
               comunicacion@antonioante.gob.ec
             </a>
@@ -230,16 +212,41 @@ const year = new Date().getFullYear();
 
     <!-- Línea divisoria y copyright -->
     <div
-      class="mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4"
-      style="border-top: 1px solid rgba(255,255,255,0.2);"
+      class="mt-12 pt-6 border-t border-white/20 flex flex-col sm:flex-row justify-between items-center gap-4"
     >
-      <p class="text-xs text-center sm:text-left" style="color: rgba(255,255,255,0.6);">
+      <p class="text-xs text-white/60 text-center sm:text-left">
         © {year} GAD Municipal del Cantón Antonio Ante. Todos los derechos reservados.
       </p>
-      <p class="text-xs text-center sm:text-right" style="color: rgba(255,255,255,0.6);">
+      <p class="text-xs text-white/60 text-center sm:text-right">
         Imbabura, Ecuador &mdash;
         <span class="text-brand-secondary font-medium">Capital de la Moda</span>
       </p>
     </div>
   </div>
 </footer>
+
+<style>
+  /* Botón de red social: bg-white/10 → hover:bg-brand-secondary
+   * Usamos <style> porque Tailwind no puede purgar clases en variables CSS
+   * arbitrarias con opacity dentro de hover states complejos en este contexto. */
+  .footer-social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.375rem;
+    background-color: rgb(255 255 255 / 0.1);
+    color: white;
+    transition: background-color 150ms ease;
+    outline: none;
+  }
+  .footer-social-link:hover {
+    background-color: var(--color-brand-secondary);
+  }
+  .footer-social-link:focus-visible {
+    ring: 2px solid var(--color-brand-secondary);
+    outline: 2px solid var(--color-brand-secondary);
+    outline-offset: 2px;
+  }
+</style>
