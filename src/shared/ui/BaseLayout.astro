@@ -15,6 +15,14 @@ interface Props {
 }
 
 const props = Astro.props;
+
+// GA4 se inyecta solo en producción (import.meta.env.PROD = true en build)
+const ga4 = import.meta.env.PROD
+  ? `<script async src="https://www.googletagmanager.com/gtag/js?id=G-JER9NBHCGP"></script>` +
+    `<script>window.dataLayer=window.dataLayer||[];` +
+    `function gtag(){dataLayer.push(arguments);}` +
+    `gtag('js',new Date());gtag('config','G-JER9NBHCGP');</script>`
+  : '';
 ---
 
 <html lang="es">
@@ -26,6 +34,9 @@ const props = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <SEOHead {...props} />
     <slot name="head" />
+
+    <!-- Google Analytics 4 — solo en producción -->
+    <Fragment set:html={ga4} />
   </head>
   <body class="min-h-screen bg-brand-light text-brand-dark font-sans flex flex-col">
     <a
