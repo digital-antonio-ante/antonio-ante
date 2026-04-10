@@ -7,4 +7,4 @@ Disallow: /admin/
 Disallow: /preview/
 
 # Sitemap generado por @astrojs/sitemap en el build
-Sitemap: https://antonio-ante.gob.ec/sitemap-index.xml
+Sitemap: https://antonio-ante.netlify.app/sitemap-index.xml
