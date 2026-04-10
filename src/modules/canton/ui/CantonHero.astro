@@ -205,6 +205,7 @@ const parishesJson = JSON.stringify(PARISHES);
   const elActivities = document.getElementById('panel-activities');
   const elProjects = document.getElementById('panel-projects');
   const elParishLink = document.getElementById('panel-parish-link') as HTMLAnchorElement | null;
+  const elGalleryBtn = document.getElementById('panel-gallery-btn') as HTMLButtonElement | null;
 
   // ── Función principal de selección ──────────────────────────────────────────
   function selectParish(id: string) {
@@ -284,6 +285,18 @@ const parishesJson = JSON.stringify(PARISHES);
     // Link a la página completa de la parroquia
     if (elParishLink) {
       elParishLink.href = `/parroquias/${id.replace('_', '-')}`;
+    }
+
+    // Botón de galería: mostrar solo si hay fotos
+    if (elGalleryBtn) {
+      const hasGallery = data.gallery && data.gallery.length > 0;
+      elGalleryBtn.style.display = hasGallery ? '' : 'none';
+      elGalleryBtn.onclick = () => {
+        const openGallery = (window as Record<string, unknown>)['openGallery'] as
+          | ((name: string, images: string[], color: string) => void)
+          | undefined;
+        openGallery?.(data.name, data.gallery, data.color);
+      };
     }
 
     // Scroll suave al panel en móvil

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@ui/BaseLayout.astro';
 import { getParroquias } from '@api/endpoints/parroquias';
+import CantonMapWidget from '@modules/canton/ui/CantonMapWidget.astro';
 
 export const prerender = true;
 
@@ -31,6 +32,23 @@ const resto = parroquias.filter((p) => !p.esCabeceraCantonal);
     </div>
   </section>
 
+  <!-- ── Mapa interactivo ── -->
+  <section class="py-12 lg:py-16 bg-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-8">
+        <p class="text-xs font-bold uppercase tracking-widest text-brand-secondary mb-1">
+          Cantón Antonio Ante
+        </p>
+        <h2 class="text-2xl lg:text-3xl font-bold text-brand-primary">Mapa interactivo</h2>
+        <p class="text-brand-dark/60 text-sm mt-1">
+          Selecciona una parroquia en el mapa para ver su información detallada.
+        </p>
+      </div>
+      <CantonMapWidget />
+    </div>
+  </section>
+
+  <!-- ── Listado de parroquias ── -->
   <section class="py-12 lg:py-16 bg-brand-light">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Cabecera cantonal destacada -->
