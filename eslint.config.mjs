@@ -30,8 +30,10 @@ export default tseslint.config(
   },
 
   {
-    // prettier/prettier conflicta con el frontmatter de Astro
-    files: ['**/*.astro'],
+    // prettier/prettier conflicta con el frontmatter de Astro y con los
+    // bloques <script> que eslint-plugin-astro extrae como archivos virtuales
+    // (ruta virtual: **/*.astro/*.ts / **/*.astro/*.js)
+    files: ['**/*.astro', '**/*.astro/*.ts', '**/*.astro/*.js'],
     rules: {
       'prettier/prettier': 'off',
     },
