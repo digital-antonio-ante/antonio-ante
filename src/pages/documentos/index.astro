@@ -1,0 +1,252 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+import CategoryBadge from '@ui/CategoryBadge.astro';
+import { getDocumentos } from '@api/endpoints/documentos';
+import type { CategoriaDocumento } from '@lib/validations';
+
+export const prerender = true;
+
+const documentos = await getDocumentos();
+
+function formatDate(iso: string): string {
+  return new Intl.DateTimeFormat('es-EC', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(iso));
+}
+
+const categorias: { value: CategoriaDocumento | 'todas'; label: string }[] = [
+  { value: 'todas', label: 'Todos' },
+  { value: 'ordenanza', label: 'Ordenanzas' },
+  { value: 'resolucion', label: 'Resoluciones' },
+  { value: 'plan', label: 'Planes' },
+  { value: 'presupuesto', label: 'Presupuestos' },
+  { value: 'informe', label: 'Informes' },
+  { value: 'rendicion-cuentas', label: 'Rendición de Cuentas' },
+  { value: 'otro', label: 'Otro' },
+];
+---
+
+<BaseLayout
+  title="Documentos Oficiales"
+  description="Ordenanzas, resoluciones, planes, presupuestos e informes del GAD Municipal del Cantón Antonio Ante. Acceso libre a documentos oficiales."
+>
+  <!-- Hero -->
+  <section class="bg-brand-primary text-white py-12 lg:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav aria-label="Breadcrumb" class="mb-4">
+        <ol class="flex items-center gap-2 text-white/60 text-sm" role="list">
+          <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
+          <li aria-hidden="true" class="select-none">›</li>
+          <li class="text-white font-medium" aria-current="page">Documentos Oficiales</li>
+        </ol>
+      </nav>
+      <h1 class="text-3xl lg:text-4xl font-bold mb-3">Documentos Oficiales</h1>
+      <p class="text-white/80 max-w-xl">
+        Accede a las ordenanzas, resoluciones, planes y presupuestos del GAD Municipal de Antonio
+        Ante. Información pública de libre acceso.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-12 lg:py-16 bg-brand-light" aria-label="Documentos oficiales">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Filtros -->
+      <div class="mb-8" role="group" aria-label="Filtrar por categoría">
+        <div class="flex flex-wrap gap-2" id="filter-buttons">
+          {
+            categorias.map(({ value, label }) => (
+              <button
+                type="button"
+                data-filter={value}
+                class:list={[
+                  'px-3 py-1.5 rounded-full text-sm font-semibold border transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary',
+                  value === 'todas'
+                    ? 'bg-brand-primary text-white border-brand-primary'
+                    : 'bg-white text-brand-dark border-gray-200 hover:border-brand-primary hover:text-brand-primary',
+                ]}
+                aria-pressed={value === 'todas' ? 'true' : 'false'}
+              >
+                {label}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      {
+        documentos.length === 0 ? (
+          <div class="text-center py-20">
+            <p class="text-brand-dark/50 text-lg">No hay documentos publicados aún.</p>
+          </div>
+        ) : (
+          <ul
+            class="flex flex-col gap-3"
+            role="list"
+            id="docs-list"
+            aria-live="polite"
+            aria-atomic="false"
+          >
+            {documentos.map((doc) => (
+              <li data-categoria={doc.categoria}>
+                <div class="group bg-white rounded-xl border border-gray-100 hover:border-brand-primary/30 hover:shadow-sm transition-all duration-200">
+                  <div class="p-5 flex items-start gap-4">
+                    <div
+                      class="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5"
+                      aria-hidden="true"
+                    >
+                      <svg
+                        class="w-5 h-5 text-brand-primary"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                      <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                        <CategoryBadge categoria={doc.categoria} />
+                        {doc.vigente && (
+                          <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-semibold rounded-full uppercase tracking-wide">
+                            Vigente
+                          </span>
+                        )}
+                        {doc.numero && (
+                          <span class="text-xs text-brand-dark/40 font-mono">{doc.numero}</span>
+                        )}
+                      </div>
+
+                      <h2 class="text-sm font-semibold text-brand-dark leading-snug mb-1">
+                        {doc.titulo}
+                      </h2>
+
+                      {doc.descripcion && (
+                        <p class="text-xs text-brand-dark/60 leading-relaxed mb-2 line-clamp-2">
+                          {doc.descripcion}
+                        </p>
+                      )}
+
+                      <p class="text-xs text-brand-dark/40">
+                        Publicado: {formatDate(doc.fechaPublicacion)}
+                      </p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 flex-shrink-0">
+                      {doc.archivo ? (
+                        <a
+                          href={`https://cdn.sanity.io/files/${import.meta.env.PUBLIC_SANITY_PROJECT_ID}/production/${doc.archivo.asset._ref.replace('file-', '').replace(/-(\w+)$/, '.$1')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-primary text-white text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                          aria-label={`Descargar ${doc.titulo} (PDF, abre en nueva pestaña)`}
+                        >
+                          <svg
+                            class="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          Descargar PDF
+                        </a>
+                      ) : (
+                        <span
+                          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-400 text-xs font-semibold rounded-lg cursor-not-allowed"
+                          aria-label="PDF no disponible"
+                        >
+                          <svg
+                            class="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          PDF próximamente
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      <!-- Estado vacío tras filtrado -->
+      <p
+        id="empty-filter-msg"
+        class="hidden text-center py-16 text-brand-dark/50 text-lg"
+        role="status"
+      >
+        No hay documentos en esta categoría.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const items = document.querySelectorAll<HTMLElement>('#docs-list li[data-categoria]');
+  const emptyMsg = document.getElementById('empty-filter-msg');
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter ?? 'todas';
+
+      buttons.forEach((b) => {
+        const active = b.dataset.filter === filter;
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        b.className = b.className
+          .replace(/bg-brand-primary text-white border-brand-primary/, '')
+          .replace(
+            /bg-white text-brand-dark border-gray-200 hover:border-brand-primary hover:text-brand-primary/,
+            ''
+          )
+          .trim();
+        if (active) {
+          b.classList.add('bg-brand-primary', 'text-white', 'border-brand-primary');
+        } else {
+          b.classList.add(
+            'bg-white',
+            'text-brand-dark',
+            'border-gray-200',
+            'hover:border-brand-primary',
+            'hover:text-brand-primary'
+          );
+        }
+      });
+
+      let visible = 0;
+      items.forEach((item) => {
+        const match = filter === 'todas' || item.dataset.categoria === filter;
+        item.hidden = !match;
+        if (match) visible++;
+      });
+
+      if (emptyMsg) emptyMsg.classList.toggle('hidden', visible > 0);
+    });
+  });
+</script>

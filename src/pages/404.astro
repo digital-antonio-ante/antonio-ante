@@ -1,0 +1,33 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Página no encontrada"
+  description="La página que buscas no existe en el portal del GAD Municipal de Antonio Ante."
+  noindex
+>
+  <section class="flex flex-col items-center justify-center py-32 px-4 text-center">
+    <p class="text-8xl font-bold text-brand-primary/10 select-none" aria-hidden="true">404</p>
+    <h1 class="text-2xl font-bold text-brand-primary mt-2 mb-3">Página no encontrada</h1>
+    <p class="text-brand-dark/60 max-w-md mb-8">
+      La dirección que ingresaste no existe o fue movida. Verifica la URL o regresa al inicio.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a
+        href="/"
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary text-white font-semibold rounded-lg hover:opacity-90 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+      >
+        Ir al inicio
+      </a>
+      <a
+        href="/contacto"
+        class="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-200 text-brand-dark font-semibold rounded-lg hover:border-brand-primary hover:text-brand-primary transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+      >
+        Contacto
+      </a>
+    </div>
+  </section>
+</BaseLayout>

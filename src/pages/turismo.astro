@@ -1,0 +1,331 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+
+export const prerender = true;
+
+const atractivos = [
+  {
+    nombre: 'Expo Atuntaqui',
+    categoria: 'Textil',
+    descripcion:
+      'La feria textil más importante del norte del Ecuador. Más de 200 expositores presentan moda, confección y artesanías. Se realiza en enero de cada año.',
+    emoji: '🧵',
+    color: 'bg-blue-50 border-blue-200',
+    accentColor: 'text-blue-700',
+  },
+  {
+    nombre: 'Fábrica Imbabura',
+    categoria: 'Patrimonio',
+    descripcion:
+      'Declarada Patrimonio Cultural de la Nación. Esta antigua fábrica textil del siglo XIX es hoy un museo vivo que narra la historia industrial del Ecuador.',
+    emoji: '🏭',
+    color: 'bg-amber-50 border-amber-200',
+    accentColor: 'text-amber-700',
+  },
+  {
+    nombre: 'Chaltura — Capital del Cuy',
+    categoria: 'Gastronomía',
+    descripcion:
+      'Reconocida internacionalmente por su gastronomía. Los tradicionales cuyes y hornados de Chaltura son un referente culinario de la sierra ecuatoriana.',
+    emoji: '🍽️',
+    color: 'bg-red-50 border-red-200',
+    accentColor: 'text-red-700',
+  },
+  {
+    nombre: 'Laguna de Imbaya',
+    categoria: 'Naturaleza',
+    descripcion:
+      'Ecosistema de humedal con aves migratorias y vegetación nativa. Ideal para senderismo, observación de aves y turismo ecológico responsable.',
+    emoji: '🏞️',
+    color: 'bg-teal-50 border-teal-200',
+    accentColor: 'text-teal-700',
+  },
+  {
+    nombre: 'Festival de la Confraternidad — Natabuela',
+    categoria: 'Cultura',
+    descripcion:
+      'Celebración del pueblo indígena Natabuela con música, danza y trajes típicos. Una experiencia cultural auténtica declarada Patrimonio Inmaterial.',
+    emoji: '🎊',
+    color: 'bg-purple-50 border-purple-200',
+    accentColor: 'text-purple-700',
+  },
+  {
+    nombre: 'Mercado Artesanal',
+    categoria: 'Artesanías',
+    descripcion:
+      'Tejidos, bordados y artesanías propias de las comunidades del cantón. Souvenirs únicos elaborados a mano por artesanos locales.',
+    emoji: '🎨',
+    color: 'bg-orange-50 border-orange-200',
+    accentColor: 'text-orange-700',
+  },
+];
+
+const estadisticas = [
+  { valor: '+85k', descripcion: 'Visitantes en la Expo 2026' },
+  { valor: '2.406 m', descripcion: 'Altitud sobre el nivel del mar' },
+  { valor: '6', descripcion: 'Destinos en un solo cantón' },
+  { valor: '1 h', descripcion: 'Desde Quito en carretera' },
+];
+---
+
+<BaseLayout
+  title="Turismo"
+  description="Descubre el Cantón Antonio Ante, la Capital de la Moda de Ecuador. Expo Atuntaqui, gastronomía de Chaltura, Fábrica Imbabura, naturaleza y cultura."
+>
+  <!-- Hero editorial -->
+  <section class="relative overflow-hidden" aria-labelledby="turismo-heading">
+    <!-- Fondo con gradiente -->
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-blue-950 via-brand-primary to-teal-900"
+      aria-hidden="true"
+    >
+    </div>
+    <!-- Patrón textil decorativo -->
+    <div class="absolute inset-0 opacity-5" aria-hidden="true">
+      <svg width="100%" height="100%">
+        <defs>
+          <pattern id="textile" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.5" fill="white"></circle>
+            <circle cx="14" cy="14" r="1.5" fill="white"></circle>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#textile)"></rect>
+      </svg>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+      <nav aria-label="Breadcrumb" class="mb-6">
+        <ol class="flex items-center gap-2 text-white/50 text-sm" role="list">
+          <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
+          <li aria-hidden="true" class="select-none">›</li>
+          <li class="text-white font-medium" aria-current="page">Turismo</li>
+        </ol>
+      </nav>
+
+      <p
+        class="inline-flex items-center gap-2 text-brand-secondary font-bold text-xs uppercase tracking-widest mb-4"
+      >
+        <span aria-hidden="true">★</span>
+        Imbabura · Ecuador · 2.406 m s.n.m.
+      </p>
+
+      <h1
+        id="turismo-heading"
+        class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6"
+      >
+        Descubre<br />
+        <span class="text-brand-secondary">Antonio Ante</span>
+      </h1>
+
+      <p class="text-white/80 text-lg lg:text-xl max-w-2xl leading-relaxed mb-10">
+        La <strong class="text-white">Capital de la Moda del Ecuador</strong>. Un cantón que combina
+        industria textil de talla mundial, gastronomía reconocida, patrimonio histórico y naturaleza
+        exuberante — todo en menos de 80 km².
+      </p>
+
+      <!-- Pills de actividades -->
+      <div class="flex flex-wrap gap-2" aria-label="Tipos de turismo disponibles">
+        {
+          [
+            '🧵 Moda & Textil',
+            '🍽️ Gastronomía',
+            '🏛️ Patrimonio',
+            '🏞️ Naturaleza',
+            '🎊 Cultura',
+          ].map((pill) => (
+            <span class="px-4 py-1.5 bg-white/10 text-white text-sm font-semibold rounded-full border border-white/20">
+              {pill}
+            </span>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Estadísticas -->
+  <section class="bg-brand-secondary py-10" aria-label="Datos de turismo">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ul class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center" role="list">
+        {
+          estadisticas.map(({ valor, descripcion }) => (
+            <li>
+              <p class="text-2xl lg:text-3xl font-bold text-white leading-none mb-1">{valor}</p>
+              <p class="text-white/80 text-xs font-semibold uppercase tracking-wide">
+                {descripcion}
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Atractivos -->
+  <section class="py-16 lg:py-24 bg-brand-light" aria-labelledby="atractivos-heading">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <p class="text-brand-secondary text-xs font-bold uppercase tracking-widest mb-2">
+          Qué visitar
+        </p>
+        <h2 id="atractivos-heading" class="text-2xl lg:text-3xl font-bold text-brand-primary">
+          Principales atractivos
+        </h2>
+        <p class="text-brand-dark/60 mt-3 max-w-xl mx-auto">
+          Seis experiencias únicas dentro del cantón más pequeño del Ecuador.
+        </p>
+      </div>
+
+      <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list">
+        {
+          atractivos.map(({ nombre, categoria, descripcion, emoji, color, accentColor }) => (
+            <li
+              class:list={[
+                'rounded-xl border p-6 transition-shadow duration-200 hover:shadow-md',
+                color,
+              ]}
+            >
+              <div class="flex items-start gap-4">
+                <span class="text-3xl flex-shrink-0" aria-hidden="true">
+                  {emoji}
+                </span>
+                <div>
+                  <p class:list={['text-xs font-bold uppercase tracking-widest mb-1', accentColor]}>
+                    {categoria}
+                  </p>
+                  <h3 class="font-bold text-brand-dark text-base mb-2">{nombre}</h3>
+                  <p class="text-sm text-brand-dark/65 leading-relaxed">{descripcion}</p>
+                </div>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Cómo llegar -->
+  <section class="py-16 bg-brand-accent border-t border-gray-100" aria-labelledby="llegar-heading">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <p class="text-brand-secondary text-xs font-bold uppercase tracking-widest mb-2">
+            Accesibilidad
+          </p>
+          <h2 id="llegar-heading" class="text-2xl lg:text-3xl font-bold text-brand-primary mb-4">
+            Cómo llegar
+          </h2>
+          <p class="text-brand-dark/70 mb-6">
+            Atuntaqui se encuentra a <strong class="text-brand-dark">~100 km</strong> al norte de Quito
+            por la Panamericana Norte (E35). El viaje dura aproximadamente <strong
+              class="text-brand-dark">1 hora y 30 minutos</strong
+            >.
+          </p>
+          <ul class="space-y-3 text-sm" role="list">
+            {
+              [
+                { desde: 'Quito', tiempo: '~1h 30min', via: 'Panamericana Norte (E35)' },
+                { desde: 'Ibarra', tiempo: '~15 min', via: 'E35 sur' },
+                { desde: 'Otavalo', tiempo: '~20 min', via: 'E35 norte' },
+                { desde: 'Tulcán', tiempo: '~2h 30min', via: 'Panamericana Sur' },
+              ].map(({ desde, tiempo, via }) => (
+                <li class="flex items-start gap-3">
+                  <svg
+                    class="w-4 h-4 text-brand-secondary flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                    />
+                  </svg>
+                  <div>
+                    <span class="font-semibold text-brand-dark">Desde {desde}</span>
+                    <span class="text-brand-dark/60">
+                      {' '}
+                      — {tiempo} vía {via}
+                    </span>
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-100 p-6">
+          <h3 class="font-bold text-brand-primary mb-4 text-base">Coordenadas del cantón</h3>
+          <dl class="grid grid-cols-2 gap-4 text-sm mb-4">
+            <div>
+              <dt class="text-brand-dark/50 font-medium">Latitud</dt>
+              <dd class="font-mono text-brand-dark font-semibold">0°19'41" N</dd>
+            </div>
+            <div>
+              <dt class="text-brand-dark/50 font-medium">Longitud</dt>
+              <dd class="font-mono text-brand-dark font-semibold">78°12'48" O</dd>
+            </div>
+            <div>
+              <dt class="text-brand-dark/50 font-medium">Altitud</dt>
+              <dd class="font-mono text-brand-dark font-semibold">2.406 m s.n.m.</dd>
+            </div>
+            <div>
+              <dt class="text-brand-dark/50 font-medium">Temperatura</dt>
+              <dd class="font-mono text-brand-dark font-semibold">14–22°C</dd>
+            </div>
+          </dl>
+          <a
+            href="https://maps.google.com/?q=Atuntaqui,+Ecuador"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-brand-primary text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+            aria-label="Ver Atuntaqui en Google Maps (abre en nueva pestaña)"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              ></path>
+            </svg>
+            Abrir en Google Maps
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA final -->
+  <section class="py-16 bg-brand-primary text-white" aria-label="Planifica tu visita">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-2xl lg:text-3xl font-bold mb-4">¿Listo para visitar Antonio Ante?</h2>
+      <p class="text-white/80 max-w-xl mx-auto mb-8">
+        Contáctanos para más información sobre eventos, hospedaje y actividades turísticas en el
+        cantón.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a
+          href="/contacto"
+          class="inline-flex items-center gap-2 px-6 py-3 bg-brand-secondary text-white font-semibold rounded-lg hover:opacity-90 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-brand-primary"
+        >
+          Contáctanos
+        </a>
+        <a
+          href="/parroquias"
+          class="inline-flex items-center gap-2 px-6 py-3 border-2 border-white/60 text-white font-semibold rounded-lg hover:border-white hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-primary"
+        >
+          Ver parroquias
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

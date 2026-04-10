@@ -11,7 +11,8 @@ export const SanityImageSchema = z.object({
     _type: z.literal('reference'),
     _ref: z.string(),
   }),
-  alt: z.string().optional(),
+  // Sanity returns null (not undefined) for unset optional fields — use .nullish()
+  alt: z.string().nullish(),
   hotspot: z
     .object({
       x: z.number(),
@@ -19,7 +20,7 @@ export const SanityImageSchema = z.object({
       height: z.number(),
       width: z.number(),
     })
-    .optional(),
+    .nullish(),
   crop: z
     .object({
       top: z.number(),
@@ -27,7 +28,7 @@ export const SanityImageSchema = z.object({
       left: z.number(),
       right: z.number(),
     })
-    .optional(),
+    .nullish(),
 });
 
 // Portable Text blocks: open structure, validated at the array level only.

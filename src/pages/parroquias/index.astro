@@ -1,0 +1,193 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+import { getParroquias } from '@api/endpoints/parroquias';
+
+export const prerender = true;
+
+const parroquias = await getParroquias();
+const cabecera = parroquias.find((p) => p.esCabeceraCantonal);
+const resto = parroquias.filter((p) => !p.esCabeceraCantonal);
+---
+
+<BaseLayout
+  title="Parroquias"
+  description="Conoce las seis parroquias del Cantón Antonio Ante: Atuntaqui, Andrade Marín, Chaltura, Imbaya, Natabuela y San Roque. Información de población, superficie y características."
+>
+  <!-- Hero -->
+  <section class="bg-brand-primary text-white py-12 lg:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav aria-label="Breadcrumb" class="mb-4">
+        <ol class="flex items-center gap-2 text-white/60 text-sm" role="list">
+          <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
+          <li aria-hidden="true" class="select-none">›</li>
+          <li class="text-white font-medium" aria-current="page">Parroquias</li>
+        </ol>
+      </nav>
+      <h1 class="text-3xl lg:text-4xl font-bold mb-3">Las 6 parroquias del cantón</h1>
+      <p class="text-white/80 max-w-xl">
+        El Cantón Antonio Ante está conformado por dos parroquias urbanas y cuatro rurales, cada una
+        con su propia identidad cultural, tradiciones y atractivos.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-12 lg:py-16 bg-brand-light">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Cabecera cantonal destacada -->
+      {
+        cabecera && (
+          <div class="mb-10">
+            <h2 class="text-xs font-bold uppercase tracking-widest text-brand-secondary mb-4">
+              Cabecera cantonal
+            </h2>
+            <a
+              href={`/parroquias/${cabecera.slug.current}`}
+              class="group block bg-brand-primary text-white rounded-2xl overflow-hidden hover:opacity-95 transition-opacity duration-200 outline-none focus-visible:ring-4 focus-visible:ring-brand-secondary focus-visible:ring-offset-2"
+            >
+              <div class="p-8 lg:p-10 flex flex-col sm:flex-row sm:items-center gap-6">
+                <div
+                  class="w-16 h-16 rounded-2xl bg-brand-secondary flex items-center justify-center flex-shrink-0"
+                  aria-hidden="true"
+                >
+                  <svg
+                    class="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="flex flex-wrap items-center gap-3 mb-2">
+                    <h3 class="text-2xl font-bold">{cabecera.nombre}</h3>
+                    <span class="px-3 py-1 bg-brand-secondary text-white text-xs font-bold rounded-full uppercase tracking-wide">
+                      Cabecera cantonal · Urbana
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap gap-6 text-white/80 text-sm">
+                    {cabecera.poblacion && (
+                      <span>👥 {cabecera.poblacion.toLocaleString('es-EC')} habitantes</span>
+                    )}
+                    {cabecera.superficieKm2 && <span>📐 {cabecera.superficieKm2} km²</span>}
+                  </div>
+                </div>
+                <svg
+                  class="w-6 h-6 text-white/50 group-hover:text-white transition-colors duration-200 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </a>
+          </div>
+        )
+      }
+
+      <!-- Parroquias rurales y urbanas -->
+      <div>
+        <h2 class="text-xs font-bold uppercase tracking-widest text-brand-secondary mb-4">
+          Parroquias {resto.some((p) => p.esCabeceraCantonal) ? '' : 'rurales y urbanas'}
+        </h2>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" role="list">
+          {
+            resto.map((p) => (
+              <li>
+                <a
+                  href={`/parroquias/${p.slug.current}`}
+                  class="group flex flex-col h-full bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md hover:border-brand-primary/20 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                >
+                  <div class="p-6 flex flex-col flex-1">
+                    <div class="flex items-start justify-between mb-4">
+                      <div
+                        class="w-12 h-12 rounded-xl bg-brand-primary/10 flex items-center justify-center group-hover:bg-brand-primary/20 transition-colors duration-200"
+                        aria-hidden="true"
+                      >
+                        <svg
+                          class="w-6 h-6 text-brand-primary"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                          />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                      </div>
+                      <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wide">
+                        Rural
+                      </span>
+                    </div>
+
+                    <h3 class="text-lg font-bold text-brand-primary mb-2 group-hover:text-brand-secondary transition-colors duration-200">
+                      {p.nombre}
+                    </h3>
+
+                    <dl class="space-y-1 text-sm text-brand-dark/60 flex-1">
+                      {p.poblacion && (
+                        <div class="flex justify-between">
+                          <dt>Población</dt>
+                          <dd class="font-semibold text-brand-dark">
+                            {p.poblacion.toLocaleString('es-EC')} hab.
+                          </dd>
+                        </div>
+                      )}
+                      {p.superficieKm2 && (
+                        <div class="flex justify-between">
+                          <dt>Superficie</dt>
+                          <dd class="font-semibold text-brand-dark">{p.superficieKm2} km²</dd>
+                        </div>
+                      )}
+                    </dl>
+
+                    <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                      <span class="text-xs font-semibold text-brand-primary group-hover:text-brand-secondary transition-colors duration-200">
+                        Ver información
+                      </span>
+                      <svg
+                        class="w-4 h-4 text-brand-primary/50 group-hover:text-brand-secondary group-hover:translate-x-0.5 transition-all duration-200"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

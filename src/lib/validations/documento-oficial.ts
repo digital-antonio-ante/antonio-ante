@@ -25,9 +25,10 @@ export const DocumentoOficialSchema = SanityDocumentBaseSchema.extend({
   slug: SanitySlugSchema,
   categoria: CategoriaDocumentoSchema,
   fechaPublicacion: z.string().datetime({ offset: true }),
-  numero: z.string().optional(),
-  archivo: ArchivoSanitySchema,
-  descripcion: z.string().max(500).optional(),
+  numero: z.string().nullish(),
+  // nullish: Sanity returns null (not undefined) for unset optional fields
+  archivo: ArchivoSanitySchema.nullish(),
+  descripcion: z.string().max(500).nullish(),
   vigente: z.boolean().default(true),
 });
 

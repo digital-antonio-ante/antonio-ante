@@ -1,0 +1,259 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+
+export const prerender = true;
+
+const articulos = [
+  {
+    numero: 'Art. 7',
+    titulo: 'Difusión de información pública',
+    items: [
+      'Estructura orgánica y funcional del GAD Municipal',
+      'Directorio de funcionarios y remuneraciones',
+      'Planes y programas de la institución',
+      'Presupuesto general aprobado y su ejecución',
+      'Procesos de contratación pública',
+      'Denuncias, quejas y sugerencias ciudadanas',
+    ],
+  },
+  {
+    numero: 'Art. 12',
+    titulo: 'Información adicional',
+    items: [
+      'Actas del Concejo Municipal',
+      'Resoluciones y ordenanzas municipales',
+      'Informes de auditoría interna y externa',
+      'Plan de Desarrollo y Ordenamiento Territorial (PDOT)',
+      'Rendición de cuentas anual',
+    ],
+  },
+];
+
+const enlaces = [
+  {
+    titulo: 'Documentos Oficiales',
+    href: '/documentos',
+    descripcion: 'Ordenanzas, resoluciones, presupuestos y más.',
+  },
+  {
+    titulo: 'Contratación Pública',
+    href: 'https://www.compraspublicas.gob.ec',
+    descripcion: 'SERCOP — Sistema Nacional de Contratación Pública.',
+    externa: true,
+  },
+  {
+    titulo: 'Contraloría General',
+    href: 'https://www.contraloria.gob.ec',
+    descripcion: 'Informes de auditoría del sector público.',
+    externa: true,
+  },
+  {
+    titulo: 'Formulario de Contacto',
+    href: '/contacto',
+    descripcion: 'Solicitudes de información LOTAIP.',
+  },
+];
+---
+
+<BaseLayout
+  title="Transparencia"
+  description="Transparencia y acceso a la información pública del GAD Municipal del Cantón Antonio Ante conforme a la LOTAIP — Ley Orgánica de Transparencia y Acceso a la Información Pública."
+>
+  <!-- Hero -->
+  <section class="bg-brand-primary text-white py-12 lg:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav aria-label="Breadcrumb" class="mb-4">
+        <ol class="flex items-center gap-2 text-white/60 text-sm" role="list">
+          <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
+          <li aria-hidden="true" class="select-none">›</li>
+          <li class="text-white font-medium" aria-current="page">Transparencia</li>
+        </ol>
+      </nav>
+      <div class="flex items-start gap-4">
+        <div
+          class="w-12 h-12 rounded-xl bg-brand-secondary flex items-center justify-center flex-shrink-0 mt-1"
+          aria-hidden="true"
+        >
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
+            ></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl lg:text-4xl font-bold mb-2">Transparencia</h1>
+          <p class="text-white/80 max-w-xl">
+            Información pública disponible conforme a la
+            <strong class="text-white"
+              >Ley Orgánica de Transparencia y Acceso a la Información Pública (LOTAIP)</strong
+            >, Registro Oficial No. 337, 18 de mayo de 2004.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-12 lg:py-16 bg-brand-light">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <!-- Declaración institucional -->
+      <div class="bg-white rounded-xl border border-brand-secondary/30 p-6 sm:p-8">
+        <div class="flex items-start gap-4">
+          <svg
+            class="w-6 h-6 text-brand-secondary flex-shrink-0 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <h2 class="text-lg font-bold text-brand-primary mb-2">Compromiso institucional</h2>
+            <p class="text-brand-dark/70 leading-relaxed text-sm">
+              El GAD Municipal del Cantón Antonio Ante garantiza el derecho ciudadano al acceso a
+              información pública de conformidad con la Constitución de la República del Ecuador
+              (Art. 18) y la LOTAIP. Toda persona tiene derecho a acceder libremente a la
+              información generada en entidades del sector público.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Artículos LOTAIP -->
+      <div>
+        <h2 class="text-xl lg:text-2xl font-bold text-brand-primary mb-6">
+          Información disponible — LOTAIP
+        </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {
+            articulos.map((art) => (
+              <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <div class="bg-brand-primary px-5 py-3 flex items-center gap-3">
+                  <span class="text-brand-secondary font-bold text-sm font-mono">{art.numero}</span>
+                  <h3 class="text-white font-semibold text-sm">{art.titulo}</h3>
+                </div>
+                <ul class="divide-y divide-gray-50" role="list">
+                  {art.items.map((item) => (
+                    <li class="px-5 py-3 flex items-start gap-2 text-sm text-brand-dark/70">
+                      <svg
+                        class="w-4 h-4 text-brand-secondary flex-shrink-0 mt-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- Accesos rápidos -->
+      <div>
+        <h2 class="text-xl lg:text-2xl font-bold text-brand-primary mb-6">Accesos directos</h2>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4" role="list">
+          {
+            enlaces.map(({ titulo, href, descripcion, externa }) => (
+              <li>
+                <a
+                  href={href}
+                  target={externa ? '_blank' : undefined}
+                  rel={externa ? 'noopener noreferrer' : undefined}
+                  class="group flex items-start gap-4 p-5 bg-white rounded-xl border border-gray-100 hover:border-brand-primary/30 hover:shadow-sm transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                >
+                  <div
+                    class="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-primary/20 transition-colors duration-200"
+                    aria-hidden="true"
+                  >
+                    {externa ? (
+                      <svg
+                        class="w-5 h-5 text-brand-primary"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        class="w-5 h-5 text-brand-primary"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <p class="font-bold text-brand-primary text-sm group-hover:text-brand-secondary transition-colors duration-200">
+                      {titulo}
+                      {externa && <span class="sr-only"> (abre en nueva pestaña)</span>}
+                    </p>
+                    <p class="text-xs text-brand-dark/60 mt-0.5">{descripcion}</p>
+                  </div>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- Solicitud de información -->
+      <div class="bg-brand-accent rounded-xl p-6 sm:p-8 border border-gray-100">
+        <h2 class="text-lg font-bold text-brand-primary mb-2">
+          ¿Necesitas información específica?
+        </h2>
+        <p class="text-sm text-brand-dark/70 mb-4 max-w-xl">
+          Si no encuentras la información que necesitas, puedes realizar una solicitud formal de
+          acceso a información pública. Respondemos en un plazo máximo de 10 días hábiles conforme
+          al Art. 19 de la LOTAIP.
+        </p>
+        <a
+          href="/contacto"
+          class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary text-white font-semibold text-sm rounded-lg hover:opacity-90 transition-opacity duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+        >
+          Solicitar información
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"
+            ></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -12,7 +12,8 @@
     "@sanity/vision": "^5.20.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sanity": "^5.20.0"
+    "sanity": "^5.20.0",
+    "styled-components": "^6.4.0"
   },
   "devDependencies": {
     "@sanity/client": "^7.20.0",

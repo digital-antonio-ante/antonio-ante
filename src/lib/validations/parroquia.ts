@@ -25,11 +25,11 @@ export const ParroquiaSchema = SanityDocumentBaseSchema.extend({
   _type: z.literal('parroquia'),
   nombre: NombreParroquiaSchema,
   slug: SanitySlugSchema,
-  descripcion: PortableTextSchema.optional(),
-  poblacion: z.number().int().positive().optional(),
-  superficieKm2: z.number().positive().optional(),
-  coordenadas: CoordenadasSchema.optional(),
-  imagenPrincipal: SanityImageSchema.optional(),
+  descripcion: PortableTextSchema.nullish(),
+  poblacion: z.number().int().positive().nullish(),
+  superficieKm2: z.number().positive().nullish(),
+  coordenadas: CoordenadasSchema.nullish(),
+  imagenPrincipal: SanityImageSchema.nullish(),
   esCabeceraCantonal: z.boolean().default(false),
 });
 

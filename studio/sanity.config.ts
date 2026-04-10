@@ -6,7 +6,7 @@ import { schemas } from './schemas';
 export default defineConfig({
   name: 'antonio-ante',
   title: 'GAD Antonio Ante',
-  projectId: 'lmfe6xr',
+  projectId: 'lmfef6xr',
   dataset: 'production',
 
   plugins: [

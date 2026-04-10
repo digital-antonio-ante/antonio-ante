@@ -21,10 +21,10 @@ export const NoticiaSchema = SanityDocumentBaseSchema.extend({
   titulo: z.string().min(1),
   slug: SanitySlugSchema,
   resumen: z.string().min(1).max(300),
-  cuerpo: PortableTextSchema,
+  cuerpo: PortableTextSchema.nullish(),
   publishedAt: z.string().datetime({ offset: true }),
   categoria: CategoriaNoticiaSchema,
-  imagenPortada: SanityImageSchema.optional(),
+  imagenPortada: SanityImageSchema.nullish(),
   destacada: z.boolean().default(false),
 });
 

@@ -32,8 +32,32 @@ const QUERY_BY_CATEGORIA = `
   }
 `;
 
+const QUERY_DESTACADAS = `
+  *[_type == "noticia" && destacada == true] | order(publishedAt desc) [0...$limit] {
+    _id, _type, _createdAt, _updatedAt, _rev,
+    titulo, slug, resumen, publishedAt,
+    categoria, imagenPortada, destacada
+  }
+`;
+
+const QUERY_RECIENTES = `
+  *[_type == "noticia"] | order(publishedAt desc) [0...$limit] {
+    _id, _type, _createdAt, _updatedAt, _rev,
+    titulo, slug, resumen, publishedAt,
+    categoria, imagenPortada, destacada
+  }
+`;
+
 export async function getNoticias(): Promise<NoticiaListItem[]> {
   return fetchSanity(QUERY_LIST, z.array(NoticiaListItemSchema));
+}
+
+export async function getNoticiasDestacadas(limit = 3): Promise<NoticiaListItem[]> {
+  return fetchSanity(QUERY_DESTACADAS, z.array(NoticiaListItemSchema), { limit });
+}
+
+export async function getNoticiasRecientes(limit = 6): Promise<NoticiaListItem[]> {
+  return fetchSanity(QUERY_RECIENTES, z.array(NoticiaListItemSchema), { limit });
 }
 
 export async function getNoticia(slug: string): Promise<Noticia | null> {

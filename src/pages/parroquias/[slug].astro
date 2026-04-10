@@ -1,0 +1,191 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+import PortableText from '@ui/PortableText.astro';
+import { getParroquias, getParroquia } from '@api/endpoints/parroquias';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const parroquias = await getParroquias();
+  return parroquias.map((p) => ({ params: { slug: p.slug.current } }));
+}
+
+const { slug } = Astro.params;
+const parroquia = await getParroquia(slug);
+
+if (!parroquia) {
+  return new Response(null, { status: 404, statusText: 'Not Found' });
+}
+---
+
+<BaseLayout
+  title={parroquia.nombre}
+  description={`Información sobre la parroquia ${parroquia.nombre} del Cantón Antonio Ante, Imbabura, Ecuador. Población, superficie, actividades y proyectos.`}
+  canonical={`https://antonio-ante.gob.ec/parroquias/${parroquia.slug.current}`}
+>
+  <!-- Hero -->
+  <section class="bg-brand-primary text-white py-12 lg:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav aria-label="Breadcrumb" class="mb-4">
+        <ol class="flex items-center gap-2 text-white/60 text-sm flex-wrap" role="list">
+          <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
+          <li aria-hidden="true" class="select-none">›</li>
+          <li><a href="/parroquias" class="hover:text-white transition-colors">Parroquias</a></li>
+          <li aria-hidden="true" class="select-none">›</li>
+          <li class="text-white font-medium" aria-current="page">{parroquia.nombre}</li>
+        </ol>
+      </nav>
+
+      <div class="flex flex-wrap items-center gap-3 mb-3">
+        <h1 class="text-3xl lg:text-4xl font-bold">{parroquia.nombre}</h1>
+        {
+          parroquia.esCabeceraCantonal && (
+            <span class="px-3 py-1 bg-brand-secondary text-white text-sm font-bold rounded-full uppercase tracking-wide">
+              Cabecera cantonal
+            </span>
+          )
+        }
+      </div>
+      <p class="text-white/70 text-sm">Cantón Antonio Ante · Provincia de Imbabura · Ecuador</p>
+    </div>
+  </section>
+
+  <section class="py-12 lg:py-16 bg-brand-light">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-12 items-start">
+        <!-- Contenido -->
+        <div>
+          {
+            parroquia.descripcion && parroquia.descripcion.length > 0 ? (
+              <div class="mb-8">
+                <h2 class="text-xl font-bold text-brand-primary mb-4">Descripción</h2>
+                <PortableText blocks={parroquia.descripcion ?? []} />
+              </div>
+            ) : (
+              <div class="bg-brand-accent rounded-xl p-6 mb-8 text-center">
+                <p class="text-brand-dark/50">
+                  Próximamente más información sobre {parroquia.nombre}.
+                </p>
+              </div>
+            )
+          }
+
+          <!-- Mapa placeholder — se reemplaza con mapa real en Fase 4 -->
+          <div class="bg-brand-accent rounded-xl overflow-hidden border border-gray-100">
+            <div class="p-5 border-b border-gray-100">
+              <h2 class="text-base font-bold text-brand-primary">Ubicación</h2>
+            </div>
+            {
+              parroquia.coordenadas ? (
+                <div class="p-5">
+                  <dl class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <dt class="text-brand-dark/50 font-medium">Latitud</dt>
+                      <dd class="font-mono text-brand-dark font-semibold">
+                        {parroquia.coordenadas.lat.toFixed(4)}°
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-brand-dark/50 font-medium">Longitud</dt>
+                      <dd class="font-mono text-brand-dark font-semibold">
+                        {parroquia.coordenadas.lng.toFixed(4)}°
+                      </dd>
+                    </div>
+                  </dl>
+                  <a
+                    href={`https://maps.google.com/?q=${parroquia.coordenadas.lat},${parroquia.coordenadas.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-secondary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded"
+                    aria-label={`Ver ${parroquia.nombre} en Google Maps (abre en nueva pestaña)`}
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                    Ver en Google Maps
+                  </a>
+                </div>
+              ) : (
+                <p class="p-5 text-brand-dark/50 text-sm">Coordenadas no disponibles.</p>
+              )
+            }
+          </div>
+        </div>
+
+        <!-- Sidebar de datos -->
+        <aside aria-label="Datos de la parroquia" class="lg:sticky lg:top-24 space-y-4">
+          <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <div class="bg-brand-primary px-5 py-4">
+              <h2 class="text-white font-bold text-sm uppercase tracking-wide">Datos generales</h2>
+            </div>
+            <dl class="divide-y divide-gray-100">
+              <div class="px-5 py-3 flex justify-between text-sm">
+                <dt class="text-brand-dark/50 font-medium">Tipo</dt>
+                <dd class="font-semibold text-brand-dark">
+                  {parroquia.esCabeceraCantonal ? 'Urbana · Cabecera cantonal' : 'Rural'}
+                </dd>
+              </div>
+              {
+                parroquia.poblacion && (
+                  <div class="px-5 py-3 flex justify-between text-sm">
+                    <dt class="text-brand-dark/50 font-medium">Población</dt>
+                    <dd class="font-semibold text-brand-dark">
+                      {parroquia.poblacion.toLocaleString('es-EC')} hab.
+                    </dd>
+                  </div>
+                )
+              }
+              {
+                parroquia.superficieKm2 && (
+                  <div class="px-5 py-3 flex justify-between text-sm">
+                    <dt class="text-brand-dark/50 font-medium">Superficie</dt>
+                    <dd class="font-semibold text-brand-dark">{parroquia.superficieKm2} km²</dd>
+                  </div>
+                )
+              }
+              <div class="px-5 py-3 flex justify-between text-sm">
+                <dt class="text-brand-dark/50 font-medium">Cantón</dt>
+                <dd class="font-semibold text-brand-dark">Antonio Ante</dd>
+              </div>
+              <div class="px-5 py-3 flex justify-between text-sm">
+                <dt class="text-brand-dark/50 font-medium">Provincia</dt>
+                <dd class="font-semibold text-brand-dark">Imbabura</dd>
+              </div>
+            </dl>
+          </div>
+
+          <a
+            href="/parroquias"
+            class="flex items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-secondary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded p-1"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Ver todas las parroquias
+          </a>
+        </aside>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

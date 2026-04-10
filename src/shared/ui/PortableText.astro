@@ -1,0 +1,186 @@
+---
+/**
+ * PortableText.astro — Renderiza Sanity Portable Text como HTML semántico.
+ *
+ * Soporta: h2-h4, blockquote, normal, bullet, number, strong, em, underline, link, image.
+ * Trade-off: usa set:html con contenido de Sanity (CMS de confianza, no input de usuario).
+ * Los href de links se sanitizan para prevenir javascript: URIs.
+ */
+
+interface PortableTextSpan {
+  _type: 'span';
+  _key: string;
+  text: string;
+  marks: string[];
+}
+
+interface PortableTextMarkDef {
+  _key: string;
+  _type: string;
+  href?: string;
+  blank?: boolean;
+}
+
+interface PortableTextBlock {
+  _type: 'block';
+  _key: string;
+  style?: string;
+  children: PortableTextSpan[];
+  markDefs?: PortableTextMarkDef[];
+  listItem?: 'bullet' | 'number';
+  level?: number;
+}
+
+interface PortableTextImage {
+  _type: 'image';
+  _key: string;
+  asset: { _ref: string };
+  alt?: string;
+  caption?: string;
+}
+
+type PortableTextNode = PortableTextBlock | PortableTextImage | Record<string, unknown>;
+
+interface Props {
+  blocks: unknown[];
+  class?: string;
+}
+
+const { blocks, class: className = '' } = Astro.props;
+
+const ALLOWED_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+
+function safeHref(href: string): string {
+  try {
+    const url = new URL(href);
+    return ALLOWED_SCHEMES.has(url.protocol) ? href : '#';
+  } catch {
+    return '#';
+  }
+}
+
+function renderSpan(span: PortableTextSpan, markDefs: PortableTextMarkDef[]): string {
+  // Escape HTML in text content
+  const escaped = span.text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+  let html = escaped;
+
+  for (const mark of span.marks ?? []) {
+    if (mark === 'strong') {
+      html = `<strong>${html}</strong>`;
+    } else if (mark === 'em') {
+      html = `<em>${html}</em>`;
+    } else if (mark === 'underline') {
+      html = `<u>${html}</u>`;
+    } else {
+      const def = markDefs.find((d) => d._key === mark);
+      if (def?._type === 'link' && def.href) {
+        const href = safeHref(def.href);
+        const rel = def.blank ? ' rel="noopener noreferrer"' : '';
+        const target = def.blank ? ' target="_blank"' : '';
+        html = `<a href="${href}"${target}${rel} class="text-brand-primary underline hover:text-brand-secondary">${html}</a>`;
+      }
+    }
+  }
+
+  return html;
+}
+
+function renderBlock(block: PortableTextBlock): string {
+  const markDefs = block.markDefs ?? [];
+  const content = (block.children ?? []).map((span) => renderSpan(span, markDefs)).join('');
+
+  const styleMap: Record<string, string> = {
+    h2: `<h2 class="text-2xl font-bold text-brand-primary mt-8 mb-4">${content}</h2>`,
+    h3: `<h3 class="text-xl font-bold text-brand-primary mt-6 mb-3">${content}</h3>`,
+    h4: `<h4 class="text-lg font-semibold text-brand-dark mt-5 mb-2">${content}</h4>`,
+    blockquote: `<blockquote class="border-l-4 border-brand-secondary pl-4 my-4 italic text-brand-dark/70">${content}</blockquote>`,
+    normal: `<p class="text-base text-brand-dark/80 leading-relaxed mb-4">${content}</p>`,
+  };
+
+  return (
+    styleMap[block.style ?? 'normal'] ??
+    `<p class="text-base text-brand-dark/80 leading-relaxed mb-4">${content}</p>`
+  );
+}
+
+// Group consecutive list items
+function renderNodes(nodes: PortableTextNode[]): string {
+  const parts: string[] = [];
+  let i = 0;
+
+  while (i < nodes.length) {
+    const node = nodes[i] as Record<string, unknown>;
+
+    if (node._type === 'block') {
+      const block = node as unknown as PortableTextBlock;
+
+      if (block.listItem === 'bullet' || block.listItem === 'number') {
+        const tag = block.listItem === 'bullet' ? 'ul' : 'ol';
+        const itemClass =
+          block.listItem === 'bullet'
+            ? 'list-disc pl-6 mb-4 space-y-1 text-brand-dark/80'
+            : 'list-decimal pl-6 mb-4 space-y-1 text-brand-dark/80';
+        const items: string[] = [];
+
+        while (
+          i < nodes.length &&
+          (nodes[i] as Record<string, unknown>)._type === 'block' &&
+          (nodes[i] as unknown as PortableTextBlock).listItem === block.listItem
+        ) {
+          const listBlock = nodes[i] as unknown as PortableTextBlock;
+          const markDefs = listBlock.markDefs ?? [];
+          const content = (listBlock.children ?? [])
+            .map((span) => renderSpan(span, markDefs))
+            .join('');
+          items.push(`<li>${content}</li>`);
+          i++;
+        }
+
+        parts.push(`<${tag} class="${itemClass}">${items.join('')}</${tag}>`);
+        continue;
+      }
+
+      parts.push(renderBlock(block));
+    } else if (node._type === 'image') {
+      const imgNode = node as unknown as PortableTextImage;
+      const alt = imgNode.alt ?? '';
+      const caption = imgNode.caption ?? '';
+      const ref = imgNode.asset?._ref ?? '';
+      const projectId = (import.meta as Record<string, unknown>).env
+        ? ((import.meta.env as Record<string, string>).PUBLIC_SANITY_PROJECT_ID ?? '')
+        : '';
+      const dataset = (import.meta as Record<string, unknown>).env
+        ? ((import.meta.env as Record<string, string>).PUBLIC_SANITY_DATASET ?? 'production')
+        : 'production';
+
+      if (ref && projectId) {
+        const match = ref.match(/^image-(.+)-(\d+)x(\d+)-(\w+)$/);
+        if (match) {
+          const [, id, w, h, ext] = match;
+          const src = `https://cdn.sanity.io/images/${projectId}/${dataset}/${id}-${w}x${h}.${ext}?w=800&q=80&fit=max&fm=webp`;
+          parts.push(
+            `<figure class="my-6">
+              <img src="${src}" alt="${alt}" loading="lazy" decoding="async" class="w-full rounded-lg" />
+              ${caption ? `<figcaption class="text-sm text-center text-brand-dark/60 mt-2">${caption}</figcaption>` : ''}
+            </figure>`
+          );
+        }
+      }
+    }
+    // Unknown block types are silently skipped
+
+    i++;
+  }
+
+  return parts.join('');
+}
+
+const html = renderNodes(blocks as PortableTextNode[]);
+---
+
+<div class:list={['prose-content', className]} set:html={html} />

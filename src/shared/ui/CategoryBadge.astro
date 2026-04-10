@@ -1,0 +1,59 @@
+---
+/**
+ * CategoryBadge — Pill de categoría con color semántico.
+ * Contraste WCAG AA garantizado para cada variante.
+ */
+
+interface Props {
+  categoria: string;
+  size?: 'sm' | 'md';
+}
+
+const { categoria, size = 'sm' } = Astro.props;
+
+const colorMap: Record<string, string> = {
+  institucional: 'bg-blue-100 text-blue-800',
+  social: 'bg-green-100 text-green-800',
+  cultura: 'bg-purple-100 text-purple-800',
+  deporte: 'bg-orange-100 text-orange-800',
+  turismo: 'bg-teal-100 text-teal-800',
+  obras: 'bg-yellow-100 text-yellow-800',
+  ordenanza: 'bg-blue-100 text-blue-800',
+  resolucion: 'bg-indigo-100 text-indigo-800',
+  plan: 'bg-cyan-100 text-cyan-800',
+  informe: 'bg-slate-100 text-slate-700',
+  presupuesto: 'bg-emerald-100 text-emerald-800',
+  'rendicion-cuentas': 'bg-rose-100 text-rose-800',
+  otro: 'bg-gray-100 text-gray-700',
+};
+
+const labelMap: Record<string, string> = {
+  institucional: 'Institucional',
+  social: 'Social',
+  cultura: 'Cultura',
+  deporte: 'Deporte',
+  turismo: 'Turismo',
+  obras: 'Obras',
+  otro: 'Otro',
+  ordenanza: 'Ordenanza',
+  resolucion: 'Resolución',
+  plan: 'Plan',
+  informe: 'Informe',
+  presupuesto: 'Presupuesto',
+  'rendicion-cuentas': 'Rendición de Cuentas',
+};
+
+const colors = colorMap[categoria] ?? 'bg-gray-100 text-gray-700';
+const label = labelMap[categoria] ?? categoria;
+const sizeClass = size === 'md' ? 'px-3 py-1 text-sm' : 'px-2 py-0.5 text-xs';
+---
+
+<span
+  class:list={[
+    'inline-block font-semibold rounded-full uppercase tracking-wide',
+    sizeClass,
+    colors,
+  ]}
+>
+  {label}
+</span>
