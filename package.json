@@ -17,7 +17,11 @@
     "validate:seo": "tsx scripts/validate-seo.ts",
     "validate:bundle": "tsx scripts/validate-bundle-size.ts",
     "validate": "npm run validate:seo && npm run validate:bundle",
-    "ci": "npm run typecheck && npm run lint && npm run build && npm run validate"
+    "ci": "npm run typecheck && npm run lint && npm run build && npm run validate",
+    "studio:dev": "npm run dev --prefix studio",
+    "studio:build": "npm run build --prefix studio",
+    "studio:deploy": "npm run deploy --prefix studio",
+    "studio:seed": "SANITY_API_TOKEN=$SANITY_API_TOKEN tsx studio/scripts/seed.ts"
   },
   "lint-staged": {
     "*.{js,ts,astro}": [
