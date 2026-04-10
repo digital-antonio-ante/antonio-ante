@@ -1,0 +1,780 @@
+---
+/**
+ * CantonHero.astro — Sección hero del homepage del portal GAD Antonio Ante.
+ *
+ * Integra el diseño visual completo del cantón:
+ *   - Fondo decorativo (gradiente, orbes de color, silueta montaña, puntos textiles)
+ *   - Header animado con título, pills de identidad
+ *   - Mapa SVG interactivo + InfoPanel (lado a lado)
+ *   - Tira horizontal de tarjetas por parroquia
+ *   - Barra de métricas del cantón
+ *   - Galería lightbox
+ *
+ * Coordinación JS: selectParish + event delegation (CSP-safe, sin onclick inline).
+ */
+import CantonMapSVG from './CantonMapSVG.astro';
+import CantonInfoPanel from './CantonInfoPanel.astro';
+import ParishCardStrip from './ParishCardStrip.astro';
+import CantonGallery from './CantonGallery.astro';
+import { PARISHES } from '../data/parishes';
+
+const parishesJson = JSON.stringify(PARISHES);
+---
+
+<section class="canton-hero-section" aria-label="Bienvenida al Cantón Antonio Ante">
+  <!-- ── Capa decorativa de fondo ── -->
+  <div class="bg-decor" aria-hidden="true">
+    <!-- Silueta del volcán Imbabura -->
+    <svg
+      class="bg-mountain"
+      viewBox="0 0 1440 400"
+      preserveAspectRatio="xMidYMax slice"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M0,400 L200,400 L360,180 L440,240 L520,140 L600,200 L680,80 L760,160 L840,60 L920,130 L1000,200 L1080,150 L1160,220 L1280,180 L1440,300 L1440,400 Z"
+        fill="rgba(26,95,122,0.07)"></path>
+      <path
+        d="M0,400 L300,400 L480,220 L560,270 L660,180 L740,230 L840,120 L920,170 L1020,250 L1120,200 L1220,260 L1340,220 L1440,320 L1440,400 Z"
+        fill="rgba(22,160,133,0.05)"></path>
+    </svg>
+
+    <!-- Orbes de color -->
+    <div class="bg-orb bg-orb--red"></div>
+    <div class="bg-orb bg-orb--blue"></div>
+    <div class="bg-orb bg-orb--green"></div>
+    <div class="bg-orb bg-orb--orange"></div>
+
+    <!-- Patrón de puntos (referencia textil) -->
+    <svg class="bg-dots bg-dots--tl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="dots-tl" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.5" fill="rgba(26,95,122,0.35)"></circle>
+        </pattern>
+      </defs>
+      <rect width="200" height="200" fill="url(#dots-tl)"></rect>
+    </svg>
+    <svg class="bg-dots bg-dots--br" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="dots-br" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.5" fill="rgba(225,29,72,0.22)"></circle>
+        </pattern>
+      </defs>
+      <rect width="200" height="200" fill="url(#dots-br)"></rect>
+    </svg>
+
+    <!-- Líneas diagonales decorativas -->
+    <svg class="bg-lines" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+      <line x1="0" y1="600" x2="600" y2="0" stroke="rgba(22,160,133,0.1)" stroke-width="2"></line>
+      <line x1="60" y1="600" x2="600" y2="60" stroke="rgba(22,160,133,0.07)" stroke-width="1.5"
+      ></line>
+      <line x1="120" y1="600" x2="600" y2="120" stroke="rgba(22,160,133,0.05)" stroke-width="1"
+      ></line>
+    </svg>
+  </div>
+
+  <!-- ── Header central ── -->
+  <header class="canton-header animate-fade-up" aria-label="Presentación del cantón">
+    <div class="canton-header-inner">
+      <div class="location-pill">
+        <span class="location-dot" aria-hidden="true"></span>
+        Imbabura · Ecuador
+      </div>
+
+      <h1 class="canton-title">
+        <span class="canton-title-top">Explora el Cantón</span>
+        <span class="canton-title-main">
+          Antonio Ante
+          <span class="title-underline" aria-hidden="true"></span>
+        </span>
+      </h1>
+
+      <p class="canton-sub">
+        Conoce sus <strong>6 parroquias</strong>, su gente y los proyectos que impulsan la región
+      </p>
+
+      <div class="canton-pills" role="list" aria-label="Características del cantón">
+        <span class="canton-pill" role="listitem">🧵 Capital Textil</span>
+        <span class="canton-pill" role="listitem">🍽️ Gastronomía</span>
+        <span class="canton-pill" role="listitem">🏔️ 2.406 m s. n. m.</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Mapa + Panel (lado a lado) ── -->
+  <div class="top-row">
+    <div class="map-section animate-fade-up" style="animation-delay: 0.1s;">
+      <CantonMapSVG />
+    </div>
+    <div class="info-section animate-fade-up" style="animation-delay: 0.2s;">
+      <CantonInfoPanel />
+    </div>
+  </div>
+
+  <!-- ── Tira de tarjetas ── -->
+  <div class="cards-section animate-fade-up" style="animation-delay: 0.3s;">
+    <ParishCardStrip />
+  </div>
+
+  <!-- ── Callout de métricas ── -->
+  <div class="metrics-callout glass-panel animate-fade-up" style="animation-delay: 0.4s;">
+    <div class="callout-accent-bar" aria-hidden="true"></div>
+    <div class="callout-content">
+      <div class="callout-left">
+        <p class="callout-eyebrow">Cantón Antonio Ante · Imbabura · Ecuador</p>
+        <h2 class="callout-title">Seis parroquias,<br />una sola identidad.</h2>
+        <p class="callout-sub">
+          Cada rincón guarda su propia historia, cultura y paisaje. Explóralos haciendo clic en el
+          mapa o en las tarjetas.
+        </p>
+      </div>
+
+      <dl class="callout-metrics" aria-label="Estadísticas del cantón">
+        <div class="callout-metric">
+          <span class="callout-metric-icon" aria-hidden="true">🏘️</span>
+          <div>
+            <strong class="callout-metric-num">6</strong>
+            <span class="callout-metric-label">Parroquias</span>
+          </div>
+        </div>
+        <div class="callout-metric">
+          <span class="callout-metric-icon" aria-hidden="true">👥</span>
+          <div>
+            <strong class="callout-metric-num">~45k</strong>
+            <span class="callout-metric-label">Habitantes</span>
+          </div>
+        </div>
+        <div class="callout-metric">
+          <span class="callout-metric-icon" aria-hidden="true">⛰️</span>
+          <div>
+            <strong class="callout-metric-num">2.406</strong>
+            <span class="callout-metric-label">m s. n. m.</span>
+          </div>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- Galería lightbox: montada fuera de la sección para z-index correcto -->
+<CantonGallery />
+
+<!-- Datos de parroquias inyectados como JSON (no script externo para evitar XHR) -->
+<script id="parish-data" type="application/json" set:html={parishesJson} />
+
+<script>
+  // ─── Coordinación central del hero del cantón ───────────────────────────────
+  // Toda la lógica de selectParish vive aquí (sin onclick inline).
+
+  interface ParishData {
+    id: string;
+    name: string;
+    type: string;
+    description: string;
+    population?: string;
+    altitude?: string;
+    activities: string[];
+    projects: string[];
+    color: string;
+    imageSrc?: string;
+    gallery: string[];
+  }
+
+  // ── Leer datos del servidor ──────────────────────────────────────────────────
+  const dataEl = document.getElementById('parish-data');
+  let parishes: Record<string, ParishData> = {};
+  if (dataEl?.textContent) {
+    try {
+      parishes = JSON.parse(dataEl.textContent) as Record<string, ParishData>;
+    } catch {
+      // datos no disponibles — UI degraded gracefully
+    }
+  }
+
+  // ── Referencias DOM ──────────────────────────────────────────────────────────
+  const panelEmpty = document.getElementById('panel-empty');
+  const panelContent = document.getElementById('panel-content');
+  const panelColorBar = document.getElementById('panel-color-bar');
+  const panelImageContainer = document.getElementById('panel-image-container');
+  const elImage = document.getElementById('panel-image') as HTMLImageElement | null;
+  const elTitle = document.getElementById('panel-title');
+  const elType = document.getElementById('panel-type');
+  const elDesc = document.getElementById('panel-desc');
+  const elPop = document.getElementById('panel-population');
+  const elAlt = document.getElementById('panel-altitude');
+  const elActivities = document.getElementById('panel-activities');
+  const elProjects = document.getElementById('panel-projects');
+  const elParishLink = document.getElementById('panel-parish-link') as HTMLAnchorElement | null;
+
+  // ── Función principal de selección ──────────────────────────────────────────
+  function selectParish(id: string) {
+    const data = parishes[id];
+    if (!data) return;
+
+    // Marcar activo en mapa y tarjetas
+    document.querySelectorAll<HTMLElement>('[data-select-parish]').forEach((el) => {
+      el.classList.toggle('active', el.dataset.selectParish === id);
+    });
+
+    // Mostrar panel de parroquia
+    panelEmpty?.classList.add('hidden');
+    panelContent?.classList.remove('hidden');
+
+    // Animar entrada del panel
+    if (panelContent) {
+      const panel = panelContent.closest('.glass-panel');
+      if (panel) {
+        panel.classList.remove('animate-fade-up');
+        void (panel as HTMLElement).offsetWidth; // reflow
+        panel.classList.add('animate-fade-up');
+      }
+    }
+
+    // Color de acento
+    if (panelColorBar) panelColorBar.style.background = data.color;
+    if (panelImageContainer) {
+      (panelImageContainer as HTMLElement).style.setProperty('--pc', data.color);
+    }
+
+    // Imagen de portada
+    if (elImage) {
+      if (data.imageSrc) {
+        elImage.src = data.imageSrc;
+        elImage.alt = `Parroquia ${data.name}`;
+        elImage.style.display = '';
+        elImage.onerror = () => {
+          elImage.style.display = 'none';
+        };
+      } else {
+        elImage.style.display = 'none';
+      }
+    }
+
+    // Texto
+    if (elTitle) elTitle.textContent = data.name;
+    if (elType) {
+      elType.textContent = data.type;
+      elType.style.background = data.color;
+    }
+    if (elDesc) elDesc.textContent = data.description;
+    if (elPop) elPop.textContent = data.population ?? 'N/D';
+    if (elAlt) elAlt.textContent = data.altitude ?? 'N/D';
+
+    // Actividades
+    if (elActivities) {
+      elActivities.innerHTML = '';
+      data.activities.forEach((act) => {
+        const chip = document.createElement('span');
+        chip.className = 'activity-chip';
+        chip.textContent = act;
+        elActivities.appendChild(chip);
+      });
+    }
+
+    // Proyectos
+    if (elProjects) {
+      elProjects.innerHTML = '';
+      data.projects.forEach((proj) => {
+        const li = document.createElement('li');
+        li.textContent = proj;
+        elProjects.appendChild(li);
+      });
+    }
+
+    // Link a la página completa de la parroquia
+    if (elParishLink) {
+      elParishLink.href = `/parroquias/${id.replace('_', '-')}`;
+    }
+
+    // Scroll suave al panel en móvil
+    if (window.innerWidth < 769) {
+      panelContent?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  // ── Event delegation — un solo listener para mapa + tarjetas ────────────────
+  document.addEventListener('click', (e) => {
+    const target = e.target as Element;
+    const btn = target.closest<HTMLElement>('[data-select-parish]');
+    if (!btn) return;
+    const id = btn.dataset.selectParish;
+    if (id) selectParish(id);
+  });
+
+  // Soporte teclado en zonas del mapa (Enter / Space)
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const target = e.target as Element;
+    const btn = target.closest<HTMLElement>('[data-select-parish]');
+    if (!btn) return;
+    e.preventDefault();
+    const id = btn.dataset.selectParish;
+    if (id) selectParish(id);
+  });
+</script>
+
+<style>
+  /* ── CSS custom properties scoped al hero (sin colisión con Tailwind v4) ── */
+  .canton-hero-section {
+    --primary: #e11d48;
+    --bg-body: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --surface: #ffffff;
+    --surface-border: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, #ddeefa 0%, #e8f5f0 30%, #fdf0f3 65%, #fce8d8 100%);
+    padding: 0 2.5rem;
+  }
+
+  /* ── Capa decorativa (absolute en lugar de fixed para contenerse en la sección) ── */
+  .bg-decor {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .bg-mountain {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 45%;
+  }
+  .bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+  }
+  .bg-orb--red {
+    width: 520px;
+    height: 520px;
+    top: -120px;
+    right: -80px;
+    background: radial-gradient(circle, rgba(225, 29, 72, 0.2) 0%, transparent 70%);
+  }
+  .bg-orb--blue {
+    width: 480px;
+    height: 480px;
+    top: 80px;
+    left: -100px;
+    background: radial-gradient(circle, rgba(26, 95, 122, 0.18) 0%, transparent 70%);
+  }
+  .bg-orb--green {
+    width: 560px;
+    height: 400px;
+    bottom: 0;
+    left: 15%;
+    background: radial-gradient(circle, rgba(22, 160, 133, 0.14) 0%, transparent 70%);
+  }
+  .bg-orb--orange {
+    width: 360px;
+    height: 360px;
+    top: 40%;
+    right: 5%;
+    background: radial-gradient(circle, rgba(230, 126, 34, 0.11) 0%, transparent 70%);
+  }
+  .bg-dots {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+  }
+  .bg-dots--tl {
+    top: 60px;
+    left: 40px;
+  }
+  .bg-dots--br {
+    bottom: 80px;
+    right: 60px;
+  }
+  .bg-lines {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 600px;
+    height: 600px;
+  }
+
+  /* Todo el contenido encima de la decoración */
+  .canton-hero-section > *:not(.bg-decor) {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Header ── */
+  .canton-header {
+    width: 100%;
+    padding: 4rem 0 3.5rem;
+    text-align: center;
+  }
+  .canton-header-inner {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+  }
+  .location-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-muted);
+    background: white;
+    border: 1px solid var(--surface-border);
+    padding: 0.3rem 0.9rem;
+    border-radius: 9999px;
+    box-shadow: var(--shadow-sm);
+  }
+  .location-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+    flex-shrink: 0;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(0.6);
+    }
+  }
+  .canton-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    line-height: 1;
+    margin: 0;
+  }
+  .canton-title-top {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .canton-title-main {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.6rem, 8vw, 4.5rem);
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    position: relative;
+    display: inline-block;
+  }
+  .title-underline {
+    display: block;
+    height: 5px;
+    background: linear-gradient(90deg, var(--primary), #ff6b6b);
+    border-radius: 9999px;
+    margin-top: 0.3rem;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .canton-sub {
+    font-size: 1rem;
+    color: var(--text-muted);
+    max-width: 440px;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .canton-sub strong {
+    color: var(--text-main);
+    font-weight: 700;
+  }
+  .canton-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .canton-pill {
+    background: white;
+    border: 1px solid var(--surface-border);
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-main);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Layout ── */
+  .top-row {
+    display: flex;
+    gap: 4rem;
+    align-items: stretch;
+    max-width: 1300px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .map-section {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .info-section {
+    flex: 0 0 380px;
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-self: flex-start;
+    max-height: 820px;
+  }
+  .info-section > * {
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+  }
+  .cards-section {
+    margin-top: 4rem;
+    max-width: 1300px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+  .cards-section {
+    margin-top: 4rem;
+  }
+
+  /* ── Callout de métricas ── */
+  .metrics-callout {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    max-width: 1300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .callout-accent-bar {
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), #ff6b6b);
+  }
+  .callout-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    padding: 1.75rem 2rem;
+  }
+  .callout-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .callout-eyebrow {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    margin: 0;
+  }
+  .callout-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.1rem, 2vw, 1.5rem);
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .callout-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 380px;
+    margin: 0.2rem 0 0;
+  }
+  .callout-metrics {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    margin: 0;
+  }
+  .callout-metric {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: var(--bg-body);
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    min-width: 105px;
+  }
+  .callout-metric-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .callout-metric > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+  .callout-metric-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+    display: block;
+  }
+  .callout-metric-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+
+  /* ── Glass panel ── */
+  .glass-panel {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+  }
+
+  /* ── Activity chip (generado por JS) ── */
+  :global(.activity-chip) {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+  }
+
+  /* ── Animación de entrada ── */
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-up {
+    animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* ── Responsive: tablet ── */
+  @media (min-width: 769px) and (max-width: 1099px) {
+    .canton-hero-section {
+      padding: 0 1.5rem;
+    }
+    .canton-header {
+      padding: 2.5rem 0 2.5rem;
+    }
+    .top-row {
+      gap: 2rem;
+      align-items: flex-start;
+    }
+    .info-section {
+      flex: 0 0 290px;
+      width: 290px;
+      max-height: none;
+      align-self: stretch;
+    }
+    .info-section > * {
+      overflow-y: visible;
+    }
+    .cards-section {
+      margin-top: 3rem;
+    }
+    .metrics-callout {
+      margin-top: 3rem;
+      margin-bottom: 3rem;
+    }
+  }
+
+  /* ── Responsive: móvil ── */
+  @media (max-width: 768px) {
+    .canton-hero-section {
+      padding: 0 1rem;
+    }
+    .canton-header {
+      padding: 2rem 0 1.75rem;
+    }
+    .canton-header-inner {
+      max-width: 100%;
+    }
+    .top-row {
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .info-section {
+      flex: none;
+      width: 100%;
+      max-width: 100%;
+      max-height: none;
+    }
+    .info-section > * {
+      overflow-y: visible;
+    }
+    .cards-section {
+      margin-top: 2.5rem;
+    }
+    .metrics-callout {
+      margin-top: 2.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .callout-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.25rem;
+      padding: 1.25rem;
+    }
+    .callout-metrics {
+      width: 100%;
+    }
+    .callout-metric {
+      flex: 1;
+      min-width: 0;
+    }
+    .callout-sub {
+      max-width: 100%;
+    }
+  }
+
+  /* Reducir movimiento */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up {
+      animation: none;
+      opacity: 1;
+    }
+    .location-dot {
+      animation: none;
+    }
+  }
+</style>

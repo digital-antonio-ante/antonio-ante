@@ -1,0 +1,281 @@
+---
+/**
+ * CantonMapSVG.astro — Mapa SVG puro del Cantón Antonio Ante.
+ *
+ * Sin dependencia de imagen externa: los polígonos reales de cada parroquia
+ * se renderizan como formas SVG coloreadas sobre un fondo cartográfico mínimo.
+ * Interacción via data-select-parish (CSP-safe, sin onclick inline).
+ */
+import { PARISHES, PARISH_POLYGONS } from '../data/parishes';
+---
+
+<div class="map-root" aria-label="Mapa interactivo del Cantón Antonio Ante">
+  <svg
+    class="canton-svg"
+    viewBox="0 0 1694 2528"
+    preserveAspectRatio="xMidYMid meet"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-label="Mapa del Cantón Antonio Ante con sus seis parroquias"
+  >
+    <defs>
+      <!-- Fondo cartográfico: gradiente suave de Imbabura -->
+      <linearGradient id="map-bg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ddeefa"></stop>
+        <stop offset="50%" stop-color="#e8f5f0"></stop>
+        <stop offset="100%" stop-color="#d8efe8"></stop>
+      </linearGradient>
+
+      <!-- Patrón de puntos (textil) -->
+      <pattern id="map-dots" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+        <circle cx="4" cy="4" r="2.5" fill="rgba(26,95,122,0.12)"></circle>
+      </pattern>
+
+      <!-- Filtro glow para el estado activo -->
+      <filter id="parish-glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="18" result="blur"></feGaussianBlur>
+        <feMerge>
+          <feMergeNode in="blur"></feMergeNode>
+          <feMergeNode in="SourceGraphic"></feMergeNode>
+        </feMerge>
+      </filter>
+
+      {
+        PARISH_POLYGONS.map(({ id }) => {
+          const p = PARISHES[id];
+          return (
+            <filter id={`glow-${id}`} x="-25%" y="-25%" width="150%" height="150%">
+              <feGaussianBlur stdDeviation="20" result="blur" />
+              <feFlood flood-color={p.color} flood-opacity="0.5" result="color" />
+              <feComposite in="color" in2="blur" operator="in" result="colored-blur" />
+              <feMerge>
+                <feMergeNode in="colored-blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          );
+        })
+      }
+    </defs>
+
+    <!-- Fondo -->
+    <rect width="1694" height="2528" fill="url(#map-bg)"></rect>
+    <rect width="1694" height="2528" fill="url(#map-dots)"></rect>
+
+    <!-- Silueta decorativa del volcán Imbabura en la esquina superior -->
+    <path
+      d="M0,700 L180,420 L290,500 L390,320 L510,250 L630,380 L720,300 L860,500 L960,400 L1100,580 L1250,460 L1400,580 L1550,480 L1694,600 L1694,700 Z"
+      fill="rgba(22,100,130,0.06)"></path>
+
+    <!-- Polígonos de parroquias — relleno con color de identidad -->
+    {
+      PARISH_POLYGONS.map(({ id, points }) => {
+        const p = PARISHES[id];
+        return (
+          <g
+            class="parish-zone"
+            data-select-parish={id}
+            style={`--pc: ${p.color};`}
+            role="button"
+            tabindex="0"
+            aria-label={`Seleccionar parroquia ${p.name}`}
+          >
+            {/* Relleno base con color de la parroquia */}
+            <polygon class="parish-fill" points={points} fill={p.color} />
+            {/* Overlay de interacción */}
+            <polygon class="parish-overlay" points={points} />
+            {/* Borde de la parroquia */}
+            <polygon class="parish-stroke" points={points} fill="none" stroke={p.color} />
+          </g>
+        );
+      })
+    }
+
+    <!-- Etiquetas de parroquias -->
+    {
+      PARISH_POLYGONS.map(({ id }) => {
+        const p = PARISHES[id];
+        return (
+          <g
+            class="parish-label"
+            data-label-for={id}
+            style={`--pc: ${p.color};`}
+            pointer-events="none"
+            aria-hidden="true"
+          >
+            <rect
+              x={p.centroid.x - 115}
+              y={p.centroid.y - 28}
+              width="230"
+              height="52"
+              rx="26"
+              fill="white"
+              fill-opacity="0.88"
+              stroke={p.color}
+              stroke-width="3"
+              class="label-bg"
+            />
+            <text
+              x={p.centroid.x}
+              y={p.centroid.y - 4}
+              text-anchor="middle"
+              dominant-baseline="middle"
+              class="label-name"
+              fill={p.color}
+            >
+              {p.name.toUpperCase()}
+            </text>
+            <text
+              x={p.centroid.x}
+              y={p.centroid.y + 16}
+              text-anchor="middle"
+              dominant-baseline="middle"
+              class="label-type"
+              fill="rgba(100,116,139,0.9)"
+            >
+              {p.type}
+            </text>
+          </g>
+        );
+      })
+    }
+
+    <!-- Indicador norte -->
+    <g transform="translate(80, 2420)" aria-hidden="true">
+      <circle
+        cx="0"
+        cy="0"
+        r="38"
+        fill="white"
+        fill-opacity="0.9"
+        stroke="rgba(26,95,122,0.3)"
+        stroke-width="2"></circle>
+      <text x="0" y="-12" text-anchor="middle" font-size="32" font-weight="900" fill="#1a5f7a"
+        >N</text
+      >
+      <polygon points="0,-6 -5,10 0,7 5,10" fill="#e11d48" transform="translateY(-4)"></polygon>
+    </g>
+
+    <!-- Escala -->
+    <g transform="translate(1520, 2450)" aria-hidden="true">
+      <rect x="-80" y="-5" width="80" height="5" fill="#1a5f7a" fill-opacity="0.5"></rect>
+      <rect x="0" y="-5" width="80" height="5" fill="#1a5f7a" fill-opacity="0.25"></rect>
+      <text x="-80" y="-14" text-anchor="start" font-size="22" fill="rgba(100,116,139,0.8)">0</text>
+      <text x="80" y="-14" text-anchor="end" font-size="22" fill="rgba(100,116,139,0.8)">5 km</text>
+    </g>
+  </svg>
+</div>
+
+<style>
+  .map-root {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto 0 0;
+    user-select: none;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.15),
+      0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .canton-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: transparent;
+  }
+
+  /* Relleno con opacidad baja por defecto */
+  .parish-fill {
+    opacity: 0.18;
+    transition: opacity 0.25s ease;
+  }
+
+  /* Overlay transparente para capturar hover/focus */
+  .parish-overlay {
+    fill: transparent;
+    cursor: pointer;
+    transition: fill 0.2s ease;
+  }
+
+  /* Borde de parroquia */
+  .parish-stroke {
+    stroke-width: 6;
+    opacity: 0.5;
+    transition:
+      opacity 0.25s ease,
+      stroke-width 0.25s ease;
+    pointer-events: none;
+  }
+
+  /* Etiqueta */
+  .label-bg {
+    transition: fill-opacity 0.2s ease;
+  }
+  .label-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+  .label-type {
+    font-family: 'Inter', sans-serif;
+    font-size: 19px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Hover ── */
+  .parish-zone:hover .parish-fill,
+  .parish-zone:focus-visible .parish-fill {
+    opacity: 0.45;
+  }
+  .parish-zone:hover .parish-overlay,
+  .parish-zone:focus-visible .parish-overlay {
+    fill: rgba(255, 255, 255, 0.15);
+  }
+  .parish-zone:hover .parish-stroke,
+  .parish-zone:focus-visible .parish-stroke {
+    opacity: 1;
+    stroke-width: 10;
+  }
+
+  /* ── Activo ── */
+  .parish-zone.active .parish-fill {
+    opacity: 0.65;
+    filter: url(#parish-glow);
+  }
+  .parish-zone.active .parish-stroke {
+    opacity: 1;
+    stroke-width: 14;
+  }
+  .parish-zone.active .parish-overlay {
+    fill: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Etiqueta activa: fondo más opaco */
+  .parish-zone.active ~ .parish-label .label-bg,
+  .parish-label.active .label-bg {
+    fill-opacity: 1;
+  }
+
+  /* Focus accesible */
+  .parish-zone:focus-visible {
+    outline: none;
+  }
+  .parish-zone:focus-visible .parish-stroke {
+    opacity: 1;
+    stroke-width: 16;
+  }
+
+  @media (max-width: 768px) {
+    .map-root {
+      max-width: 100%;
+      margin: 0 auto;
+      border-radius: 16px;
+    }
+  }
+</style>

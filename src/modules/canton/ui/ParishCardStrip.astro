@@ -1,0 +1,367 @@
+---
+/**
+ * ParishCardStrip.astro — Tira horizontal de tarjetas por parroquia.
+ *
+ * Usa gradientes CSS per-parroquia como fondo (sin dependencia de imágenes).
+ * Interacción via data-select-parish (CSP-safe).
+ * En desktop: grid 6 columnas. En tablet/móvil: scroll horizontal con snap.
+ */
+import { PARISHES } from '../data/parishes';
+
+const parishList = Object.values(PARISHES);
+---
+
+<section class="parish-strip-section" aria-label="Parroquias del Cantón Antonio Ante">
+  <div class="strip-header">
+    <div>
+      <p class="strip-eyebrow">Cantón Antonio Ante</p>
+      <h2 class="strip-title">Conoce cada parroquia</h2>
+    </div>
+    <p class="strip-hint" aria-hidden="true">
+      <span class="strip-hint-arrow">←→</span> Desliza para explorar
+    </p>
+  </div>
+
+  <div class="strip-track-wrapper">
+    <div class="strip-track" role="list">
+      {
+        parishList.map((p) => (
+          <button
+            class="pcard"
+            data-select-parish={p.id}
+            style={`--pc: ${p.color};`}
+            role="listitem"
+            aria-label={`Ver información de ${p.name} — ${p.type} — ${p.shortDesc}`}
+          >
+            {/* Gradiente de fondo basado en el color de la parroquia */}
+            <div class="pcard-bg" aria-hidden="true" />
+
+            {/* Patrón de textil superpuesto */}
+            <svg class="pcard-pattern" viewBox="0 0 60 60" aria-hidden="true">
+              <defs>
+                <pattern
+                  id={`dots-${p.id}`}
+                  x="0"
+                  y="0"
+                  width="12"
+                  height="12"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <circle cx="2" cy="2" r="1.2" fill="rgba(255,255,255,0.18)" />
+                </pattern>
+              </defs>
+              <rect width="60" height="60" fill={`url(#dots-${p.id})`} />
+            </svg>
+
+            {/* Gradiente oscuro hacia abajo */}
+            <div class="pcard-gradient" aria-hidden="true" />
+
+            {/* Cuerpo de texto */}
+            <div class="pcard-body">
+              <div class="pcard-top">
+                <span class="pcard-icon" aria-hidden="true">
+                  {p.mapIcon}
+                </span>
+                <span class="pcard-type">{p.type}</span>
+              </div>
+              <h3 class="pcard-name">{p.name}</h3>
+              <p class="pcard-desc">{p.shortDesc}</p>
+              <div class="pcard-cta" aria-hidden="true">
+                <span>Ver parroquia</span>
+                <span class="pcard-arrow">→</span>
+              </div>
+            </div>
+
+            {/* Barra de acento inferior */}
+            <div class="pcard-accent-bar" aria-hidden="true" />
+          </button>
+        ))
+      }
+    </div>
+
+    <div class="strip-fade strip-fade--left" aria-hidden="true"></div>
+    <div class="strip-fade strip-fade--right" aria-hidden="true"></div>
+  </div>
+</section>
+
+<style>
+  /* ── Sección ── */
+  .parish-strip-section {
+    width: 100%;
+  }
+  .strip-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding: 0 0.25rem;
+  }
+  .strip-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-muted);
+    margin: 0 0 0.15rem;
+  }
+  .strip-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin: 0;
+  }
+  .strip-hint {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding-bottom: 0.1rem;
+    margin: 0;
+  }
+
+  /* ── Track de scroll ── */
+  .strip-track-wrapper {
+    position: relative;
+  }
+  .strip-track {
+    display: flex;
+    gap: 0.85rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.5rem;
+  }
+  .strip-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Fades laterales — color calculado del fondo del hero */
+  .strip-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0.5rem;
+    width: 50px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .strip-fade--left {
+    left: 0;
+    background: linear-gradient(to right, rgba(232, 244, 240, 0.9), transparent);
+  }
+  .strip-fade--right {
+    right: 0;
+    background: linear-gradient(to left, rgba(252, 232, 216, 0.9), transparent);
+  }
+
+  /* ── Card ── */
+  .pcard {
+    flex: 0 0 200px;
+    height: 300px;
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    cursor: pointer;
+    scroll-snap-align: start;
+    border: none;
+    padding: 0;
+    background: var(--pc, #1a5f7a);
+    transition:
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  }
+  .pcard:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.2),
+      0 0 0 2px var(--pc);
+  }
+  .pcard.active {
+    box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.25),
+      0 0 0 3px var(--pc);
+  }
+  .pcard:focus-visible {
+    outline: 3px solid var(--pc);
+    outline-offset: 2px;
+  }
+
+  /* Fondo gradiente por color de parroquia */
+  .pcard-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--pc) 80%, black), var(--pc));
+  }
+
+  /* Patrón textil superpuesto */
+  .pcard-pattern {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.6;
+  }
+
+  /* Gradiente negro hacia abajo */
+  .pcard-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(5, 10, 20, 0.92) 0%,
+      rgba(5, 10, 20, 0.3) 50%,
+      transparent 100%
+    );
+    z-index: 1;
+  }
+
+  /* Cuerpo de texto */
+  .pcard-body {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1rem;
+    gap: 0.25rem;
+    text-align: left;
+  }
+  .pcard-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.15rem;
+  }
+  .pcard-icon {
+    font-size: 1.3rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  }
+  .pcard-type {
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: white;
+    background: var(--pc);
+    padding: 0.18rem 0.5rem;
+    border-radius: 9999px;
+    opacity: 0.95;
+  }
+  .pcard-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0;
+  }
+  .pcard-desc {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.4;
+    max-height: 0;
+    overflow: hidden;
+    transition:
+      max-height 0.4s ease,
+      opacity 0.3s ease;
+    opacity: 0;
+    margin: 0;
+  }
+  .pcard:hover .pcard-desc {
+    max-height: 3rem;
+    opacity: 1;
+  }
+  .pcard-cta {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--pc);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 0.25s ease 0.05s,
+      transform 0.25s ease 0.05s;
+  }
+  .pcard:hover .pcard-cta,
+  .pcard.active .pcard-cta {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .pcard-arrow {
+    transition: transform 0.2s ease;
+  }
+  .pcard:hover .pcard-arrow {
+    transform: translateX(3px);
+  }
+
+  /* Barra de acento inferior */
+  .pcard-accent-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--pc);
+    z-index: 3;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .pcard:hover .pcard-accent-bar,
+  .pcard.active .pcard-accent-bar {
+    transform: scaleX(1);
+  }
+
+  /* ── Responsive ── */
+  @media (min-width: 1100px) {
+    .strip-track {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      overflow-x: visible;
+      scroll-snap-type: none;
+    }
+    .strip-fade {
+      display: none;
+    }
+    .pcard {
+      flex: none;
+      width: auto;
+      height: 280px;
+    }
+    .strip-hint {
+      display: none;
+    }
+  }
+  @media (max-width: 768px) {
+    .strip-title {
+      font-size: 1.25rem;
+    }
+    .pcard {
+      flex: 0 0 175px;
+      height: 268px;
+    }
+  }
+  @media (max-width: 480px) {
+    .pcard {
+      flex: 0 0 155px;
+      height: 248px;
+    }
+    .strip-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+  }
+</style>

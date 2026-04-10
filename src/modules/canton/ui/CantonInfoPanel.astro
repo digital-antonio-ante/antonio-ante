@@ -1,0 +1,577 @@
+---
+/**
+ * CantonInfoPanel.astro — Panel de información del cantón/parroquia.
+ *
+ * Estado vacío: overview del cantón con estadísticas y highlights.
+ * Estado activo: detalle de la parroquia seleccionada (nombre, descripción,
+ * métricas, actividades, proyectos, botón galería).
+ *
+ * Sin imágenes externas requeridas: el overview usa un SVG decorativo inline.
+ * Sin onclick inline (CSP-safe).
+ */
+---
+
+<div id="info-panel" class="glass-panel info-panel-container">
+  <!-- Barra de acento superior — color cambia con la parroquia -->
+  <div id="panel-color-bar" class="panel-color-bar"></div>
+
+  <!-- ── Estado vacío: presentación del cantón ── -->
+  <div id="panel-empty" class="panel-empty">
+    <!-- Hero decorativo SVG inline (sin dependencia de imagen) -->
+    <div class="canton-hero-art" aria-hidden="true">
+      <svg viewBox="0 0 390 200" xmlns="http://www.w3.org/2000/svg" class="canton-hero-svg">
+        <!-- Fondo degradado -->
+        <defs>
+          <linearGradient id="hero-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#003366"></stop>
+            <stop offset="60%" stop-color="#1a5f7a"></stop>
+            <stop offset="100%" stop-color="#16a085"></stop>
+          </linearGradient>
+          <pattern id="art-dots" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.5" fill="rgba(255,255,255,0.12)"></circle>
+          </pattern>
+        </defs>
+        <rect width="390" height="200" fill="url(#hero-grad)"></rect>
+        <rect width="390" height="200" fill="url(#art-dots)"></rect>
+
+        <!-- Volcán Imbabura estilizado -->
+        <path
+          d="M0,200 L60,200 L110,100 L145,130 L185,60 L225,100 L275,80 L320,120 L360,90 L390,140 L390,200 Z"
+          fill="rgba(255,255,255,0.07)"></path>
+        <path
+          d="M0,200 L90,200 L145,130 L185,100 L230,140 L280,115 L330,150 L390,130 L390,200 Z"
+          fill="rgba(255,255,255,0.05)"></path>
+
+        <!-- Orbe decorativo -->
+        <circle cx="320" cy="50" r="60" fill="rgba(197,160,89,0.2)"></circle>
+        <circle cx="320" cy="50" r="35" fill="rgba(197,160,89,0.15)"></circle>
+
+        <!-- Textos -->
+        <text
+          x="24"
+          y="50"
+          font-family="'Space Grotesk', sans-serif"
+          font-size="11"
+          font-weight="700"
+          letter-spacing="2.5"
+          text-transform="uppercase"
+          fill="rgba(255,255,255,0.5)"
+        >
+          PROVINCIA DE IMBABURA · ECUADOR
+        </text>
+        <text
+          x="24"
+          y="100"
+          font-family="'Space Grotesk', sans-serif"
+          font-size="36"
+          font-weight="800"
+          fill="white"
+          letter-spacing="-0.5"
+        >
+          Antonio Ante
+        </text>
+        <rect x="24" y="115" width="80" height="4" rx="2" fill="#c5a059"></rect>
+        <text
+          x="24"
+          y="148"
+          font-family="'Space Grotesk', sans-serif"
+          font-size="10"
+          font-weight="700"
+          letter-spacing="1.5"
+          fill="white"
+          opacity="0.7"
+        >
+          CAPITAL TEXTIL DEL ECUADOR
+        </text>
+      </svg>
+    </div>
+
+    <div class="canton-body">
+      <div class="canton-stats">
+        <div class="canton-stat">
+          <span class="stat-number">6</span>
+          <span class="stat-label">Parroquias</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="canton-stat">
+          <span class="stat-number">~45k</span>
+          <span class="stat-label">Habitantes</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="canton-stat">
+          <span class="stat-number">2.406</span>
+          <span class="stat-label">m s. n. m.</span>
+        </div>
+      </div>
+
+      <p class="canton-desc">
+        El cantón más dinámico de Imbabura. Referente nacional de la industria textil y cuna de
+        experiencias culturales únicas.
+      </p>
+
+      <div class="canton-highlights">
+        <div class="highlight-item">
+          <span class="highlight-icon">🧵</span>
+          <div>
+            <strong>Expo Atuntaqui</strong>
+            <span>Feria textil internacional</span>
+          </div>
+        </div>
+        <div class="highlight-item">
+          <span class="highlight-icon">🍽️</span>
+          <div>
+            <strong>Capital del Cuy</strong>
+            <span>Gastronomía reconocida</span>
+          </div>
+        </div>
+        <div class="highlight-item">
+          <span class="highlight-icon">🏭</span>
+          <div>
+            <strong>Fábrica Imbabura</strong>
+            <span>Patrimonio histórico nacional</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-hint">
+        <span class="hint-dot"></span>
+        <span>Selecciona una parroquia en el mapa</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Contenido de parroquia seleccionada ── -->
+  <div id="panel-content" class="panel-content hidden">
+    <!-- Imagen de portada (con fondo de color de la parroquia como fallback) -->
+    <div class="panel-image-container" id="panel-image-container">
+      <img id="panel-image" src="" alt="" class="panel-img" loading="lazy" decoding="async" />
+      <div class="panel-image-overlay">
+        <span class="panel-badge" id="panel-selected-badge">✓ Seleccionada</span>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <div class="panel-header">
+        <span id="panel-type" class="tag-parish">Tipo</span>
+        <h3 id="panel-title" class="panel-title">Título</h3>
+      </div>
+
+      <p id="panel-desc" class="desc-text"></p>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon">👥</div>
+          <div>
+            <span class="metric-label">Población</span>
+            <strong id="panel-population" class="metric-val"></strong>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">⛰️</div>
+          <div>
+            <span class="metric-label">Altitud</span>
+            <strong id="panel-altitude" class="metric-val"></strong>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="section-label">Actividades Principales</h4>
+        <div id="panel-activities" class="activities-chips"></div>
+      </div>
+
+      <div class="projects-box">
+        <h4 class="section-label">Proyectos destacados</h4>
+        <ul id="panel-projects" class="projects-list"></ul>
+      </div>
+
+      <a
+        id="panel-parish-link"
+        href="/parroquias"
+        class="parish-link-btn"
+        aria-label="Ver página completa de la parroquia"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+        </svg>
+        <span>Ver página completa</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .info-panel-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 560px;
+    background: white;
+    overflow: hidden;
+  }
+  @media (max-width: 1099px) {
+    .info-panel-container {
+      min-height: auto;
+    }
+  }
+
+  /* Barra de acento */
+  .panel-color-bar {
+    height: 4px;
+    background: var(--surface-border);
+    transition: background 0.35s ease;
+    flex-shrink: 0;
+  }
+
+  /* ── Estado vacío ── */
+  .panel-empty {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .canton-hero-art {
+    width: 100%;
+    flex-shrink: 0;
+  }
+  .canton-hero-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .canton-body {
+    flex: 1;
+    padding: 1.25rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Stats */
+  .canton-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: #f8fafc;
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    padding: 0.9rem 0.5rem;
+  }
+  .canton-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+  }
+  .stat-number {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .stat-divider {
+    width: 1px;
+    height: 2rem;
+    background: var(--surface-border);
+  }
+
+  /* Descripción */
+  .canton-desc {
+    font-size: 0.83rem;
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+
+  /* Highlights */
+  .canton-highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.85rem;
+    background: #f8fafc;
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+  }
+  .highlight-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .highlight-item div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+  .highlight-item strong {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .highlight-item span {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* Hint interactivo */
+  .empty-hint {
+    display: inline-flex;
+    align-self: center;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f1f5f9;
+    border: 1px solid var(--surface-border);
+    padding: 0.45rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .hint-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--primary);
+    flex-shrink: 0;
+    animation: pulse-dot 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(0.7);
+    }
+  }
+
+  /* ── Contenido de parroquia ── */
+  .panel-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .hidden {
+    display: none !important;
+  }
+
+  /* Imagen de portada */
+  .panel-image-container {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    flex-shrink: 0;
+    background: var(--pc, #1a5f7a);
+    transition: background 0.35s ease;
+  }
+  .panel-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .panel-image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(10, 18, 35, 0.55) 0%,
+      rgba(10, 18, 35, 0.1) 60%,
+      transparent 100%
+    );
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 0.85rem;
+  }
+  .panel-badge {
+    background: var(--primary);
+    color: white;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Body del panel */
+  .panel-body {
+    flex: 1;
+    padding: 1.25rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+  }
+  .panel-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .tag-parish {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 8px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: white;
+    background: var(--surface-border);
+    transition: background 0.3s ease;
+    align-self: flex-start;
+  }
+  .panel-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  /* Descripción */
+  .desc-text {
+    font-size: 0.87rem;
+    line-height: 1.65;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* Métricas */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+  }
+  .metric-card {
+    background: #f8fafc;
+    padding: 0.8rem 0.9rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px solid var(--surface-border);
+  }
+  .metric-icon {
+    font-size: 1.3rem;
+  }
+  .metric-label {
+    display: block;
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    margin-bottom: 0.1rem;
+  }
+  .metric-val {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Etiqueta de sección */
+  .section-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin: 0 0 0.5rem;
+  }
+
+  /* Chips de actividades */
+  .activities-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  /* Proyectos */
+  .projects-box {
+    background: #f8fafc;
+    border: 1px solid var(--surface-border);
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+  }
+  .projects-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .projects-list li {
+    position: relative;
+    padding-left: 1.3rem;
+    font-weight: 500;
+    font-size: 0.83rem;
+    line-height: 1.45;
+    color: #334155;
+  }
+  .projects-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 900;
+  }
+
+  /* Botón link a la parroquia */
+  .parish-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding: 0.7rem 1rem;
+    background: var(--primary);
+    color: white;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+    width: 100%;
+    justify-content: center;
+  }
+  .parish-link-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+  .parish-link-btn:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+  }
+</style>
