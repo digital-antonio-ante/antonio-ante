@@ -19,7 +19,7 @@
     # Google Analytics 4: *.google-analytics.com, *.googletagmanager.com
     # Trade-off: 'unsafe-inline' estilos no está — Tailwind v4 inyecta <style> en SSR;
     # se habilita 'unsafe-inline' solo en style-src ya que CSP L3 nonces requieren SSR dinámico por request.
-    Content-Security-Policy = "default-src 'none'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.sanity.io https://www.google-analytics.com; connect-src 'self' https://api.sanity.io https://cdn.sanity.io https://www.google-analytics.com https://region1.google-analytics.com; media-src 'self' https://cdn.sanity.io; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;"
+    Content-Security-Policy = "default-src 'none'; script-src 'self' 'sha256-L+tqfrulmhaidEcHPc7vuiFX4l1lkIjG0X20R9XIDfk=' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.sanity.io https://www.google-analytics.com; connect-src 'self' https://api.sanity.io https://cdn.sanity.io https://www.google-analytics.com https://region1.google-analytics.com; media-src 'self' https://cdn.sanity.io; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;"
 
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
@@ -43,6 +43,12 @@
 # ─── Cache: imágenes estáticas del directorio public/ ─────────────────────────
 [[headers]]
   for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+# ─── Cache: JS estáticos de public/js/ ───────────────────────────────────────
+[[headers]]
+  for = "/js/*"
   [headers.values]
     Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
 

@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import astro from 'eslint-plugin-astro';
 import prettierRecommended from 'eslint-plugin-prettier/recommended';
+import globals from 'globals';
 
 export default tseslint.config(
   js.configs.recommended,
@@ -36,6 +37,14 @@ export default tseslint.config(
     files: ['**/*.astro', '**/*.astro/*.ts', '**/*.astro/*.js'],
     rules: {
       'prettier/prettier': 'off',
+    },
+  },
+
+  {
+    // Static browser scripts in public/js/ — no TypeScript, plain browser globals
+    files: ['public/js/**/*.js'],
+    languageOptions: {
+      globals: globals.browser,
     },
   },
 
