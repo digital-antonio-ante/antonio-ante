@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
+# ─── Sanity webhook → Netlify rebuild ─────────────────────────────────────────
+# Cuando el staff publica contenido en Sanity, Sanity llama al Build Hook de Netlify
+# que está configurado en: studio/sanity.cli.ts o en el panel de Sanity (Manage → Webhooks)
+# URL del build hook: se genera en Netlify → Site settings → Build & deploy → Build hooks
+
 # ─── Security Headers — todas las rutas ───────────────────────────────────────
 [[headers]]
   for = "/*"

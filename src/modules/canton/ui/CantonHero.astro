@@ -17,12 +17,12 @@ import CantonInfoPanel from './CantonInfoPanel.astro';
 import ParishCardStrip from './ParishCardStrip.astro';
 import CantonGallery from './CantonGallery.astro';
 import { PARISHES } from '../data/parishes';
-import { getParroquias } from '@api/endpoints/parroquias';
+import { getParroquiasImageUrls } from '@api/endpoints/parroquias';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 
 // Fetch en paralelo — ambos son estáticos (prerender = true)
 const [sanityParroquias, config] = await Promise.all([
-  getParroquias().catch(() => []),
+  getParroquiasImageUrls().catch(() => []),
   getConfigSitio().catch(() => null),
 ]);
 

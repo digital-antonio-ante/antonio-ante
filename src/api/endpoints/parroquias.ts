@@ -1,6 +1,33 @@
 import { z } from 'zod';
 import { fetchSanity } from '../../lib/fetcher';
-import { ParroquiaSchema, type NombreParroquia, type Parroquia } from '../../lib/validations';
+import {
+  NombreParroquiaSchema,
+  ParroquiaSchema,
+  type NombreParroquia,
+  type Parroquia,
+} from '../../lib/validations';
+
+/**
+ * Schema mínimo para resolver image URLs en build time.
+ * Deliberadamente leniente — no requiere slug ni campos opcionales,
+ * para que documentos incompletos en Sanity no rompan la query entera.
+ */
+const ParroquiaImageSchema = z.object({
+  nombre: NombreParroquiaSchema,
+  imageUrl: z.string().url().nullish(),
+});
+export type ParroquiaImage = z.infer<typeof ParroquiaImageSchema>;
+
+const QUERY_IMAGES = `
+  *[_type == "parroquia" && defined(imagenPrincipal.asset)] {
+    nombre,
+    "imageUrl": imagenPrincipal.asset->url
+  }
+`;
+
+export async function getParroquiasImageUrls(): Promise<ParroquiaImage[]> {
+  return fetchSanity(QUERY_IMAGES, z.array(ParroquiaImageSchema));
+}
 
 const QUERY_LIST = `
   *[_type == "parroquia"] | order(nombre asc) {
