@@ -59,6 +59,64 @@ export const configSitio = defineType({
       ],
     }),
     defineField({
+      name: 'sloganCanton',
+      title: 'Slogan del cantón',
+      type: 'string',
+      initialValue: 'Capital Textil del Ecuador',
+      description: 'Aparece como badge en el panel de bienvenida del mapa interactivo.',
+    }),
+    defineField({
+      name: 'descripcionCanton',
+      title: 'Descripción breve del cantón',
+      type: 'text',
+      rows: 2,
+      initialValue:
+        'El cantón más dinámico de Imbabura. Referente nacional de la industria textil y cuna de experiencias culturales únicas.',
+      description:
+        'Párrafo de presentación del cantón en el panel del mapa. Máximo 180 caracteres.',
+      validation: (Rule) => Rule.max(180),
+    }),
+    defineField({
+      name: 'highlightsCanton',
+      title: 'Destacados del cantón',
+      type: 'array',
+      description:
+        'Hasta 3 ítems que resaltan en el panel de bienvenida (icono emoji, título, subtítulo).',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'icono',
+              title: 'Icono (emoji)',
+              type: 'string',
+              description: 'Un solo emoji, p. ej. 🧵',
+              validation: (Rule) => Rule.required().max(4),
+            }),
+            defineField({
+              name: 'titulo',
+              title: 'Título',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'subtitulo',
+              title: 'Subtítulo',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+            }),
+          ],
+          preview: {
+            select: { title: 'titulo', subtitle: 'subtitulo', media: 'icono' },
+            prepare({ title, subtitle }) {
+              return { title, subtitle };
+            },
+          },
+        },
+      ],
+      validation: (Rule) => Rule.max(3),
+    }),
+    defineField({
       name: 'ogImageDefault',
       title: 'Imagen por defecto para redes sociales (Open Graph)',
       type: 'image',

@@ -11,6 +11,12 @@ const EnlaceSchema = z.object({
   url: z.string().url(),
 });
 
+const HighlightCantonSchema = z.object({
+  icono: z.string(),
+  titulo: z.string(),
+  subtitulo: z.string(),
+});
+
 /**
  * Singleton configSitio — todo lo que el frontend necesita en build time.
  * asset->url resuelve el CDN URL directamente en GROQ, sin @sanity/image-url.
@@ -20,6 +26,9 @@ const ConfigSitioSchema = z.object({
   logoAlt: z.string().nullish(),
   cantonImageUrl: z.string().url().nullish(),
   cantonImageAlt: z.string().nullish(),
+  sloganCanton: z.string().nullish(),
+  descripcionCanton: z.string().nullish(),
+  highlightsCanton: z.array(HighlightCantonSchema).nullish(),
   ogImageUrl: z.string().url().nullish(),
   emailContacto: z.string().nullish(),
   telefonoContacto: z.string().nullish(),
@@ -32,6 +41,7 @@ const ConfigSitioSchema = z.object({
 export type ConfigSitio = z.infer<typeof ConfigSitioSchema>;
 export type SocialRed = z.infer<typeof SocialRedSchema>;
 export type EnlaceInstitucional = z.infer<typeof EnlaceSchema>;
+export type HighlightCanton = z.infer<typeof HighlightCantonSchema>;
 
 const QUERY = `
   *[_type == "configSitio"][0] {
@@ -39,6 +49,9 @@ const QUERY = `
     "logoAlt": logoInstitucional.alt,
     "cantonImageUrl": imagenCanton.asset->url,
     "cantonImageAlt": imagenCanton.alt,
+    sloganCanton,
+    descripcionCanton,
+    "highlightsCanton": highlightsCanton[]{icono, titulo, subtitulo},
     "ogImageUrl": ogImageDefault.asset->url,
     emailContacto,
     telefonoContacto,

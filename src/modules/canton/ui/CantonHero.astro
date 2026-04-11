@@ -86,6 +86,9 @@ const parishes = Object.fromEntries(
 const parishesJson = JSON.stringify(parishes);
 const cantonImageUrl = config?.cantonImageUrl ?? null;
 const cantonImageAlt = config?.cantonImageAlt ?? 'Cantón Antonio Ante';
+const sloganCanton = config?.sloganCanton ?? null;
+const descripcionCanton = config?.descripcionCanton ?? null;
+const highlightsCanton = config?.highlightsCanton ?? null;
 ---
 
 <section class="canton-hero-section" aria-label="Bienvenida al Cantón Antonio Ante">
@@ -177,7 +180,13 @@ const cantonImageAlt = config?.cantonImageAlt ?? 'Cantón Antonio Ante';
       <CantonMapSVG />
     </div>
     <div class="info-section animate-fade-up" style="animation-delay: 0.2s;">
-      <CantonInfoPanel cantonImageUrl={cantonImageUrl} cantonImageAlt={cantonImageAlt} />
+      <CantonInfoPanel
+        cantonImageUrl={cantonImageUrl}
+        cantonImageAlt={cantonImageAlt}
+        sloganCanton={sloganCanton}
+        descripcionCanton={descripcionCanton}
+        highlightsCanton={highlightsCanton}
+      />
     </div>
   </div>
 

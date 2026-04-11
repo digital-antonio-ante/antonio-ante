@@ -7,15 +7,44 @@
  * métricas, actividades, proyectos, botón galería).
  *
  * cantonImageUrl: URL del CDN de Sanity (asset->url) — gestionada desde el CMS.
+ * sloganCanton, descripcionCanton, highlightsCanton: contenido editable desde Sanity.
  * Sin onclick inline (CSP-safe).
  */
+
+interface HighlightItem {
+  icono: string;
+  titulo: string;
+  subtitulo: string;
+}
 
 interface Props {
   cantonImageUrl?: string | null;
   cantonImageAlt?: string | null;
+  sloganCanton?: string | null;
+  descripcionCanton?: string | null;
+  highlightsCanton?: HighlightItem[] | null;
 }
 
-const { cantonImageUrl, cantonImageAlt = 'Cantón Antonio Ante' } = Astro.props;
+const {
+  cantonImageUrl,
+  cantonImageAlt = 'Cantón Antonio Ante',
+  sloganCanton,
+  descripcionCanton,
+  highlightsCanton,
+} = Astro.props;
+
+const slogan = sloganCanton ?? 'Capital Textil del Ecuador';
+const descripcion =
+  descripcionCanton ??
+  'El cantón más dinámico de Imbabura. Referente nacional de la industria textil y cuna de experiencias culturales únicas.';
+const highlights: HighlightItem[] =
+  highlightsCanton && highlightsCanton.length > 0
+    ? highlightsCanton
+    : [
+        { icono: '🧵', titulo: 'Expo Atuntaqui', subtitulo: 'Feria textil internacional' },
+        { icono: '🍽️', titulo: 'Capital del Cuy', subtitulo: 'Gastronomía reconocida' },
+        { icono: '🏭', titulo: 'Fábrica Imbabura', subtitulo: 'Patrimonio histórico nacional' },
+      ];
 ---
 
 <div id="info-panel" class="glass-panel info-panel-container">
@@ -41,7 +70,7 @@ const { cantonImageUrl, cantonImageAlt = 'Cantón Antonio Ante' } = Astro.props;
         <div class="canton-hero-content">
           <p class="canton-eyebrow">Provincia de Imbabura · Ecuador</p>
           <h3 class="canton-title">Antonio Ante</h3>
-          <span class="canton-badge">Capital Textil del Ecuador</span>
+          <span class="canton-badge">{slogan}</span>
         </div>
       </div>
     </div>
@@ -64,33 +93,20 @@ const { cantonImageUrl, cantonImageAlt = 'Cantón Antonio Ante' } = Astro.props;
         </div>
       </div>
 
-      <p class="canton-desc">
-        El cantón más dinámico de Imbabura. Referente nacional de la industria textil y cuna de
-        experiencias culturales únicas.
-      </p>
+      <p class="canton-desc">{descripcion}</p>
 
       <div class="canton-highlights">
-        <div class="highlight-item">
-          <span class="highlight-icon">🧵</span>
-          <div>
-            <strong>Expo Atuntaqui</strong>
-            <span>Feria textil internacional</span>
-          </div>
-        </div>
-        <div class="highlight-item">
-          <span class="highlight-icon">🍽️</span>
-          <div>
-            <strong>Capital del Cuy</strong>
-            <span>Gastronomía reconocida</span>
-          </div>
-        </div>
-        <div class="highlight-item">
-          <span class="highlight-icon">🏭</span>
-          <div>
-            <strong>Fábrica Imbabura</strong>
-            <span>Patrimonio histórico nacional</span>
-          </div>
-        </div>
+        {
+          highlights.map((h) => (
+            <div class="highlight-item">
+              <span class="highlight-icon">{h.icono}</span>
+              <div>
+                <strong>{h.titulo}</strong>
+                <span>{h.subtitulo}</span>
+              </div>
+            </div>
+          ))
+        }
       </div>
 
       <div class="empty-hint">
