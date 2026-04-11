@@ -8,7 +8,8 @@ export const prerender = true;
 
 export async function getStaticPaths() {
   const noticias = await getNoticias();
-  return noticias.map((n) => ({ params: { slug: n.slug.current } }));
+  // GROQ ya filtra slugs vacíos, pero este guard evita romper si algo llega null
+  return noticias.filter((n) => n.slug?.current).map((n) => ({ params: { slug: n.slug.current } }));
 }
 
 const { slug } = Astro.params;
