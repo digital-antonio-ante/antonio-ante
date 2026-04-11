@@ -10,6 +10,12 @@
  */
 import { NAV_ITEMS } from '@shared/config/nav';
 
+interface Props {
+  logoUrl?: string | null;
+  logoAlt?: string | null;
+}
+
+const { logoUrl, logoAlt = 'Logo del GAD Municipal de Antonio Ante' } = Astro.props;
 const pathname = Astro.url.pathname;
 
 function isActive(href: string): boolean {
@@ -27,12 +33,26 @@ function isActive(href: string): boolean {
         class="flex items-center gap-3 flex-shrink-0"
         aria-label="GAD Municipal de Antonio Ante — Inicio"
       >
-        <div
-          class="w-10 h-10 lg:w-12 lg:h-12 bg-brand-primary rounded flex items-center justify-center flex-shrink-0"
-          aria-hidden="true"
-        >
-          <span class="text-white font-bold text-sm lg:text-base leading-none select-none">AA</span>
-        </div>
+        {
+          logoUrl ? (
+            <img
+              src={logoUrl}
+              alt={logoAlt ?? 'Logo del GAD Municipal de Antonio Ante'}
+              class="w-10 h-10 lg:w-12 lg:h-12 object-contain flex-shrink-0"
+              loading="eager"
+              decoding="async"
+            />
+          ) : (
+            <div
+              class="w-10 h-10 lg:w-12 lg:h-12 bg-brand-primary rounded flex items-center justify-center flex-shrink-0"
+              aria-hidden="true"
+            >
+              <span class="text-white font-bold text-sm lg:text-base leading-none select-none">
+                AA
+              </span>
+            </div>
+          )
+        }
         <div class="flex flex-col leading-tight">
           <span class="text-brand-primary font-bold text-sm lg:text-base">GAD Municipal</span>
           <span class="text-brand-primary font-semibold text-xs lg:text-sm">Antonio Ante</span>

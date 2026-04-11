@@ -3,9 +3,15 @@
   publish = "dist"
 
 # ─── Sanity webhook → Netlify rebuild ─────────────────────────────────────────
-# Cuando el staff publica contenido en Sanity, Sanity llama al Build Hook de Netlify
-# que está configurado en: studio/sanity.cli.ts o en el panel de Sanity (Manage → Webhooks)
-# URL del build hook: se genera en Netlify → Site settings → Build & deploy → Build hooks
+# SETUP (hacer una sola vez):
+#   1. Netlify → Site settings → Build & deploy → Build hooks → "Add build hook"
+#      Nombre: "Sanity publish"  Branch: main  → copiar la URL generada
+#   2. sanity.io/manage → proyecto lmfef6xr → API → Webhooks → "Add webhook"
+#      Name: "Netlify rebuild"
+#      URL: pegar la URL del paso 1
+#      Trigger on: "Create", "Update", "Delete"  Dataset: production
+#      Filter: _type == "configSitio" || _type == "noticia" || _type == "parroquia" || _type == "documentoOficial"
+#   Con esto, cada vez que publiques en Sanity, Netlify rebuildeará automáticamente.
 
 # ─── Security Headers — todas las rutas ───────────────────────────────────────
 [[headers]]

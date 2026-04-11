@@ -3,6 +3,7 @@ import SEOHead from './SEOHead.astro';
 import Header from './Header.astro';
 import Footer from './Footer.astro';
 import '@styles/global.css';
+import { getConfigSitio } from '@api/endpoints/config-sitio';
 
 interface Props {
   title: string;
@@ -15,6 +16,10 @@ interface Props {
 }
 
 const props = Astro.props;
+const config = await getConfigSitio().catch(() => null);
+
+// La imagen OG: prioridad → prop explícita → Sanity ogImageDefault → fallback local
+const ogImage = props.image ?? config?.ogImageUrl ?? undefined;
 
 // GA4 se inyecta solo en producción (import.meta.env.PROD = true en build)
 const ga4 = import.meta.env.PROD
@@ -40,7 +45,7 @@ const ga4 = import.meta.env.PROD
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&display=swap"
     />
-    <SEOHead {...props} />
+    <SEOHead {...props} image={ogImage} />
     <slot name="head" />
 
     <!-- Google Analytics 4 — solo en producción -->
@@ -57,7 +62,7 @@ const ga4 = import.meta.env.PROD
       Saltar al contenido principal
     </a>
 
-    <Header />
+    <Header logoUrl={config?.logoUrl} logoAlt={config?.logoAlt} />
 
     <main id="main-content" class="flex-1" tabindex="-1">
       <slot />
