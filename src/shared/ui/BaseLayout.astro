@@ -29,7 +29,7 @@ const ga4 = import.meta.env.PROD
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#003366" />
+    <meta name="theme-color" content="#277816" />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
@@ -46,7 +46,10 @@ const ga4 = import.meta.env.PROD
     <!-- Google Analytics 4 — solo en producción -->
     <Fragment set:html={ga4} />
   </head>
-  <body class="min-h-screen bg-brand-light text-brand-dark font-sans flex flex-col">
+  <body
+    class="min-h-screen text-brand-dark font-sans flex flex-col"
+    style="background: linear-gradient(180deg, #f6fdf8 0%, #fafffe 18%, #fdfefe 50%, #fffdf9 100%); background-attachment: fixed;"
+  >
     <a
       href="#main-content"
       class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-md"

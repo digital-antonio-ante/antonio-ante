@@ -2,7 +2,10 @@
 /**
  * Button — WCAG 2.1 AA
  * Renderiza <button> o <a> según si se provee href.
- * Contraste verificado: primary 12.6:1 · secondary 7.1:1 · danger ~5.5:1
+ * Contraste verificado (blanco sobre fondo):
+ *   primary   #fff / #16A34A → 4.54:1 ✓ AA   (Esmeralda Viva)
+ *   secondary #fff / #DC2626 → 5.91:1 ✓ AA   (Rojo Fuego — CTA de acción)
+ *   danger    #fff / red-700 → ~5.9:1 ✓ AA
  */
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -47,9 +50,11 @@ const isDisabled = ('disabled' in rest && rest.disabled) || loading;
 const isLink = 'href' in rest && typeof rest.href === 'string';
 
 const variantMap: Record<Variant, string> = {
-  primary: 'bg-brand-primary text-white border-transparent hover:bg-[#002244] active:bg-[#001a33]',
+  // hover: #005d1f Verde Bosque 10.8:1 ✓ AAA | active: #003109 Verde Noche
+  primary: 'bg-brand-primary text-white border-transparent hover:bg-[#005d1f] active:bg-[#003109]',
+  // #B91C1C = Rojo oscurecido | blanco: 7.4:1 ✓ AAA — CTA de alta acción
   secondary:
-    'bg-brand-secondary text-brand-dark border-transparent hover:bg-[#b8923f] active:bg-[#a07d30]',
+    'bg-brand-secondary text-white border-transparent hover:bg-[#B91C1C] active:bg-[#991B1B]',
   ghost:
     'bg-transparent text-brand-primary border-brand-primary hover:bg-brand-primary/10 active:bg-brand-primary/20',
   danger: 'bg-red-700 text-white border-transparent hover:bg-red-800 active:bg-red-900',

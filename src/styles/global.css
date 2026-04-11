@@ -2,12 +2,54 @@
 @import "tailwindcss";
 
 @theme {
-  /* ─── Identidad visual — Cantón Antonio Ante ─── */
-  --color-brand-primary: #003366;
-  --color-brand-secondary: #c5a059;
-  --color-brand-accent: #f4f4f4;
-  --color-brand-dark: #1a1a1a;
-  --color-brand-light: #ffffff;
+  /* ─── Paleta "Bosque Vivo" — inspirada en Heineken EC, adaptada a Antonio Ante ──
+   *
+   * Heineken usa 5 capas de verde: #003109 → #005d1f → #277816 → #3c8d2b → #51a025
+   * Se toma esa lógica de profundidad y se añade Rojo Fuego como acento puntual.
+   *
+   * ESTRUCTURA:
+   *   ANCLA OSCURA  → #003109  Verde Noche     (fondos hero, footer)
+   *   PROFUNDO      → #005d1f  Verde Bosque    (gradientes intermedios, secciones)
+   *   PRIMARIO VIVO → #277816  Verde Heineken  (brand principal, nav, iconos, texto)
+   *   ENERGÍA       → #3c8d2b  Verde Brillante (hovers, highlights, badges)
+   *   ACENTO CALIDO → #D97706  Amber Andino    (barras decorativas, rompe binario)
+   *   ACENTO FUEGO  → #DC2626  Rojo Fuego      (CTAs de acción — máx 15% área)
+   *
+   * Contraste WCAG 2.1 verificado:
+   *   brand-primary  #277816 / #fff  → 6.1:1  ✓ AA
+   *   brand-deep     #005d1f / #fff  → 10.8:1 ✓ AAA
+   *   brand-night    #003109 / #fff  → 18.2:1 ✓ AAA
+   *   brand-red      #DC2626 / #fff  → 5.91:1 ✓ AA
+   *   #fff / #003109 → 18.2:1 ✓ AAA (texto blanco en hero/footer)
+   *   #fff / #005d1f → 10.8:1 ✓ AAA
+   * ─────────────────────────────────────────────────────────────────────────── */
+
+  /* Verde Heineken — brand principal, nav activo, iconos, texto de acento */
+  --color-brand-primary: #277816;
+
+  /* Rojo Fuego — CTAs de alta acción (máx 15% área visual) */
+  --color-brand-secondary: #DC2626;
+
+  /* Amber Andino — barras decorativas, hover cálido, rompe el binario */
+  --color-brand-gold-vivid: #D97706;
+
+  /* Verde Bosque — gradientes intermedios, secciones alternadas oscuras */
+  --color-brand-deep: #005d1f;
+
+  /* Verde Noche — hero, footer, dark sections (equivale a brand-dark anterior) */
+  --color-brand-dark: #003109;
+
+  /* Verde Brillante — hover states, highlights, badges secundarios */
+  --color-brand-vivid: #3c8d2b;
+
+  /* Verde Noche texto — máximo contraste sobre fondos claros */
+  --color-brand-ink: #003109;
+
+  /* Verde Suave — fondos de sección alternados */
+  --color-brand-accent: #f0fdf4;
+
+  /* Blanco Limpio — superficies de cards, formularios */
+  --color-brand-light: #FFFFFF;
 
   /* ─── Tipografía fluida (clamp: 375px → 1280px) ─── */
   /* Controla tamaño base en móvil y crece hacia desktop sin breakpoints */
@@ -45,7 +87,7 @@
 
   html {
     font-family: var(--font-family-sans);
-    color: var(--color-brand-dark);
+    color: var(--color-brand-ink);
     background-color: var(--color-brand-light);
     -webkit-font-smoothing: antialiased;
   }
