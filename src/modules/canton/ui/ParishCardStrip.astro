@@ -2,18 +2,24 @@
 /**
  * ParishCardStrip.astro — Tira horizontal de tarjetas por parroquia.
  *
- * Usa gradientes CSS per-parroquia como fondo (sin dependencia de imágenes).
- * Interacción via data-select-parish (CSP-safe).
- * En desktop: grid 6 columnas. En tablet/móvil: scroll horizontal con snap.
+ * Fondo: foto real (object-fit: cover) con fallback al color de parroquia.
+ * Color-wash con mix-blend-mode: multiply en hover — presencia del diseño original.
+ * Interacción vía data-select-parish (CSP-safe, sin onclick inline).
+ * Desktop: grid 6 columnas. Tablet/móvil: scroll horizontal con snap.
  */
-import { PARISHES } from '../data/parishes';
+import type { ParishData } from '../data/parishes';
 
-const parishList = Object.values(PARISHES);
+interface Props {
+  parishes: Record<string, ParishData>;
+}
+
+const { parishes } = Astro.props;
+const parishList = Object.values(parishes);
 ---
 
 <section class="parish-strip-section" aria-label="Parroquias del Cantón Antonio Ante">
   <div class="strip-header">
-    <div>
+    <div class="strip-header-left">
       <p class="strip-eyebrow">Cantón Antonio Ante</p>
       <h2 class="strip-title">Conoce cada parroquia</h2>
     </div>
@@ -29,32 +35,22 @@ const parishList = Object.values(PARISHES);
           <button
             class="pcard"
             data-select-parish={p.id}
-            style={`--pc: ${p.color};`}
+            style={`--parish-color: ${p.color};`}
             role="listitem"
             aria-label={`Ver información de ${p.name} — ${p.type} — ${p.shortDesc}`}
           >
-            {/* Gradiente de fondo basado en el color de la parroquia */}
-            <div class="pcard-bg" aria-hidden="true" />
+            {/* Foto de fondo con fallback al color de parroquia */}
+            {p.imageSrc ? (
+              <img src={p.imageSrc} alt="" class="pcard-img" loading="lazy" aria-hidden="true" />
+            ) : (
+              <div class="pcard-img-fallback" aria-hidden="true" />
+            )}
 
-            {/* Patrón de textil superpuesto */}
-            <svg class="pcard-pattern" viewBox="0 0 60 60" aria-hidden="true">
-              <defs>
-                <pattern
-                  id={`dots-${p.id}`}
-                  x="0"
-                  y="0"
-                  width="12"
-                  height="12"
-                  patternUnits="userSpaceOnUse"
-                >
-                  <circle cx="2" cy="2" r="1.2" fill="rgba(255,255,255,0.18)" />
-                </pattern>
-              </defs>
-              <rect width="60" height="60" fill={`url(#dots-${p.id})`} />
-            </svg>
-
-            {/* Gradiente oscuro hacia abajo */}
+            {/* Gradiente oscuro base — siempre visible, da legibilidad al texto */}
             <div class="pcard-gradient" aria-hidden="true" />
+
+            {/* Color-wash en hover: mix-blend-mode multiply sobre la foto */}
+            <div class="pcard-color-wash" aria-hidden="true" />
 
             {/* Cuerpo de texto */}
             <div class="pcard-body">
@@ -89,12 +85,18 @@ const parishList = Object.values(PARISHES);
   .parish-strip-section {
     width: 100%;
   }
+
   .strip-header {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
     padding: 0 0.25rem;
+  }
+  .strip-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
   }
   .strip-eyebrow {
     font-size: 0.65rem;
@@ -102,11 +104,11 @@ const parishList = Object.values(PARISHES);
     text-transform: uppercase;
     letter-spacing: 0.16em;
     color: var(--text-muted);
-    margin: 0 0 0.15rem;
+    margin: 0;
   }
   .strip-title {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 800;
     color: var(--text-main);
     letter-spacing: -0.02em;
@@ -119,18 +121,22 @@ const parishList = Object.values(PARISHES);
     color: var(--text-muted);
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    padding-bottom: 0.1rem;
+    gap: 0.4rem;
+    padding-bottom: 0.15rem;
     margin: 0;
   }
+  .strip-hint-arrow {
+    font-size: 0.9rem;
+    letter-spacing: -0.05em;
+  }
 
-  /* ── Track de scroll ── */
+  /* ── Track con scroll ── */
   .strip-track-wrapper {
     position: relative;
   }
   .strip-track {
     display: flex;
-    gap: 0.85rem;
+    gap: 1rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
@@ -141,36 +147,36 @@ const parishList = Object.values(PARISHES);
     display: none;
   }
 
-  /* Fades laterales — color calculado del fondo del hero */
+  /* Fades laterales — adaptan al color del hero */
   .strip-fade {
     position: absolute;
     top: 0;
     bottom: 0.5rem;
-    width: 50px;
+    width: 60px;
     pointer-events: none;
     z-index: 2;
   }
   .strip-fade--left {
     left: 0;
-    background: linear-gradient(to right, rgba(232, 244, 240, 0.9), transparent);
+    background: linear-gradient(to right, var(--bg-body, #f6fdf8), transparent);
   }
   .strip-fade--right {
     right: 0;
-    background: linear-gradient(to left, rgba(252, 232, 216, 0.9), transparent);
+    background: linear-gradient(to left, var(--bg-body, #f6fdf8), transparent);
   }
 
   /* ── Card ── */
   .pcard {
-    flex: 0 0 200px;
-    height: 300px;
+    flex: 0 0 220px;
+    height: 320px;
     position: relative;
-    border-radius: 18px;
+    border-radius: 20px;
     overflow: hidden;
     cursor: pointer;
     scroll-snap-align: start;
     border: none;
     padding: 0;
-    background: var(--pc, #1a5f7a);
+    background: #0f172a;
     transition:
       transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
       box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -179,46 +185,71 @@ const parishList = Object.values(PARISHES);
   .pcard:hover {
     transform: translateY(-6px) scale(1.02);
     box-shadow:
-      0 20px 40px rgba(0, 0, 0, 0.2),
-      0 0 0 2px var(--pc);
+      0 20px 40px rgba(0, 0, 0, 0.22),
+      0 0 0 2px var(--parish-color);
   }
   .pcard.active {
     box-shadow:
-      0 20px 40px rgba(0, 0, 0, 0.25),
-      0 0 0 3px var(--pc);
+      0 20px 40px rgba(0, 0, 0, 0.28),
+      0 0 0 3px var(--parish-color);
   }
   .pcard:focus-visible {
-    outline: 3px solid var(--pc);
+    outline: 3px solid var(--parish-color);
     outline-offset: 2px;
   }
 
-  /* Fondo gradiente por color de parroquia */
-  .pcard-bg {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(145deg, color-mix(in srgb, var(--pc) 80%, black), var(--pc));
-  }
-
-  /* Patrón textil superpuesto */
-  .pcard-pattern {
+  /* Foto de fondo */
+  .pcard-img {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    opacity: 0.6;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .pcard:hover .pcard-img {
+    transform: scale(1.08);
   }
 
-  /* Gradiente negro hacia abajo */
+  /* Fallback cuando no hay foto — gradiente del color de parroquia */
+  .pcard-img-fallback {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--parish-color) 70%, #000),
+      var(--parish-color)
+    );
+  }
+
+  /* Gradiente oscuro base — siempre visible */
   .pcard-gradient {
     position: absolute;
     inset: 0;
     background: linear-gradient(
       to top,
-      rgba(5, 10, 20, 0.92) 0%,
-      rgba(5, 10, 20, 0.3) 50%,
-      transparent 100%
+      rgba(5, 10, 20, 0.95) 0%,
+      rgba(5, 10, 20, 0.55) 45%,
+      rgba(5, 10, 20, 0.1) 100%
     );
     z-index: 1;
+  }
+
+  /* Color-wash en hover — tiñe la foto con el color de la parroquia */
+  .pcard-color-wash {
+    position: absolute;
+    inset: 0;
+    background: var(--parish-color);
+    opacity: 0;
+    mix-blend-mode: multiply;
+    transition: opacity 0.4s ease;
+    z-index: 1;
+  }
+  .pcard:hover .pcard-color-wash {
+    opacity: 0.28;
+  }
+  .pcard.active .pcard-color-wash {
+    opacity: 0.18;
   }
 
   /* Cuerpo de texto */
@@ -229,34 +260,34 @@ const parishList = Object.values(PARISHES);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: 1rem;
-    gap: 0.25rem;
+    padding: 1.1rem;
+    gap: 0.3rem;
     text-align: left;
   }
   .pcard-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.2rem;
   }
   .pcard-icon {
-    font-size: 1.3rem;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    font-size: 1.4rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
   }
   .pcard-type {
-    font-size: 0.55rem;
+    font-size: 0.58rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: white;
-    background: var(--pc);
-    padding: 0.18rem 0.5rem;
+    background: var(--parish-color);
+    padding: 0.2rem 0.55rem;
     border-radius: 9999px;
     opacity: 0.95;
   }
   .pcard-name {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 800;
     color: white;
     letter-spacing: -0.02em;
@@ -264,9 +295,9 @@ const parishList = Object.values(PARISHES);
     margin: 0;
   }
   .pcard-desc {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     color: rgba(255, 255, 255, 0.65);
-    line-height: 1.4;
+    line-height: 1.45;
     max-height: 0;
     overflow: hidden;
     transition:
@@ -282,17 +313,17 @@ const parishList = Object.values(PARISHES);
   .pcard-cta {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    font-size: 0.68rem;
+    gap: 0.4rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    color: var(--pc);
+    color: var(--parish-color);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     opacity: 0;
     transform: translateY(4px);
     transition:
-      opacity 0.25s ease 0.05s,
-      transform 0.25s ease 0.05s;
+      opacity 0.3s ease 0.05s,
+      transform 0.3s ease 0.05s;
   }
   .pcard:hover .pcard-cta,
   .pcard.active .pcard-cta {
@@ -300,7 +331,7 @@ const parishList = Object.values(PARISHES);
     transform: translateY(0);
   }
   .pcard-arrow {
-    transition: transform 0.2s ease;
+    transition: transform 0.25s ease;
   }
   .pcard:hover .pcard-arrow {
     transform: translateX(3px);
@@ -313,7 +344,7 @@ const parishList = Object.values(PARISHES);
     left: 0;
     right: 0;
     height: 3px;
-    background: var(--pc);
+    background: var(--parish-color);
     z-index: 3;
     transform: scaleX(0);
     transform-origin: left;
@@ -338,7 +369,7 @@ const parishList = Object.values(PARISHES);
     .pcard {
       flex: none;
       width: auto;
-      height: 280px;
+      height: 300px;
     }
     .strip-hint {
       display: none;
@@ -346,22 +377,33 @@ const parishList = Object.values(PARISHES);
   }
   @media (max-width: 768px) {
     .strip-title {
-      font-size: 1.25rem;
+      font-size: 1.3rem;
     }
     .pcard {
-      flex: 0 0 175px;
-      height: 268px;
+      flex: 0 0 180px;
+      height: 280px;
     }
   }
   @media (max-width: 480px) {
     .pcard {
-      flex: 0 0 155px;
-      height: 248px;
+      flex: 0 0 160px;
+      height: 260px;
     }
     .strip-header {
       flex-direction: column;
       align-items: flex-start;
-      gap: 0.4rem;
+      gap: 0.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pcard,
+    .pcard-img,
+    .pcard-color-wash,
+    .pcard-desc,
+    .pcard-cta,
+    .pcard-accent-bar {
+      transition: none;
     }
   }
 </style>

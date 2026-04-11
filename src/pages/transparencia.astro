@@ -102,7 +102,7 @@ const enlaces = [
       <div class="bg-white rounded-xl border border-brand-secondary/30 p-6 sm:p-8">
         <div class="flex items-start gap-4">
           <svg
-            class="w-6 h-6 text-brand-secondary flex-shrink-0 mt-0.5"
+            class="w-6 h-6 text-brand-primary flex-shrink-0 mt-0.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -136,14 +136,14 @@ const enlaces = [
             articulos.map((art) => (
               <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
                 <div class="bg-brand-primary px-5 py-3 flex items-center gap-3">
-                  <span class="text-brand-secondary font-bold text-sm font-mono">{art.numero}</span>
+                  <span class="text-brand-primary font-bold text-sm font-mono">{art.numero}</span>
                   <h3 class="text-white font-semibold text-sm">{art.titulo}</h3>
                 </div>
                 <ul class="divide-y divide-gray-50" role="list">
                   {art.items.map((item) => (
                     <li class="px-5 py-3 flex items-start gap-2 text-sm text-brand-dark/70">
                       <svg
-                        class="w-4 h-4 text-brand-secondary flex-shrink-0 mt-0.5"
+                        class="w-4 h-4 text-brand-primary flex-shrink-0 mt-0.5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -214,7 +214,7 @@ const enlaces = [
                     )}
                   </div>
                   <div>
-                    <p class="font-bold text-brand-primary text-sm group-hover:text-brand-secondary transition-colors duration-200">
+                    <p class="font-bold text-brand-primary text-sm group-hover:text-brand-primary transition-colors duration-200">
                       {titulo}
                       {externa && <span class="sr-only"> (abre en nueva pestaña)</span>}
                     </p>

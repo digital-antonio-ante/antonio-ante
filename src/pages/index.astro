@@ -4,14 +4,11 @@ import Card from '@ui/Card.astro';
 import CategoryBadge from '@ui/CategoryBadge.astro';
 import CantonHero from '../modules/canton/ui/CantonHero.astro';
 import { getNoticiasDestacadas, getNoticiasRecientes } from '@api/endpoints/noticias';
-import { getParroquias } from '@api/endpoints/parroquias';
 import { getDocumentosVigentes } from '@api/endpoints/documentos';
-
 export const prerender = true;
 
-const [noticias, parroquias, documentos] = await Promise.all([
+const [noticias, documentos] = await Promise.all([
   getNoticiasDestacadas(3).catch(() => getNoticiasRecientes(3)),
-  getParroquias(),
   getDocumentosVigentes(),
 ]);
 
@@ -30,27 +27,21 @@ function formatDate(iso: string): string {
   title="Inicio"
   description="Portal oficial del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador. Noticias, servicios y trámites municipales."
 >
-  <!-- ─── Hero — DISEÑO ANTIGUO integrado ────────────────────────────────── -->
   <CantonHero />
 
   <!-- ─── Noticias destacadas ───────────────────────────────────────────── -->
   {
     noticias.length > 0 && (
-      <section class="py-16 lg:py-20 bg-brand-light" aria-labelledby="noticias-heading">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex items-end justify-between mb-10">
+      <section class="section-noticias" aria-labelledby="noticias-heading">
+        <div class="section-inner">
+          <div class="section-header">
             <div>
-              <p class="text-brand-secondary text-xs font-bold uppercase tracking-widest mb-1">
-                Cantón Antonio Ante
-              </p>
-              <h2 id="noticias-heading" class="text-2xl lg:text-3xl font-bold text-brand-primary">
+              <p class="eyebrow eyebrow--gold">Actualidad</p>
+              <h2 id="noticias-heading" class="section-title">
                 Noticias destacadas
               </h2>
             </div>
-            <a
-              href="/noticias"
-              class="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:text-brand-secondary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded"
-            >
+            <a href="/noticias" class="link-ver-todas">
               Ver todas
               <svg
                 class="w-4 h-4"
@@ -84,15 +75,15 @@ function formatDate(iso: string): string {
                       <CategoryBadge categoria={noticia.categoria} />
                       <time
                         datetime={noticia.publishedAt}
-                        class="text-xs text-brand-dark/50 font-medium"
+                        class="text-xs text-gray-400 font-medium"
                       >
                         {formatDate(noticia.publishedAt)}
                       </time>
                     </div>
-                    <h3 class="text-base font-bold text-brand-primary leading-snug mb-2 line-clamp-2">
+                    <h3 class="text-base font-bold text-gray-900 leading-snug mb-2 line-clamp-2">
                       {noticia.titulo}
                     </h3>
-                    <p class="text-sm text-brand-dark/70 leading-relaxed line-clamp-3 flex-1">
+                    <p class="text-sm text-gray-500 leading-relaxed line-clamp-3 flex-1">
                       {noticia.resumen}
                     </p>
                     <p class="mt-4 text-xs font-semibold text-brand-primary flex items-center gap-1">
@@ -121,7 +112,7 @@ function formatDate(iso: string): string {
           <div class="sm:hidden mt-6 text-center">
             <a
               href="/noticias"
-              class="text-sm font-semibold text-brand-primary hover:text-brand-secondary transition-colors"
+              class="text-sm font-semibold text-brand-primary hover:text-brand-vivid transition-colors"
             >
               Ver todas las noticias →
             </a>
@@ -131,116 +122,19 @@ function formatDate(iso: string): string {
     )
   }
 
-  <!-- ─── Parroquias ────────────────────────────────────────────────────── -->
-  {
-    parroquias.length > 0 && (
-      <section
-        class="py-16 lg:py-20 bg-brand-accent border-t border-gray-100"
-        aria-labelledby="parroquias-heading"
-      >
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex items-end justify-between mb-10">
-            <div>
-              <p class="text-brand-secondary text-xs font-bold uppercase tracking-widest mb-1">
-                6 parroquias
-              </p>
-              <h2 id="parroquias-heading" class="text-2xl lg:text-3xl font-bold text-brand-primary">
-                Conoce el cantón
-              </h2>
-            </div>
-            <a
-              href="/parroquias"
-              class="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:text-brand-secondary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded"
-            >
-              Ver todas
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </a>
-          </div>
-
-          <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" role="list">
-            {parroquias.map((p) => (
-              <li>
-                <a
-                  href={`/parroquias/${p.slug.current}`}
-                  class="group flex flex-col items-center text-center p-4 bg-white rounded-xl border border-gray-100 hover:border-brand-secondary hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-                >
-                  <div
-                    class="w-12 h-12 rounded-full bg-brand-primary flex items-center justify-center mb-3 group-hover:bg-brand-secondary transition-colors duration-200"
-                    aria-hidden="true"
-                  >
-                    <svg
-                      class="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 class="text-sm font-bold text-brand-primary group-hover:text-brand-secondary transition-colors duration-200 leading-tight">
-                    {p.nombre}
-                  </h3>
-                  {p.esCabeceraCantonal && (
-                    <span class="mt-1 text-xs text-brand-secondary font-semibold">
-                      Cabecera cantonal
-                    </span>
-                  )}
-                  {p.poblacion && (
-                    <span class="mt-1 text-xs text-brand-dark/50">
-                      {p.poblacion.toLocaleString('es-EC')} hab.
-                    </span>
-                  )}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-    )
-  }
-
   <!-- ─── Documentos recientes ──────────────────────────────────────────── -->
   {
     docsRecientes.length > 0 && (
-      <section class="py-16 lg:py-20 bg-brand-light" aria-labelledby="documentos-heading">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex items-end justify-between mb-10">
+      <section class="section-docs" aria-labelledby="documentos-heading">
+        <div class="section-inner">
+          <div class="section-header">
             <div>
-              <p class="text-brand-secondary text-xs font-bold uppercase tracking-widest mb-1">
-                Transparencia
-              </p>
-              <h2 id="documentos-heading" class="text-2xl lg:text-3xl font-bold text-brand-primary">
+              <p class="eyebrow eyebrow--gold">Transparencia institucional</p>
+              <h2 id="documentos-heading" class="section-title">
                 Documentos oficiales
               </h2>
             </div>
-            <a
-              href="/documentos"
-              class="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:text-brand-secondary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded"
-            >
+            <a href="/documentos" class="link-ver-todas">
               Ver todos
               <svg
                 class="w-4 h-4"
@@ -262,14 +156,8 @@ function formatDate(iso: string): string {
           <ul class="flex flex-col gap-3" role="list">
             {docsRecientes.map((doc) => (
               <li>
-                <a
-                  href="/documentos"
-                  class="group flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:border-brand-primary/30 hover:shadow-sm transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-                >
-                  <div
-                    class="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-primary/20 transition-colors duration-200"
-                    aria-hidden="true"
-                  >
+                <a href="/documentos" class="doc-row group">
+                  <div class="doc-icon-wrap" aria-hidden="true">
                     <svg
                       class="w-5 h-5 text-brand-primary"
                       fill="none"
@@ -288,18 +176,16 @@ function formatDate(iso: string): string {
                     <div class="flex flex-wrap items-center gap-2 mb-1">
                       <CategoryBadge categoria={doc.categoria} />
                       {doc.numero && (
-                        <span class="text-xs text-brand-dark/50 font-mono">{doc.numero}</span>
+                        <span class="text-xs text-gray-400 font-mono">{doc.numero}</span>
                       )}
                     </div>
-                    <p class="text-sm font-semibold text-brand-primary group-hover:text-brand-secondary transition-colors duration-200 leading-snug">
+                    <p class="text-sm font-semibold text-gray-800 group-hover:text-brand-primary transition-colors leading-snug">
                       {doc.titulo}
                     </p>
-                    <p class="text-xs text-brand-dark/50 mt-0.5">
-                      {formatDate(doc.fechaPublicacion)}
-                    </p>
+                    <p class="text-xs text-gray-400 mt-0.5">{formatDate(doc.fechaPublicacion)}</p>
                   </div>
                   <svg
-                    class="w-4 h-4 text-brand-dark/30 group-hover:text-brand-primary flex-shrink-0 mt-0.5 transition-colors duration-200"
+                    class="w-4 h-4 text-gray-300 group-hover:text-brand-primary flex-shrink-0 mt-0.5 transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -321,30 +207,313 @@ function formatDate(iso: string): string {
     )
   }
 
-  <!-- ─── Estadísticas ──────────────────────────────────────────────────── -->
-  <section class="py-16 bg-brand-primary text-white" aria-labelledby="stats-heading">
-    <h2 id="stats-heading" class="sr-only">Datos del Cantón Antonio Ante</h2>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <ul class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center" role="list">
+  <!-- ─── Identidad cantonal ──────────────────────────────────────────── -->
+  <section class="canton-callout" aria-labelledby="callout-heading">
+    <!-- Barra tricolor: verde → oro → rojo -->
+    <div class="callout-bar" aria-hidden="true"></div>
+
+    <div class="callout-inner">
+      <!-- Texto izquierda -->
+      <div class="callout-text">
+        <p class="callout-eyebrow">Cantón Antonio Ante · Imbabura · Ecuador</p>
+        <h2 id="callout-heading" class="callout-title">
+          Seis parroquias,<br />una sola identidad.
+        </h2>
+        <p class="callout-sub">Cada rincón guarda su propia historia, cultura y paisaje.</p>
+      </div>
+
+      <!-- Métricas derecha -->
+      <dl class="callout-metrics" aria-label="Estadísticas del cantón">
         {
           [
-            { valor: '6', unidad: 'Parroquias', detalle: '2 urbanas · 4 rurales' },
-            { valor: '47.882', unidad: 'Habitantes', detalle: 'Censo 2022 — INEC' },
-            { valor: '79 km²', unidad: 'Superficie', detalle: 'Cantón Antonio Ante' },
-            { valor: '2.360 m', unidad: 'Altitud', detalle: 'Sobre el nivel del mar' },
-          ].map(({ valor, unidad, detalle }) => (
-            <li>
-              <p class="text-3xl lg:text-4xl font-bold text-brand-secondary leading-none mb-1">
-                {valor}
-              </p>
-              <p class="font-semibold text-white text-sm uppercase tracking-wide mb-0.5">
-                {unidad}
-              </p>
-              <p class="text-xs text-white/60">{detalle}</p>
-            </li>
+            { icono: '🏘️', num: '6', label: 'Parroquias', detail: '2 urbanas · 4 rurales' },
+            { icono: '👥', num: '47.882', label: 'Habitantes', detail: 'Censo 2022 — INEC' },
+            { icono: '🗺️', num: '79 km²', label: 'Superficie', detail: 'Cantón Antonio Ante' },
+            { icono: '⛰️', num: '2.360 m', label: 'Altitud', detail: 'Sobre el nivel del mar' },
+          ].map(({ icono, num, label, detail }) => (
+            <div class="callout-metric">
+              <span class="callout-metric-icon" aria-hidden="true">
+                {icono}
+              </span>
+              <div>
+                <strong class="callout-metric-num">{num}</strong>
+                <span class="callout-metric-label">{label}</span>
+                <span class="callout-metric-detail">{detail}</span>
+              </div>
+            </div>
           ))
         }
-      </ul>
+      </dl>
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  /* ── Tokens de sección ────────────────────────────────────────────────────── */
+  .section-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  @media (min-width: 640px) {
+    .section-inner {
+      padding: 0 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .section-inner {
+      padding: 0 2rem;
+    }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: -0.02em;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .section-sub {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.35rem 0 0;
+  }
+
+  /* Eyebrows — gold o red */
+  .eyebrow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin: 0 0 0.4rem;
+  }
+  .eyebrow--gold {
+    color: #b45309;
+  } /* amber-700: 5.4:1 ✓ AA */
+  .eyebrow--red {
+    color: #b91c1c;
+  } /* red-700: 7.4:1 ✓ AAA */
+
+  .link-ver-todas {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 150ms;
+    outline: none;
+    border-radius: 3px;
+    flex-shrink: 0;
+    padding-bottom: 0.15rem;
+  }
+  .link-ver-todas:hover {
+    color: #111827;
+  }
+  .link-ver-todas:focus-visible {
+    outline: 2px solid #277816;
+    outline-offset: 2px;
+  }
+
+  /* ── Noticias ─────────────────────────────────────────────────────────────── */
+  .section-noticias {
+    padding: 4rem 0;
+    background: transparent;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  /* ── Documentos ───────────────────────────────────────────────────────────── */
+  .section-docs {
+    padding: 4rem 0;
+    background: transparent;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .doc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: #ffffff;
+    border: 1px solid #f3f4f6;
+    border-radius: 10px;
+    text-decoration: none;
+    transition:
+      border-color 200ms,
+      box-shadow 200ms;
+    outline: none;
+  }
+  .doc-row:hover {
+    border-color: #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  .doc-row:focus-visible {
+    outline: 2px solid #277816;
+    outline-offset: 2px;
+  }
+
+  .doc-icon-wrap {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 8px;
+    background: #f0fdf4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 200ms;
+  }
+  .doc-row:hover .doc-icon-wrap {
+    background: #dcfce7;
+  }
+
+  /* ── Canton callout ───────────────────────────────────────────────────────── */
+  .canton-callout {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 80rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    margin: 3rem max(1rem, calc((100% - 80rem) / 2)) 3.5rem;
+  }
+
+  .callout-bar {
+    height: 4px;
+    background: linear-gradient(90deg, #277816 0%, #d97706 55%, #dc2626 100%);
+  }
+
+  .callout-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2rem 2.5rem;
+  }
+
+  .callout-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .callout-eyebrow {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #9ca3af;
+    margin: 0 0 0.5rem;
+  }
+
+  .callout-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+  }
+
+  .callout-sub {
+    font-size: 0.82rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 32rem;
+  }
+
+  .callout-metrics {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    margin: 0;
+  }
+
+  .callout-metric {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    min-width: 100px;
+  }
+
+  .callout-metric-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .callout-metric > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+
+  .callout-metric-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    /* Gradient text verde → oro */
+    background: linear-gradient(135deg, #277816, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    display: block;
+  }
+
+  .callout-metric-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+    display: block;
+  }
+
+  .callout-metric-detail {
+    font-size: 0.58rem;
+    color: #9ca3af;
+    display: block;
+    margin-top: 0.1rem;
+  }
+
+  @media (max-width: 768px) {
+    .canton-callout {
+      margin-top: 0;
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+    }
+    .callout-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.5rem;
+      padding: 1.5rem;
+    }
+    .callout-metrics {
+      width: 100%;
+    }
+    .callout-metric {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+</style>
