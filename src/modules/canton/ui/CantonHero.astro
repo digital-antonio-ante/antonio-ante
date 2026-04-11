@@ -36,27 +36,48 @@ const NOMBRE_MAP: Record<string, string> = {
   imbaya: 'Imbaya',
 };
 
-// Mapeo nombre Sanity → { url, objectPosition }
+/**
+ * Genera una URL de Sanity CDN con crop inteligente basado en el focal point (hotspot).
+ * fit=crop + fp-x/fp-y → el CDN recorta en torno al punto importante de la imagen.
+ * auto=format → sirve WebP/AVIF según lo que soporte el navegador.
+ */
+function buildCropUrl(baseUrl: string, w: number, h: number, fpX: number, fpY: number): string {
+  return `${baseUrl}?w=${w}&h=${h}&fit=crop&fp-x=${fpX.toFixed(3)}&fp-y=${fpY.toFixed(3)}&auto=format&q=80`;
+}
+
+// Mapeo nombre Sanity → datos de imagen con hotspot crudo
 const sanityDataByName = Object.fromEntries(
   sanityParroquias
     .filter((p) => p.imageUrl)
     .map((p) => {
-      const x = p.hotspotX != null ? `${Math.round(p.hotspotX * 100)}%` : '50%';
-      const y = p.hotspotY != null ? `${Math.round(p.hotspotY * 100)}%` : '50%';
-      return [p.nombre, { url: p.imageUrl as string, objectPosition: `${x} ${y}` }];
+      const hx = p.hotspotX ?? 0.5;
+      const hy = p.hotspotY ?? 0.5;
+      return [
+        p.nombre,
+        {
+          url: p.imageUrl as string,
+          hx,
+          hy,
+          objectPosition: `${Math.round(hx * 100)}% ${Math.round(hy * 100)}%`,
+        },
+      ];
     })
 );
 
-// Merge: reemplaza imageSrc e imageObjectPosition con datos de Sanity si existen
+// Merge: dos crops para cada parroquia — portrait para tarjetas, landscape para el panel
 const parishes = Object.fromEntries(
   Object.entries(PARISHES).map(([id, data]) => {
-    const sanity = sanityDataByName[NOMBRE_MAP[id] ?? ''];
+    const s = sanityDataByName[NOMBRE_MAP[id] ?? ''];
+    if (!s) return [id, data];
     return [
       id,
       {
         ...data,
-        imageSrc: sanity?.url ?? data.imageSrc,
-        imageObjectPosition: sanity?.objectPosition ?? 'center',
+        // 440×640 → ratio portrait ~0.69 — tarjetas verticales (2x retina)
+        imageSrc: buildCropUrl(s.url, 440, 640, s.hx, s.hy),
+        // 840×400 → ratio landscape 2.1 — panel lateral del mapa (2x retina)
+        imageSrcPanel: buildCropUrl(s.url, 840, 400, s.hx, s.hy),
+        imageObjectPosition: s.objectPosition,
       },
     ];
   })

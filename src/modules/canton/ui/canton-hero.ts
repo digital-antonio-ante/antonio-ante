@@ -71,10 +71,11 @@ function selectParish(id: string): void {
   if (panelColorBar) panelColorBar.style.background = data.color;
   if (panelImageContainer) panelImageContainer.style.setProperty('--pc', data.color);
 
-  // Cover image
+  // Cover image del panel — usa el crop landscape (840×400) si existe, si no el portrait
   if (elImage) {
-    if (data.imageSrc) {
-      elImage.src = data.imageSrc;
+    const panelSrc = data.imageSrcPanel ?? data.imageSrc;
+    if (panelSrc) {
+      elImage.src = panelSrc;
       elImage.alt = `Parroquia ${data.name}`;
       elImage.style.display = '';
       elImage.onerror = () => {

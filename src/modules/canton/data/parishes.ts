@@ -10,9 +10,11 @@ export interface ParishData {
   projects: string[];
   /** CSS hex color — unique per parish */
   color: string;
-  /** CDN URL de la imagen — inyectada en build time desde Sanity (asset->url). Fallback: sin imagen = gradiente del color de parroquia */
+  /** URL con crop portrait (440×640) centrado en el hotspot de Sanity — para las tarjetas verticales */
   imageSrc?: string;
-  /** CSS object-position derivado del hotspot de Sanity. Ej: "60% 30%". Default: "center" */
+  /** URL con crop landscape (840×400) centrado en el hotspot de Sanity — para el panel horizontal del mapa */
+  imageSrcPanel?: string;
+  /** CSS object-position fallback para cuando el CDN no ha procesado aún */
   imageObjectPosition?: string;
   gallery: string[];
   mapIcon: string;
