@@ -26,7 +26,10 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Cross-Origin-Opener-Policy = "same-origin"
     Cross-Origin-Resource-Policy = "same-origin"
-    Cross-Origin-Embedder-Policy = "require-corp"
+    # Cross-Origin-Embedder-Policy omitido intencionalmente:
+    # require-corp bloquea imágenes de cdn.sanity.io que no envían CORP headers.
+    # Este header solo es necesario para SharedArrayBuffer/WASM — funcionalidad que
+    # este portal institucional no utiliza.
 
     # Permissions-Policy — sitio institucional: sin acceso a sensores/dispositivos
     Permissions-Policy = "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), display-capture=(), document-domain=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), local-fonts=(self), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), speaker-selection=(), usb=(), web-share=(self), xr-spatial-tracking=()"

@@ -1,11 +1,6 @@
 import { z } from 'zod';
 import { fetchSanity } from '../../lib/fetcher';
-import {
-  NombreParroquiaSchema,
-  ParroquiaSchema,
-  type NombreParroquia,
-  type Parroquia,
-} from '../../lib/validations';
+import { ParroquiaSchema, type NombreParroquia, type Parroquia } from '../../lib/validations';
 
 /**
  * Schema mínimo para resolver image URLs en build time.
@@ -13,7 +8,9 @@ import {
  * para que documentos incompletos en Sanity no rompan la query entera.
  */
 const ParroquiaImageSchema = z.object({
-  nombre: NombreParroquiaSchema,
+  // z.string() en vez de NombreParroquiaSchema (enum) para que documentos
+  // incompletos en Sanity no rompan la validación del array completo
+  nombre: z.string(),
   imageUrl: z.string().url().nullish(),
 });
 export type ParroquiaImage = z.infer<typeof ParroquiaImageSchema>;
