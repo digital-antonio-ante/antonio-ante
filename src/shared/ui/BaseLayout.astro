@@ -68,6 +68,15 @@ const ga4 = import.meta.env.PROD
       <slot />
     </main>
 
-    <Footer />
+    <Footer
+      logoUrl={config?.logoUrl}
+      logoAlt={config?.logoAlt}
+      emailContacto={config?.emailContacto}
+      telefonoContacto={config?.telefonoContacto}
+      direccion={config?.direccion}
+      horarioAtencion={config?.horarioAtencion}
+      redesSociales={config?.redesSociales}
+      enlacesInstitucionales={config?.enlacesInstitucionales}
+    />
   </body>
 </html>

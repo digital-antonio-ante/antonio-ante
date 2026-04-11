@@ -2,8 +2,21 @@
 import BaseLayout from '@ui/BaseLayout.astro';
 import Input from '@ui/Input.astro';
 import Button from '@ui/Button.astro';
+import { getConfigSitio } from '@api/endpoints/config-sitio';
 
 export const prerender = true;
+
+const config = await getConfigSitio().catch(() => null);
+
+const direccion =
+  config?.direccion ?? 'Av. Luis Leoro Franco y Olmedo, Atuntaqui, Imbabura, Ecuador';
+const telefono = config?.telefonoContacto ?? '+593 6 2908-200';
+const email = config?.emailContacto ?? 'comunicacion@antonioante.gob.ec';
+const horario = config?.horarioAtencion ?? 'Lun–Vie 08h00–17h00';
+
+function toTelHref(phone: string): string {
+  return `tel:${phone.replace(/[\s-]/g, '')}`;
+}
 ---
 
 <BaseLayout
@@ -209,9 +222,7 @@ export const prerender = true;
                 </svg>
                 <div>
                   <p class="font-semibold text-brand-dark">Dirección</p>
-                  <p class="text-brand-dark/60 mt-0.5">
-                    Av. Luis Leoro Franco y Olmedo,<br />Atuntaqui, Imbabura, Ecuador
-                  </p>
+                  <p class="text-brand-dark/60 mt-0.5">{direccion}</p>
                 </div>
               </li>
               <li class="px-5 py-4 flex items-start gap-3 text-sm">
@@ -232,10 +243,10 @@ export const prerender = true;
                 <div>
                   <p class="font-semibold text-brand-dark">Teléfono</p>
                   <a
-                    href="tel:+59362908200"
+                    href={toTelHref(telefono)}
                     class="text-brand-primary hover:text-brand-primary transition-colors mt-0.5 block"
                   >
-                    +593 6 2908-200
+                    {telefono}
                   </a>
                 </div>
               </li>
@@ -257,10 +268,10 @@ export const prerender = true;
                 <div>
                   <p class="font-semibold text-brand-dark">Correo electrónico</p>
                   <a
-                    href="mailto:comunicacion@antonioante.gob.ec"
+                    href={`mailto:${email}`}
                     class="text-brand-primary hover:text-brand-primary transition-colors mt-0.5 break-all block"
                   >
-                    comunicacion@antonioante.gob.ec
+                    {email}
                   </a>
                 </div>
               </li>
@@ -280,7 +291,7 @@ export const prerender = true;
                 </svg>
                 <div>
                   <p class="font-semibold text-brand-dark">Horario de atención</p>
-                  <p class="text-brand-dark/60 mt-0.5">Lun–Vie 08h00–17h00</p>
+                  <p class="text-brand-dark/60 mt-0.5">{horario}</p>
                 </div>
               </li>
             </ul>
