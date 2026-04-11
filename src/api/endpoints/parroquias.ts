@@ -6,7 +6,8 @@ const QUERY_LIST = `
   *[_type == "parroquia"] | order(nombre asc) {
     _id, _type, _createdAt, _updatedAt, _rev,
     nombre, slug, poblacion, superficieKm2,
-    coordenadas, imagenPrincipal, esCabeceraCantonal
+    coordenadas, imagenPrincipal, esCabeceraCantonal,
+    "imageUrl": imagenPrincipal.asset->url
   }
 `;
 

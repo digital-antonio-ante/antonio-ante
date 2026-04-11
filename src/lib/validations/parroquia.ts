@@ -31,6 +31,8 @@ export const ParroquiaSchema = SanityDocumentBaseSchema.extend({
   coordenadas: CoordenadasSchema.nullish(),
   imagenPrincipal: SanityImageSchema.nullish(),
   esCabeceraCantonal: z.boolean().default(false),
+  /** URL resuelta en GROQ con asset->url — solo disponible cuando se proyecta en la query */
+  imageUrl: z.string().url().nullish(),
 });
 
 export type Parroquia = z.infer<typeof ParroquiaSchema>;

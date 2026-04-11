@@ -10,7 +10,7 @@ export interface ParishData {
   projects: string[];
   /** CSS hex color — unique per parish */
   color: string;
-  /** Path to photo in /public/images/ — optional, graceful fallback when absent */
+  /** CDN URL de la imagen — inyectada en build time desde Sanity (asset->url). Fallback: sin imagen = gradiente del color de parroquia */
   imageSrc?: string;
   gallery: string[];
   mapIcon: string;
@@ -69,8 +69,7 @@ export const PARISHES: Record<string, ParishData> = {
       'Modernización Vial',
     ],
     color: '#27ae60',
-    imageSrc: '/images/atuntaqui.png',
-    gallery: ['/images/atuntaqui.png'],
+    gallery: [],
     mapIcon: '🏢',
     centroid: { x: 689, y: 445 },
   },
@@ -86,8 +85,7 @@ export const PARISHES: Record<string, ParishData> = {
     activities: ['Turismo Histórico', 'Educación', 'Servicios'],
     projects: ['Complejo Cultural Fábrica Imbabura', 'Mejoras en Vías Residenciales'],
     color: '#2ecc71',
-    imageSrc: '/images/andrade_marin.png',
-    gallery: ['/images/andrade_marin.png'],
+    gallery: [],
     mapIcon: '🏭',
     centroid: { x: 1290, y: 563 },
   },
@@ -103,8 +101,7 @@ export const PARISHES: Record<string, ParishData> = {
     activities: ['Gastronomía', 'Agricultura', 'Turismo'],
     projects: ['Festival Gastronómico del Cuy', 'Rutas de Arándanos'],
     color: '#c81d25',
-    imageSrc: '/images/chaltura.png',
-    gallery: ['/images/chaltura.png'],
+    gallery: [],
     mapIcon: '👨‍🌾',
     centroid: { x: 961, y: 984 },
   },
@@ -120,8 +117,7 @@ export const PARISHES: Record<string, ParishData> = {
     activities: ['Cultura', 'Turismo', 'Agricultura'],
     projects: ['Centro Gerontológico Municipal', 'Festival de la Confraternidad', 'Mirador'],
     color: '#1a5f7a',
-    imageSrc: '/images/natabuela.png',
-    gallery: ['/images/natabuela.png'],
+    gallery: [],
     mapIcon: '⛪',
     centroid: { x: 517, y: 1198 },
   },
@@ -137,8 +133,7 @@ export const PARISHES: Record<string, ParishData> = {
     activities: ['Música', 'Artesanía', 'Comercio'],
     projects: ['Renovación del Parque Central', 'Escuela de Artes Populares', 'Centro de Eventos'],
     color: '#e67e22',
-    imageSrc: '/images/san_roque.png',
-    gallery: ['/images/san_roque.png'],
+    gallery: [],
     mapIcon: '🎸',
     centroid: { x: 925, y: 1624 },
   },
@@ -154,8 +149,7 @@ export const PARISHES: Record<string, ParishData> = {
     activities: ['Ecoturismo', 'Agricultura', 'Pesca Deportiva'],
     projects: ['Protección de Humedales', 'Rutas Ecológicas y Senderismo'],
     color: '#16a085',
-    imageSrc: '/images/imbaya.png',
-    gallery: ['/images/imbaya.png'],
+    gallery: [],
     mapIcon: '🏞️',
     centroid: { x: 1046, y: 1948 },
   },

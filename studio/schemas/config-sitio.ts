@@ -42,6 +42,23 @@ export const configSitio = defineType({
       ],
     }),
     defineField({
+      name: 'imagenCanton',
+      title: 'Foto del cantón (panel de bienvenida)',
+      type: 'image',
+      description:
+        'Aparece en el panel lateral del mapa interactivo cuando ninguna parroquia está seleccionada. Dimensiones recomendadas: 800×480 píxeles.',
+      options: { hotspot: true },
+      fields: [
+        defineField({
+          name: 'alt',
+          title: 'Texto alternativo',
+          type: 'string',
+          initialValue: 'Vista del Cantón Antonio Ante',
+          validation: (Rule) => Rule.required(),
+        }),
+      ],
+    }),
+    defineField({
       name: 'ogImageDefault',
       title: 'Imagen por defecto para redes sociales (Open Graph)',
       type: 'image',
