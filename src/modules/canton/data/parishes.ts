@@ -12,6 +12,8 @@ export interface ParishData {
   color: string;
   /** CDN URL de la imagen — inyectada en build time desde Sanity (asset->url). Fallback: sin imagen = gradiente del color de parroquia */
   imageSrc?: string;
+  /** CSS object-position derivado del hotspot de Sanity. Ej: "60% 30%". Default: "center" */
+  imageObjectPosition?: string;
   gallery: string[];
   mapIcon: string;
   /** Approximate polygon centroid in SVG viewBox (0 0 1694 2528) */

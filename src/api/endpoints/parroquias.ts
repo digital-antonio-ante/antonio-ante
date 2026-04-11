@@ -12,13 +12,19 @@ const ParroquiaImageSchema = z.object({
   // incompletos en Sanity no rompan la validación del array completo
   nombre: z.string(),
   imageUrl: z.string().url().nullish(),
+  /** Hotspot X de Sanity (0–1). Convertir a % para object-position CSS. */
+  hotspotX: z.number().min(0).max(1).nullish(),
+  /** Hotspot Y de Sanity (0–1). Convertir a % para object-position CSS. */
+  hotspotY: z.number().min(0).max(1).nullish(),
 });
 export type ParroquiaImage = z.infer<typeof ParroquiaImageSchema>;
 
 const QUERY_IMAGES = `
   *[_type == "parroquia" && defined(imagenPrincipal.asset)] {
     nombre,
-    "imageUrl": imagenPrincipal.asset->url
+    "imageUrl": imagenPrincipal.asset->url,
+    "hotspotX": imagenPrincipal.hotspot.x,
+    "hotspotY": imagenPrincipal.hotspot.y
   }
 `;
 

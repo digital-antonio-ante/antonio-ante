@@ -26,11 +26,6 @@ const [sanityParroquias, config] = await Promise.all([
   getConfigSitio().catch(() => null),
 ]);
 
-// Mapeo nombre Sanity → id local: "Andrade Marín" → "andrade_marin"
-const sanityImageByName = Object.fromEntries(
-  sanityParroquias.filter((p) => p.imageUrl).map((p) => [p.nombre, p.imageUrl as string])
-);
-
 // Nombre canónico de cada parroquia en Sanity
 const NOMBRE_MAP: Record<string, string> = {
   atuntaqui: 'Atuntaqui',
@@ -41,11 +36,29 @@ const NOMBRE_MAP: Record<string, string> = {
   imbaya: 'Imbaya',
 };
 
-// Merge: reemplaza imageSrc con la URL de Sanity si existe
+// Mapeo nombre Sanity → { url, objectPosition }
+const sanityDataByName = Object.fromEntries(
+  sanityParroquias
+    .filter((p) => p.imageUrl)
+    .map((p) => {
+      const x = p.hotspotX != null ? `${Math.round(p.hotspotX * 100)}%` : '50%';
+      const y = p.hotspotY != null ? `${Math.round(p.hotspotY * 100)}%` : '50%';
+      return [p.nombre, { url: p.imageUrl as string, objectPosition: `${x} ${y}` }];
+    })
+);
+
+// Merge: reemplaza imageSrc e imageObjectPosition con datos de Sanity si existen
 const parishes = Object.fromEntries(
   Object.entries(PARISHES).map(([id, data]) => {
-    const sanityUrl = sanityImageByName[NOMBRE_MAP[id] ?? ''];
-    return [id, { ...data, imageSrc: sanityUrl ?? data.imageSrc }];
+    const sanity = sanityDataByName[NOMBRE_MAP[id] ?? ''];
+    return [
+      id,
+      {
+        ...data,
+        imageSrc: sanity?.url ?? data.imageSrc,
+        imageObjectPosition: sanity?.objectPosition ?? 'center',
+      },
+    ];
   })
 );
 

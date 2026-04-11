@@ -41,7 +41,14 @@ const parishList = Object.values(parishes);
           >
             {/* Foto de fondo con fallback al color de parroquia */}
             {p.imageSrc ? (
-              <img src={p.imageSrc} alt="" class="pcard-img" loading="lazy" aria-hidden="true" />
+              <img
+                src={p.imageSrc}
+                alt=""
+                class="pcard-img"
+                loading="lazy"
+                aria-hidden="true"
+                style={`object-position: ${p.imageObjectPosition ?? 'center'};`}
+              />
             ) : (
               <div class="pcard-img-fallback" aria-hidden="true" />
             )}
