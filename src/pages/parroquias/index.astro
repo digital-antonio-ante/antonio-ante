@@ -4,8 +4,6 @@ import { getParroquiasImageUrls } from '@api/endpoints/parroquias';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 import { PARISHES } from '@modules/canton/data/parishes';
 
-export const prerender = true;
-
 const [sanityParroquias, config] = await Promise.all([
   getParroquiasImageUrls().catch(() => []),
   getConfigSitio().catch(() => null),

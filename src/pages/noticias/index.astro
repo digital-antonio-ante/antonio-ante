@@ -5,8 +5,6 @@ import CategoryBadge from '@ui/CategoryBadge.astro';
 import { getNoticias } from '@api/endpoints/noticias';
 import type { CategoriaNoticia } from '@lib/validations';
 
-export const prerender = true;
-
 const noticias = await getNoticias();
 
 function formatDate(iso: string): string {

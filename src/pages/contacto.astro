@@ -4,8 +4,6 @@ import Input from '@ui/Input.astro';
 import Button from '@ui/Button.astro';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 
-export const prerender = true;
-
 const config = await getConfigSitio().catch(() => null);
 
 const direccion =

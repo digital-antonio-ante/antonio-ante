@@ -4,8 +4,6 @@ import CategoryBadge from '@ui/CategoryBadge.astro';
 import PortableText from '@ui/PortableText.astro';
 import { getNoticias, getNoticia } from '@api/endpoints/noticias';
 
-export const prerender = true;
-
 export async function getStaticPaths() {
   const noticias = await getNoticias();
   // GROQ ya filtra slugs vacíos, pero este guard evita romper si algo llega null

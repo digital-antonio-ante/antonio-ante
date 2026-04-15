@@ -4,8 +4,6 @@ import CategoryBadge from '@ui/CategoryBadge.astro';
 import { getDocumentos } from '@api/endpoints/documentos';
 import type { CategoriaDocumento } from '@lib/validations';
 
-export const prerender = true;
-
 const documentos = await getDocumentos();
 
 function formatDate(iso: string): string {

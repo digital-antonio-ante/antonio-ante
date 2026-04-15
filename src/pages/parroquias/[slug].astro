@@ -6,8 +6,6 @@ import { getParroquias, getParroquia } from '@api/endpoints/parroquias';
 import { getObrasByParroquia } from '@api/endpoints/obras';
 import { PARISHES } from '@modules/canton/data/parishes';
 
-export const prerender = true;
-
 export async function getStaticPaths() {
   const parroquias = await getParroquias();
   return parroquias.map((p) => ({ params: { slug: p.slug.current } }));
