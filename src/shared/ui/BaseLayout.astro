@@ -51,10 +51,41 @@ const ga4 = import.meta.env.PROD
     <!-- Google Analytics 4 — solo en producción -->
     <Fragment set:html={ga4} />
   </head>
-  <body
-    class="min-h-screen text-brand-dark font-sans flex flex-col"
-    style="background: linear-gradient(180deg, #f6fdf8 0%, #fafffe 18%, #fdfefe 50%, #fffdf9 100%); background-attachment: fixed;"
-  >
+  <body class="min-h-screen text-brand-dark font-sans flex flex-col">
+    <!-- Patrón textil de referencia: industria textil de Atuntaqui — único elemento decorativo semánticamente justificado -->
+    <div class="page-decor" aria-hidden="true">
+      <svg class="page-dots page-dots--tl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern
+            id="page-dots-tl"
+            x="0"
+            y="0"
+            width="20"
+            height="20"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="2" cy="2" r="1.5" fill="rgba(39,120,22,0.18)"></circle>
+          </pattern>
+        </defs>
+        <rect width="200" height="200" fill="url(#page-dots-tl)"></rect>
+      </svg>
+      <svg class="page-dots page-dots--br" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern
+            id="page-dots-br"
+            x="0"
+            y="0"
+            width="20"
+            height="20"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="2" cy="2" r="1.5" fill="rgba(220,38,38,0.08)"></circle>
+          </pattern>
+        </defs>
+        <rect width="200" height="200" fill="url(#page-dots-br)"></rect>
+      </svg>
+    </div>
+
     <a
       href="#main-content"
       class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-md"

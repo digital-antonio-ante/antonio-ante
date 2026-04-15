@@ -47,21 +47,21 @@ function buildCropUrl(baseUrl: string, w: number, h: number, fpX: number, fpY: n
 
 // Mapeo nombre Sanity → datos de imagen con hotspot crudo
 const sanityDataByName = Object.fromEntries(
-  sanityParroquias
-    .filter((p) => p.imageUrl)
-    .map((p) => {
-      const hx = p.hotspotX ?? 0.5;
-      const hy = p.hotspotY ?? 0.5;
-      return [
-        p.nombre,
-        {
-          url: p.imageUrl as string,
-          hx,
-          hy,
-          objectPosition: `${Math.round(hx * 100)}% ${Math.round(hy * 100)}%`,
-        },
-      ];
-    })
+  sanityParroquias.map((p) => {
+    const hx = p.hotspotX ?? 0.5;
+    const hy = p.hotspotY ?? 0.5;
+    return [
+      p.nombre,
+      {
+        url: p.imageUrl ?? null,
+        hx,
+        hy,
+        objectPosition: `${Math.round(hx * 100)}% ${Math.round(hy * 100)}%`,
+        // URLs de galería filtradas (sólo las que tienen URL válida)
+        galeria: (p.galeria ?? []).filter((g) => g.url).map((g) => g.url as string),
+      },
+    ];
+  })
 );
 
 // Merge: dos crops para cada parroquia — portrait para tarjetas, landscape para el panel
@@ -69,17 +69,19 @@ const parishes = Object.fromEntries(
   Object.entries(PARISHES).map(([id, data]) => {
     const s = sanityDataByName[NOMBRE_MAP[id] ?? ''];
     if (!s) return [id, data];
-    return [
-      id,
-      {
-        ...data,
-        // 440×640 → ratio portrait ~0.69 — tarjetas verticales (2x retina)
-        imageSrc: buildCropUrl(s.url, 440, 640, s.hx, s.hy),
-        // 840×400 → ratio landscape 2.1 — panel lateral del mapa (2x retina)
-        imageSrcPanel: buildCropUrl(s.url, 840, 400, s.hx, s.hy),
-        imageObjectPosition: s.objectPosition,
-      },
-    ];
+    const merged: typeof data = {
+      ...data,
+      // Galería gestionada desde Sanity; respeta el array estático si Sanity está vacío
+      gallery: s.galeria.length > 0 ? s.galeria : data.gallery,
+    };
+    if (s.url) {
+      // 440×640 → ratio portrait ~0.69 — tarjetas verticales (2x retina)
+      merged.imageSrc = buildCropUrl(s.url, 440, 640, s.hx, s.hy);
+      // 840×400 → ratio landscape 2.1 — panel lateral del mapa (2x retina)
+      merged.imageSrcPanel = buildCropUrl(s.url, 840, 400, s.hx, s.hy);
+      merged.imageObjectPosition = s.objectPosition;
+    }
+    return [id, merged];
   })
 );
 
@@ -92,60 +94,6 @@ const highlightsCanton = config?.highlightsCanton ?? null;
 ---
 
 <section class="canton-hero-section" aria-label="Bienvenida al Cantón Antonio Ante">
-  <!-- ── Capa decorativa de fondo ── -->
-  <div class="bg-decor" aria-hidden="true">
-    <!-- Silueta del volcán Imbabura -->
-    <svg
-      class="bg-mountain"
-      viewBox="0 0 1440 400"
-      preserveAspectRatio="xMidYMax slice"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <!-- Silueta Imbabura: Verde Bosque #005d1f + Verde Heineken #277816 -->
-      <path
-        d="M0,400 L200,400 L360,180 L440,240 L520,140 L600,200 L680,80 L760,160 L840,60 L920,130 L1000,200 L1080,150 L1160,220 L1280,180 L1440,300 L1440,400 Z"
-        fill="rgba(0,93,31,0.11)"></path>
-      <path
-        d="M0,400 L300,400 L480,220 L560,270 L660,180 L740,230 L840,120 L920,170 L1020,250 L1120,200 L1220,260 L1340,220 L1440,320 L1440,400 Z"
-        fill="rgba(39,120,22,0.08)"></path>
-    </svg>
-
-    <!-- Orbes de color -->
-    <div class="bg-orb bg-orb--red"></div>
-    <div class="bg-orb bg-orb--blue"></div>
-    <div class="bg-orb bg-orb--green"></div>
-    <div class="bg-orb bg-orb--orange"></div>
-
-    <!-- Patrón de puntos (referencia textil) -->
-    <!-- Verde Heineken #277816 — trama textil de Atuntaqui -->
-    <svg class="bg-dots bg-dots--tl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="dots-tl" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1.5" fill="rgba(39,120,22,0.32)"></circle>
-        </pattern>
-      </defs>
-      <rect width="200" height="200" fill="url(#dots-tl)"></rect>
-    </svg>
-    <!-- Rojo Fuego — energy accent esquina opuesta -->
-    <svg class="bg-dots bg-dots--br" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="dots-br" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1.5" fill="rgba(220,38,38,0.14)"></circle>
-        </pattern>
-      </defs>
-      <rect width="200" height="200" fill="url(#dots-br)"></rect>
-    </svg>
-
-    <!-- Líneas diagonales: Amber Andino — riqueza textil de Atuntaqui -->
-    <svg class="bg-lines" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
-      <line x1="0" y1="600" x2="600" y2="0" stroke="rgba(215,119,6,0.15)" stroke-width="2"></line>
-      <line x1="60" y1="600" x2="600" y2="60" stroke="rgba(215,119,6,0.10)" stroke-width="1.5"
-      ></line>
-      <line x1="120" y1="600" x2="600" y2="120" stroke="rgba(215,119,6,0.07)" stroke-width="1"
-      ></line>
-    </svg>
-  </div>
-
   <!-- ── Header central ── -->
   <header class="canton-header animate-fade-up" aria-label="Presentación del cantón">
     <div class="canton-header-inner">
@@ -233,89 +181,8 @@ const highlightsCanton = config?.highlightsCanton ?? null;
 
     position: relative;
     overflow: hidden;
-    /* Fondo casi blanco — el verde vive en los orbes y decoración, no en el fondo */
-    background: linear-gradient(145deg, #f6fdf8 0%, #fafffe 30%, #fdfefe 60%, #fffdf9 100%);
+    background: transparent;
     padding: 0 2.5rem;
-  }
-
-  /* ── Capa decorativa (absolute en lugar de fixed para contenerse en la sección) ── */
-  .bg-decor {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-  }
-  .bg-mountain {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 45%;
-  }
-  .bg-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(90px);
-  }
-  /* Orbes — paleta Heineken: capas de verde + Rojo Fuego puntual */
-  .bg-orb--red {
-    /* Rojo Fuego — acento puntual, esquina superior derecha (≤15% área) */
-    width: 460px;
-    height: 460px;
-    top: -90px;
-    right: -60px;
-    background: radial-gradient(circle, rgba(220, 38, 38, 0.15) 0%, transparent 62%);
-  }
-  .bg-orb--blue {
-    /* Verde Heineken — dominante izquierda, la capa viva */
-    width: 540px;
-    height: 540px;
-    top: 40px;
-    left: -130px;
-    background: radial-gradient(circle, rgba(39, 120, 22, 0.22) 0%, transparent 65%);
-  }
-  .bg-orb--green {
-    /* Verde Bosque — profundidad abajo, como Heineken footer */
-    width: 620px;
-    height: 440px;
-    bottom: -40px;
-    left: 8%;
-    background: radial-gradient(circle, rgba(0, 93, 31, 0.16) 0%, transparent 70%);
-  }
-  .bg-orb--orange {
-    /* Amber Andino — calidez térmica, derecha media */
-    width: 320px;
-    height: 320px;
-    top: 40%;
-    right: 4%;
-    background: radial-gradient(circle, rgba(215, 119, 6, 0.14) 0%, transparent 68%);
-  }
-  .bg-dots {
-    position: absolute;
-    width: 200px;
-    height: 200px;
-  }
-  .bg-dots--tl {
-    top: 60px;
-    left: 40px;
-  }
-  .bg-dots--br {
-    bottom: 80px;
-    right: 60px;
-  }
-  .bg-lines {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 600px;
-    height: 600px;
-  }
-
-  /* Todo el contenido encima de la decoración */
-  .canton-hero-section > *:not(.bg-decor) {
-    position: relative;
-    z-index: 1;
   }
 
   /* ── Header ── */
@@ -440,8 +307,9 @@ const highlightsCanton = config?.highlightsCanton ?? null;
   /* ── Layout ── */
   .top-row {
     display: flex;
-    gap: 4rem;
-    align-items: stretch;
+    gap: 2.5rem;
+    align-items: flex-start;
+    justify-content: center;
     max-width: 1300px;
     margin: 0 auto;
     width: 100%;
@@ -449,17 +317,18 @@ const highlightsCanton = config?.highlightsCanton ?? null;
   .map-section {
     flex: 1 1 0;
     min-width: 0;
+    max-width: 560px;
     display: flex;
     flex-direction: column;
     align-items: center;
   }
   .info-section {
-    flex: 0 0 420px;
-    width: 420px;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
     align-self: flex-start;
-    max-height: 860px;
   }
   .info-section > * {
     flex: 1;
@@ -472,9 +341,6 @@ const highlightsCanton = config?.highlightsCanton ?? null;
     margin-left: auto;
     margin-right: auto;
     width: 100%;
-  }
-  .cards-section {
-    margin-top: 4rem;
   }
 
   /* ── Callout de métricas ── */
@@ -618,14 +484,14 @@ const highlightsCanton = config?.highlightsCanton ?? null;
       padding: 2.5rem 0 2.5rem;
     }
     .top-row {
-      gap: 2rem;
+      gap: 1.5rem;
       align-items: flex-start;
     }
+    .map-section {
+      max-width: 440px;
+    }
     .info-section {
-      flex: 0 0 320px;
-      width: 320px;
-      max-height: none;
-      align-self: stretch;
+      max-width: 360px;
     }
     .info-section > * {
       overflow-y: visible;
@@ -652,8 +518,12 @@ const highlightsCanton = config?.highlightsCanton ?? null;
     }
     .top-row {
       flex-direction: column;
-      align-items: center;
+      align-items: stretch;
       gap: 1.5rem;
+    }
+    .map-section {
+      width: 100%;
+      max-width: 100%;
     }
     .info-section {
       flex: none;

@@ -55,7 +55,7 @@ function isActive(href: string): boolean {
         }
         <div class="flex flex-col leading-tight">
           <span class="text-brand-primary font-bold text-sm lg:text-base">GAD Municipal</span>
-          <span class="text-brand-primary font-semibold text-xs lg:text-sm">Antonio Ante</span>
+          <span class="text-brand-secondary font-semibold text-xs lg:text-sm">Antonio Ante</span>
         </div>
       </a>
 
@@ -63,22 +63,37 @@ function isActive(href: string): boolean {
       <nav aria-label="Navegación principal" class="hidden lg:block">
         <ul class="flex items-center gap-1" role="list">
           {
-            NAV_ITEMS.map(({ href, label }) => {
-              const active = isActive(href);
+            NAV_ITEMS.map(({ href, label, external }) => {
+              const active = !external && isActive(href);
               return (
                 <li>
                   <a
                     href={href}
                     aria-current={active ? 'page' : undefined}
+                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                     class:list={[
-                      'px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150 outline-none',
+                      'px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150 outline-none inline-flex items-center gap-1',
                       'focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2',
                       active
                         ? 'text-brand-primary bg-brand-accent border-b-2 border-brand-primary'
-                        : 'text-brand-ink hover:text-brand-primary hover:bg-brand-accent',
+                        : external
+                          ? 'text-brand-ink hover:text-brand-primary hover:bg-brand-accent opacity-70 hover:opacity-100'
+                          : 'text-brand-ink hover:text-brand-primary hover:bg-brand-accent',
                     ]}
                   >
                     {label}
+                    {external && (
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 12 12"
+                        fill="currentColor"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M3.5 1H1.5A.5.5 0 0 0 1 1.5v9A.5.5 0 0 0 1.5 11h9a.5.5 0 0 0 .5-.5V8.5a.5.5 0 0 0-1 0V10H2V2h1.5a.5.5 0 0 0 0-1zM11 1H7.5a.5.5 0 0 0 0 1h2.293L5.146 6.646a.5.5 0 1 0 .708.708L10.5 2.707V5a.5.5 0 0 0 1 0V1.5a.5.5 0 0 0-.5-.5z" />
+                      </svg>
+                    )}
                   </a>
                 </li>
               );
@@ -139,21 +154,36 @@ function isActive(href: string): boolean {
     <nav aria-label="Navegación móvil">
       <ul class="px-4 py-3 space-y-1" role="list">
         {
-          NAV_ITEMS.map(({ href, label }) => {
-            const active = isActive(href);
+          NAV_ITEMS.map(({ href, label, external }) => {
+            const active = !external && isActive(href);
             return (
               <li>
                 <a
                   href={href}
                   aria-current={active ? 'page' : undefined}
+                  {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   class:list={[
-                    'flex items-center px-4 py-3 text-base font-medium rounded-md transition-colors duration-150',
+                    'flex items-center gap-2 px-4 py-3 text-base font-medium rounded-md transition-colors duration-150',
                     active
                       ? 'text-brand-primary bg-brand-accent border-l-4 border-brand-primary'
-                      : 'text-brand-ink hover:text-brand-primary hover:bg-brand-accent',
+                      : external
+                        ? 'text-brand-ink hover:text-brand-primary hover:bg-brand-accent opacity-70 hover:opacity-100'
+                        : 'text-brand-ink hover:text-brand-primary hover:bg-brand-accent',
                   ]}
                 >
                   {label}
+                  {external && (
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="currentColor"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M3.5 1H1.5A.5.5 0 0 0 1 1.5v9A.5.5 0 0 0 1.5 11h9a.5.5 0 0 0 .5-.5V8.5a.5.5 0 0 0-1 0V10H2V2h1.5a.5.5 0 0 0 0-1zM11 1H7.5a.5.5 0 0 0 0 1h2.293L5.146 6.646a.5.5 0 1 0 .708.708L10.5 2.707V5a.5.5 0 0 0 1 0V1.5a.5.5 0 0 0-.5-.5z" />
+                    </svg>
+                  )}
                 </a>
               </li>
             );

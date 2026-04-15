@@ -1,219 +1,46 @@
 ---
 import BaseLayout from '@ui/BaseLayout.astro';
-import Card from '@ui/Card.astro';
-import CategoryBadge from '@ui/CategoryBadge.astro';
 import CantonHero from '../modules/canton/ui/CantonHero.astro';
-import { getNoticiasDestacadas, getNoticiasRecientes } from '@api/endpoints/noticias';
-import { getDocumentosVigentes } from '@api/endpoints/documentos';
-export const prerender = true;
+import ImpactCounters from '../modules/obras/ui/ImpactCounters.astro';
+import ObrasGrid from '../modules/obras/ui/ObrasGrid.astro';
+import ObraDestacada from '../modules/obras/ui/ObraDestacada.astro';
+import { getObrasRecientes, getObraDestacada } from '@api/endpoints/obras';
 
-const [noticias, documentos] = await Promise.all([
-  getNoticiasDestacadas(3).catch(() => getNoticiasRecientes(3)),
-  getDocumentosVigentes(),
+const [obras, obraDestacada] = await Promise.all([
+  getObrasRecientes(6).catch((err) => {
+    console.error('[ObrasGrid]', err?.message ?? err);
+    return [];
+  }),
+  getObraDestacada().catch((err) => {
+    console.error('[ObraDestacada]', err?.message ?? err);
+    return null;
+  }),
 ]);
-
-const docsRecientes = documentos.slice(0, 3);
-
-function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat('es-EC', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(iso));
-}
 ---
 
 <BaseLayout
   title="Inicio"
-  description="Portal oficial del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador. Noticias, servicios y trámites municipales."
+  description="Portal oficial del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador. Conoce las obras, proyectos y gestión municipal."
 >
+  <!-- ─── Hero — Mapa interactivo + Panel de parroquias ────────────────────── -->
   <CantonHero />
 
-  <!-- ─── Noticias destacadas ───────────────────────────────────────────── -->
-  {
-    noticias.length > 0 && (
-      <section class="section-noticias" aria-labelledby="noticias-heading">
-        <div class="section-inner">
-          <div class="section-header">
-            <div>
-              <p class="eyebrow eyebrow--gold">Actualidad</p>
-              <h2 id="noticias-heading" class="section-title">
-                Noticias destacadas
-              </h2>
-            </div>
-            <a href="/noticias" class="link-ver-todas">
-              Ver todas
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </a>
-          </div>
+  <!-- ─── Cifras de impacto (sección dark animada) ─────────────────────────── -->
+  <div style="margin-top: 2.5rem;">
+    <ImpactCounters />
+  </div>
 
-          <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list">
-            {noticias.map((noticia) => (
-              <li>
-                <Card
-                  as="article"
-                  href={`/noticias/${noticia.slug.current}`}
-                  linkLabel={noticia.titulo}
-                  interactive
-                  padding="none"
-                >
-                  <div class="p-5 flex flex-col h-full">
-                    <div class="flex items-center gap-2 mb-3">
-                      <CategoryBadge categoria={noticia.categoria} />
-                      <time
-                        datetime={noticia.publishedAt}
-                        class="text-xs text-gray-400 font-medium"
-                      >
-                        {formatDate(noticia.publishedAt)}
-                      </time>
-                    </div>
-                    <h3 class="text-base font-bold text-gray-900 leading-snug mb-2 line-clamp-2">
-                      {noticia.titulo}
-                    </h3>
-                    <p class="text-sm text-gray-500 leading-relaxed line-clamp-3 flex-1">
-                      {noticia.resumen}
-                    </p>
-                    <p class="mt-4 text-xs font-semibold text-brand-primary flex items-center gap-1">
-                      Leer más
-                      <svg
-                        class="w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </p>
-                  </div>
-                </Card>
-              </li>
-            ))}
-          </ul>
+  <!-- ─── Obra destacada del período ─────────────────────────────────────── -->
+  <ObraDestacada obra={obraDestacada} />
 
-          <div class="sm:hidden mt-6 text-center">
-            <a
-              href="/noticias"
-              class="text-sm font-semibold text-brand-primary hover:text-brand-vivid transition-colors"
-            >
-              Ver todas las noticias →
-            </a>
-          </div>
-        </div>
-      </section>
-    )
-  }
+  <!-- ─── Obras en marcha ───────────────────────────────────────────────────── -->
+  <ObrasGrid obras={obras} />
 
-  <!-- ─── Documentos recientes ──────────────────────────────────────────── -->
-  {
-    docsRecientes.length > 0 && (
-      <section class="section-docs" aria-labelledby="documentos-heading">
-        <div class="section-inner">
-          <div class="section-header">
-            <div>
-              <p class="eyebrow eyebrow--gold">Transparencia institucional</p>
-              <h2 id="documentos-heading" class="section-title">
-                Documentos oficiales
-              </h2>
-            </div>
-            <a href="/documentos" class="link-ver-todas">
-              Ver todos
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </a>
-          </div>
-
-          <ul class="flex flex-col gap-3" role="list">
-            {docsRecientes.map((doc) => (
-              <li>
-                <a href="/documentos" class="doc-row group">
-                  <div class="doc-icon-wrap" aria-hidden="true">
-                    <svg
-                      class="w-5 h-5 text-brand-primary"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex flex-wrap items-center gap-2 mb-1">
-                      <CategoryBadge categoria={doc.categoria} />
-                      {doc.numero && (
-                        <span class="text-xs text-gray-400 font-mono">{doc.numero}</span>
-                      )}
-                    </div>
-                    <p class="text-sm font-semibold text-gray-800 group-hover:text-brand-primary transition-colors leading-snug">
-                      {doc.titulo}
-                    </p>
-                    <p class="text-xs text-gray-400 mt-0.5">{formatDate(doc.fechaPublicacion)}</p>
-                  </div>
-                  <svg
-                    class="w-4 h-4 text-gray-300 group-hover:text-brand-primary flex-shrink-0 mt-0.5 transition-colors"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-    )
-  }
-
-  <!-- ─── Identidad cantonal ──────────────────────────────────────────── -->
+  <!-- ─── Identidad cantonal ──────────────────────────────────────────────── -->
   <section class="canton-callout" aria-labelledby="callout-heading">
-    <!-- Barra tricolor: verde → oro → rojo -->
     <div class="callout-bar" aria-hidden="true"></div>
 
     <div class="callout-inner">
-      <!-- Texto izquierda -->
       <div class="callout-text">
         <p class="callout-eyebrow">Cantón Antonio Ante · Imbabura · Ecuador</p>
         <h2 id="callout-heading" class="callout-title">
@@ -222,7 +49,6 @@ function formatDate(iso: string): string {
         <p class="callout-sub">Cada rincón guarda su propia historia, cultura y paisaje.</p>
       </div>
 
-      <!-- Métricas derecha -->
       <dl class="callout-metrics" aria-label="Estadísticas del cantón">
         {
           [
@@ -249,137 +75,6 @@ function formatDate(iso: string): string {
 </BaseLayout>
 
 <style>
-  /* ── Tokens de sección ────────────────────────────────────────────────────── */
-  .section-inner {
-    max-width: 80rem;
-    margin: 0 auto;
-    padding: 0 1rem;
-  }
-  @media (min-width: 640px) {
-    .section-inner {
-      padding: 0 1.5rem;
-    }
-  }
-  @media (min-width: 1024px) {
-    .section-inner {
-      padding: 0 2rem;
-    }
-  }
-
-  .section-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .section-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    font-weight: 800;
-    color: #111827;
-    letter-spacing: -0.02em;
-    margin: 0;
-    line-height: 1.2;
-  }
-
-  .section-sub {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0.35rem 0 0;
-  }
-
-  /* Eyebrows — gold o red */
-  .eyebrow {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    margin: 0 0 0.4rem;
-  }
-  .eyebrow--gold {
-    color: #b45309;
-  } /* amber-700: 5.4:1 ✓ AA */
-  .eyebrow--red {
-    color: #b91c1c;
-  } /* red-700: 7.4:1 ✓ AAA */
-
-  .link-ver-todas {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #6b7280;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: color 150ms;
-    outline: none;
-    border-radius: 3px;
-    flex-shrink: 0;
-    padding-bottom: 0.15rem;
-  }
-  .link-ver-todas:hover {
-    color: #111827;
-  }
-  .link-ver-todas:focus-visible {
-    outline: 2px solid #277816;
-    outline-offset: 2px;
-  }
-
-  /* ── Noticias ─────────────────────────────────────────────────────────────── */
-  .section-noticias {
-    padding: 4rem 0;
-    background: transparent;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  /* ── Documentos ───────────────────────────────────────────────────────────── */
-  .section-docs {
-    padding: 4rem 0;
-    background: transparent;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  .doc-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1rem;
-    background: #ffffff;
-    border: 1px solid #f3f4f6;
-    border-radius: 10px;
-    text-decoration: none;
-    transition:
-      border-color 200ms,
-      box-shadow 200ms;
-    outline: none;
-  }
-  .doc-row:hover {
-    border-color: #e5e7eb;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  }
-  .doc-row:focus-visible {
-    outline: 2px solid #277816;
-    outline-offset: 2px;
-  }
-
-  .doc-icon-wrap {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 8px;
-    background: #f0fdf4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 200ms;
-  }
-  .doc-row:hover .doc-icon-wrap {
-    background: #dcfce7;
-  }
-
   /* ── Canton callout ───────────────────────────────────────────────────────── */
   .canton-callout {
     background: #ffffff;
@@ -470,7 +165,6 @@ function formatDate(iso: string): string {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.1rem;
     font-weight: 800;
-    /* Gradient text verde → oro */
     background: linear-gradient(135deg, #277816, #d97706);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -505,15 +199,54 @@ function formatDate(iso: string): string {
     .callout-inner {
       flex-direction: column;
       align-items: flex-start;
-      gap: 1.5rem;
+      gap: 1.25rem;
       padding: 1.5rem;
     }
     .callout-metrics {
       width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.6rem;
     }
     .callout-metric {
-      flex: 1;
+      flex: none;
       min-width: 0;
+      padding: 0.65rem 0.75rem;
+      gap: 0.45rem;
+    }
+    .callout-metric-icon {
+      font-size: 1.1rem;
+    }
+    .callout-metric-num {
+      font-size: 0.95rem;
+    }
+    .callout-metric-detail {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .callout-inner {
+      padding: 1.25rem;
+      gap: 1rem;
+    }
+    .callout-title {
+      font-size: 1.15rem;
+    }
+    .callout-sub {
+      font-size: 0.78rem;
+    }
+    .callout-metrics {
+      gap: 0.5rem;
+    }
+    .callout-metric {
+      padding: 0.55rem 0.65rem;
+    }
+    .callout-metric-num {
+      font-size: 0.88rem;
+    }
+    .callout-metric-label {
+      font-size: 0.55rem;
     }
   }
 </style>

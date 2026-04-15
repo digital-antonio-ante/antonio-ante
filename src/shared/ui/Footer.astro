@@ -289,16 +289,38 @@ const SOCIAL_LABELS: Record<SocialRed['red'], string> = {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
+
+  /* Todos los cols necesitan min-width: 0 para que overflow-wrap funcione
+     en emails y direcciones largas dentro de un grid */
+  .footer-col {
+    min-width: 0;
+  }
+
   @media (min-width: 640px) {
     .footer-grid {
       grid-template-columns: 1fr 1fr;
-      gap: 2rem;
+      gap: 2rem 2.5rem;
+    }
+    /* Brand ocupa fila completa — Nav y Contacto se reparten la segunda fila */
+    .footer-col--brand {
+      grid-column: 1 / -1;
+    }
+    /* En brand a full-width, la descripción no necesita max-width tan corto */
+    .footer-desc {
+      max-width: 36rem;
     }
   }
+
   @media (min-width: 1024px) {
     .footer-grid {
       grid-template-columns: 1.6fr 1fr 1.4fr;
       gap: 3rem;
+    }
+    .footer-col--brand {
+      grid-column: auto;
+    }
+    .footer-desc {
+      max-width: 22rem;
     }
   }
 
@@ -497,5 +519,18 @@ const SOCIAL_LABELS: Record<SocialRed['red'], string> = {
   .footer-tagline em {
     font-style: italic;
     color: rgba(255, 255, 255, 0.45);
+  }
+
+  @media (max-width: 479px) {
+    .footer-body {
+      padding: 2rem 1rem 1.75rem;
+    }
+    .footer-bottom {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.25rem;
+      padding: 0.875rem 1rem;
+    }
   }
 </style>
