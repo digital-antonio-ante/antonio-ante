@@ -1,17 +1,20 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify';
+import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   site: 'https://antonio-ante.gob.ec',
-  // 'server' + prerender:true por página reemplaza a 'hybrid' en Astro 6
   output: 'server',
-  adapter: netlify(),
+  adapter: cloudflare(),
+  // Sharp no está disponible en Cloudflare Workers.
+  // Este proyecto usa Sanity CDN para todas las imágenes — sin pérdida real.
+  image: {
+    service: { entrypoint: 'astro/assets/services/noop' },
+  },
   integrations: [
     sitemap({
-      // Excluir rutas privadas y API del sitemap
       filter: (page) =>
         !page.includes('/api/') &&
         !page.includes('/admin') &&

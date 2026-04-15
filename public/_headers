@@ -1,0 +1,26 @@
+# ─── Security Headers — todas las rutas ───────────────────────────────────────
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-L+tqfrulmhaidEcHPc7vuiFX4l1lkIjG0X20R9XIDfk=' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.sanity.io https://www.google-analytics.com; connect-src 'self' https://api.sanity.io https://cdn.sanity.io https://www.google-analytics.com https://region1.google-analytics.com; media-src 'self' https://cdn.sanity.io; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), display-capture=(), document-domain=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), local-fonts=(self), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), speaker-selection=(), usb=(), web-share=(self), xr-spatial-tracking=()
+
+# ─── Cache: assets con hash de contenido (Astro fingerprint) ─────────────────
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# ─── Cache: imágenes estáticas de public/images/ ─────────────────────────────
+/images/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# ─── Cache: JS estáticos de public/js/ ───────────────────────────────────────
+/js/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# ─── Sin caché en API routes ──────────────────────────────────────────────────
+/api/*
+  Cache-Control: no-store

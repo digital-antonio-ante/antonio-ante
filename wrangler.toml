@@ -1,0 +1,22 @@
+# ─── Cloudflare Pages — GAD Antonio Ante ──────────────────────────────────────
+# Documentación: https://developers.cloudflare.com/pages/
+
+name = "antonio-ante"
+compatibility_date = "2025-01-01"
+
+# nodejs_compat: habilita APIs de Node.js en el Worker (requerido por @sanity/client)
+compatibility_flags = ["nodejs_compat"]
+
+pages_build_output_dir = "dist"
+
+# ─── Webhook de Sanity → Cloudflare Pages (hacer una sola vez) ────────────────
+# SETUP:
+#   1. Cloudflare Dashboard → Pages → antonio-ante → Settings → Builds & deployments
+#      → Deploy Hooks → "Add deploy hook"
+#      Nombre: "Sanity publish"  Branch: main  → copiar la URL generada
+#   2. sanity.io/manage → proyecto lmfef6xr → API → Webhooks → "Add webhook"
+#      Name: "Cloudflare rebuild"
+#      URL: pegar la URL del paso 1
+#      Trigger on: "Create", "Update", "Delete"  Dataset: production
+#      Filter: _type == "configSitio" || _type == "noticia" || _type == "parroquia" || _type == "documentoOficial"
+# ──────────────────────────────────────────────────────────────────────────────

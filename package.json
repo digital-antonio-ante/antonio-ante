@@ -30,7 +30,7 @@
     ]
   },
   "dependencies": {
-    "@astrojs/netlify": "^7.0.6",
+    "@astrojs/cloudflare": "^13.1.9",
     "@sanity/client": "^7.20.0",
     "zod": "^4.3.6"
   },
