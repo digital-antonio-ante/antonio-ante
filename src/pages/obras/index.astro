@@ -1,0 +1,188 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+import ObrasGrid from '../../modules/obras/ui/ObrasGrid.astro';
+import { getTodasLasObras } from '@api/endpoints/obras';
+
+const todasLasObras = await getTodasLasObras().catch(() => []);
+
+// Filtro por parroquia vía query param — ej: /obras?parroquia=Atuntaqui
+const parroquiaFiltro = Astro.url.searchParams.get('parroquia') ?? null;
+const obras = parroquiaFiltro
+  ? todasLasObras.filter((o) => o.parroquia.toLowerCase() === parroquiaFiltro.toLowerCase())
+  : todasLasObras;
+
+const enProgreso = obras.filter((o) => o.estado === 'en_progreso').length;
+const completadas = obras.filter((o) => o.estado === 'completada').length;
+
+const pageTitle = parroquiaFiltro ? `Obras en ${parroquiaFiltro}` : 'Obras municipales';
+---
+
+<BaseLayout
+  title={pageTitle}
+  description="Conoce todas las obras y proyectos de inversión pública ejecutados por el GAD Municipal del Cantón Antonio Ante durante el período 2024–2028."
+>
+  <!-- ─── Hero de sección ──────────────────────────────────────────────────── -->
+  <section class="obras-hero">
+    <div class="obras-hero-inner">
+      <p class="obras-eyebrow">Gestión Municipal 2024–2028</p>
+      <h1 class="obras-title">
+        {parroquiaFiltro ? `Obras en ${parroquiaFiltro}` : 'Obras del cantón'}
+      </h1>
+      <p class="obras-sub">
+        {
+          parroquiaFiltro
+            ? `Inversión pública ejecutada en la parroquia ${parroquiaFiltro}.`
+            : 'Inversión pública que transforma cada rincón de Antonio Ante.'
+        }
+      </p>
+
+      {
+        obras.length > 0 && (
+          <div class="obras-pills">
+            <span class="pill pill--total">
+              {obras.length} {obras.length === 1 ? 'obra' : 'obras'}
+            </span>
+            {enProgreso > 0 && <span class="pill pill--progreso">🔨 {enProgreso} en progreso</span>}
+            {completadas > 0 && (
+              <span class="pill pill--completada">✅ {completadas} completadas</span>
+            )}
+          </div>
+        )
+      }
+
+      {
+        parroquiaFiltro && (
+          <a href="/obras" class="obras-clear-filter">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+            Ver todas las obras
+          </a>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- ─── Grid de obras ────────────────────────────────────────────────────── -->
+  <ObrasGrid obras={obras} />
+</BaseLayout>
+
+<style>
+  .obras-hero {
+    background: linear-gradient(160deg, #003109 0%, #005d1f 55%, #003109 100%);
+    padding: 3.5rem 1.5rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .obras-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #277816 0%, #d97706 55%, #dc2626 100%);
+  }
+
+  .obras-hero-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .obras-eyebrow {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #fbbf24;
+    margin: 0 0 0.5rem;
+  }
+
+  .obras-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin: 0 0 0.6rem;
+  }
+
+  .obras-sub {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0 0 1.5rem;
+    max-width: 42rem;
+    line-height: 1.6;
+  }
+
+  .obras-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.3rem 0.85rem;
+    border-radius: 9999px;
+  }
+
+  .pill--total {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .pill--progreso {
+    background: rgba(37, 99, 235, 0.25);
+    color: #93c5fd;
+    border: 1px solid rgba(37, 99, 235, 0.35);
+  }
+
+  .pill--completada {
+    background: rgba(21, 128, 61, 0.25);
+    color: #86efac;
+    border: 1px solid rgba(21, 128, 61, 0.35);
+  }
+
+  .obras-clear-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.3rem 0.85rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+  .obras-clear-filter:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+  }
+
+  @media (max-width: 640px) {
+    .obras-hero {
+      padding: 2.5rem 1rem 2rem;
+    }
+  }
+</style>

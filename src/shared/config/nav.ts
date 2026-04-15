@@ -6,13 +6,17 @@
 export interface NavItem {
   readonly href: string;
   readonly label: string;
+  readonly external?: boolean;
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: '/', label: 'Inicio' },
-  { href: '/noticias', label: 'Noticias' },
+  { href: '/obras', label: 'Obras' },
   { href: '/parroquias', label: 'Parroquias' },
-  { href: '/documentos', label: 'Documentos' },
-  { href: '/transparencia', label: 'Transparencia' },
   { href: '/contacto', label: 'Contacto' },
+  {
+    href: 'https://www.antonioante.gob.ec/AntonioAnte/',
+    label: 'Sitio Oficial',
+    external: true,
+  },
 ] as const;

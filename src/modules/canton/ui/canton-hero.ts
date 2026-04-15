@@ -41,6 +41,7 @@ const elAlt = document.getElementById('panel-altitude');
 const elActivities = document.getElementById('panel-activities');
 const elProjects = document.getElementById('panel-projects');
 const elParishLink = document.getElementById('panel-parish-link') as HTMLAnchorElement | null;
+const elParishLinkText = document.getElementById('panel-parish-link-text');
 const elGalleryBtn = document.getElementById('panel-gallery-btn') as HTMLButtonElement | null;
 
 // ── Main selection function ───────────────────────────────────────────────────
@@ -117,9 +118,12 @@ function selectParish(id: string): void {
     });
   }
 
-  // Deep-link to parish page
+  // Deep-link to parish page con nombre dinámico
   if (elParishLink) {
-    elParishLink.href = `/parroquias/${id.replace('_', '-')}`;
+    elParishLink.href = `/parroquias/${id.replaceAll('_', '-')}`;
+  }
+  if (elParishLinkText) {
+    elParishLinkText.textContent = `Explorar ${data.name}`;
   }
 
   // Gallery button — shown only if the parish has photos
@@ -135,7 +139,7 @@ function selectParish(id: string): void {
   }
 }
 
-// ── Event delegation — single listener covers SVG map + parish card strip ────
+// ── Event delegation — escucha el mapa SVG (las cards navegan directamente) ──
 document.addEventListener('click', (e) => {
   const btn = (e.target as Element).closest<HTMLElement>('[data-select-parish]');
   if (!btn) return;

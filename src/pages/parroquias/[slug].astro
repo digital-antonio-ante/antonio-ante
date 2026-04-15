@@ -1,7 +1,10 @@
 ---
 import BaseLayout from '@ui/BaseLayout.astro';
 import PortableText from '@ui/PortableText.astro';
+import CantonGallery from '@modules/canton/ui/CantonGallery.astro';
 import { getParroquias, getParroquia } from '@api/endpoints/parroquias';
+import { getObrasByParroquia } from '@api/endpoints/obras';
+import { PARISHES } from '@modules/canton/data/parishes';
 
 export const prerender = true;
 
@@ -16,91 +19,447 @@ const parroquia = await getParroquia(slug);
 if (!parroquia) {
   return new Response(null, { status: 404, statusText: 'Not Found' });
 }
+
+const parishKey = slug.replaceAll('-', '_');
+const staticData = PARISHES[parishKey] ?? null;
+
+function cropUrl(base: string, w: number, h: number, fx: number, fy: number): string {
+  return `${base}?w=${w}&h=${h}&fit=crop&fp-x=${fx.toFixed(3)}&fp-y=${fy.toFixed(3)}&auto=format&q=80`;
+}
+
+const hx = parroquia.hotspotX ?? 0.5;
+const hy = parroquia.hotspotY ?? 0.5;
+
+// Panel derecho: cubre alto del hero (~220px) y ~36vw de ancho → crop 3:2
+const panelSrc = parroquia.imageUrl ? cropUrl(parroquia.imageUrl, 960, 640, hx, hy) : null;
+const panelSrcset = parroquia.imageUrl
+  ? [480, 640, 960, 1200]
+      .map((w) => {
+        const h = Math.round(w * (640 / 960));
+        return `${parroquia.imageUrl}?w=${w}&h=${h}&fit=crop&fp-x=${hx.toFixed(3)}&fp-y=${hy.toFixed(3)}&auto=format&q=88 ${w}w`;
+      })
+      .join(', ')
+  : null;
+// OG siempre 1200×630 (estándar)
+const ogSrc = parroquia.imageUrl ? cropUrl(parroquia.imageUrl, 1200, 630, hx, hy) : null;
+
+const obras = await getObrasByParroquia(parroquia.nombre);
+
+const color = staticData?.color ?? '#277816';
+
+// Galería: fotos subidas en Sanity — thumbnail 320×220, original para lightbox
+const galeriaFotos = (parroquia.galeria ?? []).filter((f) => !!f.url);
+const galleryImages = galeriaFotos.map((f) => `${f.url}?auto=format&q=90`);
+const galleryThumbs = galeriaFotos.map((f) => `${f.url}?w=320&h=220&fit=crop&auto=format&q=82`);
+
+const activityEmojis: Record<string, string> = {
+  'Industria Textil': '🧵',
+  Comercio: '🛒',
+  Gastronomía: '🍽️',
+  'Turismo Histórico': '🏛️',
+  Educación: '📚',
+  Servicios: '⚙️',
+  Turismo: '🗺️',
+  Agricultura: '🌾',
+  Cultura: '🎭',
+  Música: '🎺',
+  Artesanía: '🏺',
+  Ecoturismo: '🌿',
+  'Pesca Deportiva': '🎣',
+  Salud: '🏥',
+  Deporte: '⚽',
+};
+const mapIcon = staticData?.mapIcon ?? '📍';
+const shortDesc = staticData?.shortDesc ?? null;
+const activities = staticData?.activities ?? [];
+
+const altitude = staticData?.altitude ?? null;
+
+const tipoDisplay = parroquia.esCabeceraCantonal
+  ? 'Cabecera cantonal · Urbana'
+  : (staticData?.type ?? 'Rural');
+
+const seoTitle = shortDesc ? `${parroquia.nombre} — ${shortDesc}` : parroquia.nombre;
+
+const seoDesc = shortDesc
+  ? `${parroquia.nombre} — ${shortDesc}. Parroquia del Cantón Antonio Ante, Imbabura, Ecuador.`
+  : `Información sobre ${parroquia.nombre}, parroquia del Cantón Antonio Ante, Imbabura, Ecuador.`;
+
+const jsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'AdministrativeArea',
+  name: parroquia.nombre,
+  url: `https://antonio-ante.gob.ec/parroquias/${parroquia.slug.current}`,
+  ...(staticData?.description ? { description: staticData.description } : {}),
+  ...(ogSrc ? { image: ogSrc } : {}),
+  containedInPlace: {
+    '@type': 'AdministrativeArea',
+    name: 'Cantón Antonio Ante',
+    containedInPlace: {
+      '@type': 'AdministrativeArea',
+      name: 'Imbabura',
+      containedInPlace: { '@type': 'Country', name: 'Ecuador' },
+    },
+  },
+  ...(parroquia.coordenadas
+    ? {
+        geo: {
+          '@type': 'GeoCoordinates',
+          latitude: parroquia.coordenadas.lat,
+          longitude: parroquia.coordenadas.lng,
+        },
+      }
+    : {}),
+  ...(parroquia.poblacion
+    ? {
+        additionalProperty: {
+          '@type': 'PropertyValue',
+          name: 'Población',
+          value: parroquia.poblacion,
+        },
+      }
+    : {}),
+});
 ---
 
 <BaseLayout
-  title={parroquia.nombre}
-  description={`Información sobre la parroquia ${parroquia.nombre} del Cantón Antonio Ante, Imbabura, Ecuador. Población, superficie, actividades y proyectos.`}
+  title={seoTitle}
+  description={seoDesc}
+  image={ogSrc ?? undefined}
   canonical={`https://antonio-ante.gob.ec/parroquias/${parroquia.slug.current}`}
 >
-  <!-- Hero -->
-  <section class="bg-brand-primary text-white py-12 lg:py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <nav aria-label="Breadcrumb" class="mb-4">
-        <ol class="flex items-center gap-2 text-white/60 text-sm flex-wrap" role="list">
-          <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
-          <li aria-hidden="true" class="select-none">›</li>
-          <li><a href="/parroquias" class="hover:text-white transition-colors">Parroquias</a></li>
-          <li aria-hidden="true" class="select-none">›</li>
-          <li class="text-white font-medium" aria-current="page">{parroquia.nombre}</li>
-        </ol>
-      </nav>
+  <script slot="head" type="application/ld+json" set:html={jsonLd} />
 
-      <div class="flex flex-wrap items-center gap-3 mb-3">
-        <h1 class="text-3xl lg:text-4xl font-bold">{parroquia.nombre}</h1>
-        {
-          parroquia.esCabeceraCantonal && (
-            <span class="px-3 py-1 bg-brand-secondary text-white text-sm font-bold rounded-full uppercase tracking-wide">
-              Cabecera cantonal
-            </span>
-          )
-        }
+  <!--
+    Wrapper con --color definida en el ancestro común de AMBAS secciones.
+    Así la propiedad cascada a hero Y contenido sin repetir el inline style.
+  -->
+  <div class="pp-root" style={`--color:${color};`}>
+    <!-- ═══════════════════════════════════════════
+         HERO — Minimalista compacto
+         Fondo: gradiente del color de parroquia.
+         Imagen: pegada al borde derecho, full-height,
+                 fade izquierdo → un solo bloque visual.
+    ═══════════════════════════════════════════ -->
+    <section class="pp-hero" aria-label={`Parroquia ${parroquia.nombre}`}>
+      {
+        panelSrc && (
+          <div class="pp-hero__panel" aria-hidden="true">
+            <img
+              src={panelSrc}
+              srcset={panelSrcset ?? undefined}
+              sizes="(max-width: 1024px) 40vw, 36vw"
+              alt=""
+              class="pp-hero__panel-img"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+            />
+            <div class="pp-hero__panel-fade" />
+          </div>
+        )
+      }
+
+      <div class="pp-hero__inner">
+        <div class="pp-hero__text">
+          <nav aria-label="Breadcrumb">
+            <ol class="pp-breadcrumb" role="list">
+              <li><a href="/">Inicio</a></li>
+              <li aria-hidden="true">›</li>
+              <li><a href="/parroquias">Parroquias</a></li>
+              <li aria-hidden="true">›</li>
+              <li aria-current="page">{parroquia.nombre}</li>
+            </ol>
+          </nav>
+
+          <span class="pp-tipo">{tipoDisplay}</span>
+
+          <div class="pp-hero__title-row">
+            <span class="pp-hero__icon" aria-hidden="true">{mapIcon}</span>
+            <h1 class="pp-hero__title">{parroquia.nombre}</h1>
+          </div>
+
+          {shortDesc && <p class="pp-hero__slogan">{shortDesc}</p>}
+
+          <div class="pp-hero__stats" role="list" aria-label="Datos de la parroquia">
+            {
+              parroquia.poblacion && (
+                <div class="pp-stat" role="listitem">
+                  <strong>{parroquia.poblacion.toLocaleString('es-EC')}</strong>
+                  <span>hab.</span>
+                </div>
+              )
+            }
+            {
+              parroquia.superficieKm2 && (
+                <div class="pp-stat" role="listitem">
+                  <strong>{parroquia.superficieKm2}</strong>
+                  <span>km²</span>
+                </div>
+              )
+            }
+            {
+              altitude && (
+                <div class="pp-stat" role="listitem">
+                  <strong>{altitude}</strong>
+                </div>
+              )
+            }
+          </div>
+        </div>
       </div>
-      <p class="text-white/70 text-sm">Cantón Antonio Ante · Provincia de Imbabura · Ecuador</p>
-    </div>
-  </section>
 
-  <section class="py-12 lg:py-16 bg-brand-light">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-12 items-start">
-        <!-- Contenido -->
-        <div>
+      <div class="pp-hero__bar" aria-hidden="true"></div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         IDENTIDAD — banda de color antes del contenido
+    ═══════════════════════════════════════════ -->
+    {
+      shortDesc && (
+        <div class="pp-identity">
+          <div class="pp-identity__inner">
+            <span class="pp-identity__icon" aria-hidden="true">
+              {mapIcon}
+            </span>
+            <p class="pp-identity__quote">"{shortDesc}"</p>
+          </div>
+        </div>
+      )
+    }
+
+    <!-- ═══════════════════════════════════════════
+         CONTENIDO
+    ═══════════════════════════════════════════ -->
+    <div class="pp-content">
+      <div class="pp-layout">
+        <!-- ── Columna principal ── -->
+        <main class="pp-main">
+          <!-- Descripción -->
           {
             parroquia.descripcion && parroquia.descripcion.length > 0 ? (
-              <div class="mb-8">
-                <h2 class="text-xl font-bold text-brand-primary mb-4">Descripción</h2>
-                <PortableText blocks={parroquia.descripcion ?? []} />
+              <div class="pp-block pp-reveal">
+                <h2 class="pp-block__title">Acerca de {parroquia.nombre}</h2>
+                <div class="pp-prose">
+                  <PortableText blocks={parroquia.descripcion} />
+                </div>
+              </div>
+            ) : staticData?.description ? (
+              <div class="pp-block pp-reveal">
+                <h2 class="pp-block__title">Acerca de {parroquia.nombre}</h2>
+                <p class="pp-desc-text">{staticData.description}</p>
               </div>
             ) : (
-              <div class="bg-brand-accent rounded-xl p-6 mb-8 text-center">
-                <p class="text-brand-dark/50">
-                  Próximamente más información sobre {parroquia.nombre}.
-                </p>
+              <div class="pp-block pp-block--empty pp-reveal">
+                <p>Próximamente más información sobre {parroquia.nombre}.</p>
               </div>
             )
           }
 
-          <!-- Mapa placeholder — se reemplaza con mapa real en Fase 4 -->
-          <div class="bg-brand-accent rounded-xl overflow-hidden border border-gray-100">
-            <div class="p-5 border-b border-gray-100">
-              <h2 class="text-base font-bold text-brand-primary">Ubicación</h2>
-            </div>
-            {
-              parroquia.coordenadas ? (
-                <div class="p-5">
-                  <dl class="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <dt class="text-brand-dark/50 font-medium">Latitud</dt>
-                      <dd class="font-mono text-brand-dark font-semibold">
-                        {parroquia.coordenadas.lat.toFixed(4)}°
-                      </dd>
+          <!-- Actividades con emojis -->
+          {
+            activities.length > 0 && (
+              <div class="pp-block pp-reveal">
+                <h2 class="pp-block__title">¿Qué hacer aquí?</h2>
+                <div class="pp-activities">
+                  {activities.map((act) => (
+                    <div class="pp-act">
+                      <span class="pp-act__emoji" aria-hidden="true">
+                        {activityEmojis[act] ?? '✦'}
+                      </span>
+                      {act}
                     </div>
-                    <div>
-                      <dt class="text-brand-dark/50 font-medium">Longitud</dt>
-                      <dd class="font-mono text-brand-dark font-semibold">
-                        {parroquia.coordenadas.lng.toFixed(4)}°
-                      </dd>
-                    </div>
-                  </dl>
-                  <a
-                    href={`https://maps.google.com/?q=${parroquia.coordenadas.lat},${parroquia.coordenadas.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-primary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded"
-                    aria-label={`Ver ${parroquia.nombre} en Google Maps (abre en nueva pestaña)`}
-                  >
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          <!-- Galería de fotos -->
+          {
+            galleryThumbs.length > 0 && (
+              <div class="pp-block pp-reveal">
+                <h2 class="pp-block__title">📷 Galería</h2>
+                <div class="pp-gallery-wrap">
+                  <button class="pp-gnav pp-gnav--prev" aria-label="Fotos anteriores" hidden>
                     <svg
-                      class="w-4 h-4"
+                      width="14"
+                      height="14"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2.5"
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+                  <div class="pp-gallery-strip" role="list">
+                    {galleryThumbs.map((thumb, i) => (
+                      <button
+                        class="pp-gallery-thumb"
+                        data-gallery-index={i}
+                        role="listitem"
+                        aria-label={`Ver foto ${i + 1}${galeriaFotos[i]?.alt ? ': ' + galeriaFotos[i].alt : ''}`}
+                      >
+                        <img src={thumb} alt="" loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
+                  <button class="pp-gnav pp-gnav--next" aria-label="Más fotos">
+                    <svg
+                      width="14"
+                      height="14"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2.5"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )
+          }
+
+          <!-- Obras vinculadas (máx 3) -->
+          {
+            obras.length > 0 && (
+              <div class="pp-block pp-reveal">
+                <h2 class="pp-block__title">🏗️ Inversión pública</h2>
+                <ul class="pp-obras">
+                  {obras.map((obra) => {
+                    const estadoLabel =
+                      obra.estado === 'completada'
+                        ? 'Completada'
+                        : obra.estado === 'en_progreso'
+                          ? 'En progreso'
+                          : 'Planificada';
+                    const estadoClass =
+                      obra.estado === 'completada'
+                        ? 'pp-obra__badge--ok'
+                        : obra.estado === 'en_progreso'
+                          ? 'pp-obra__badge--wip'
+                          : 'pp-obra__badge--plan';
+                    const thumbSrc = obra.imageUrl
+                      ? cropUrl(obra.imageUrl, 160, 120, 0.5, 0.5)
+                      : null;
+                    return (
+                      <li class="pp-obra">
+                        {thumbSrc && (
+                          <div class="pp-obra__thumb" aria-hidden="true">
+                            <img src={thumbSrc} alt="" loading="lazy" />
+                          </div>
+                        )}
+                        <div class="pp-obra__info">
+                          <div class="pp-obra__meta">
+                            <span class={`pp-obra__badge ${estadoClass}`}>{estadoLabel}</span>
+                            {obra.porcentajeAvance > 0 && obra.estado !== 'completada' && (
+                              <span class="pp-obra__pct">{obra.porcentajeAvance}%</span>
+                            )}
+                          </div>
+                          <p class="pp-obra__titulo">{obra.titulo}</p>
+                          <a href={`/obras/${obra.slug.current}`} class="pp-obra__link">
+                            Ver detalle →
+                          </a>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <a
+                  href={`/obras?parroquia=${encodeURIComponent(parroquia.nombre)}`}
+                  class="pp-obras__ver-todas"
+                >
+                  Ver todas las obras de {parroquia.nombre} →
+                </a>
+              </div>
+            )
+          }
+        </main>
+
+        <!-- ── Sidebar ── -->
+        <aside class="pp-sidebar" aria-label="Información rápida">
+          <!-- Stats visuales — sin tabla de formulario -->
+          <div class="pp-stats pp-reveal">
+            <span class="pp-stats__tipo">{tipoDisplay}</span>
+
+            {
+              parroquia.poblacion && (
+                <div class="pp-stat-card">
+                  <span class="pp-stat-card__icon" aria-hidden="true">
+                    👥
+                  </span>
+                  <div>
+                    <strong class="pp-stat-card__num">
+                      {parroquia.poblacion.toLocaleString('es-EC')}
+                    </strong>
+                    <span class="pp-stat-card__label">habitantes</span>
+                  </div>
+                </div>
+              )
+            }
+            {
+              parroquia.superficieKm2 && (
+                <div class="pp-stat-card">
+                  <span class="pp-stat-card__icon" aria-hidden="true">
+                    📐
+                  </span>
+                  <div>
+                    <strong class="pp-stat-card__num">{parroquia.superficieKm2}</strong>
+                    <span class="pp-stat-card__label">km² de superficie</span>
+                  </div>
+                </div>
+              )
+            }
+            {
+              altitude && (
+                <div class="pp-stat-card">
+                  <span class="pp-stat-card__icon" aria-hidden="true">
+                    ⛰️
+                  </span>
+                  <div>
+                    <strong class="pp-stat-card__num">{altitude}</strong>
+                    <span class="pp-stat-card__label">altitud</span>
+                  </div>
+                </div>
+              )
+            }
+            <div class="pp-stat-card">
+              <span class="pp-stat-card__icon" aria-hidden="true">📍</span>
+              <div>
+                <strong class="pp-stat-card__num">Antonio Ante</strong>
+                <span class="pp-stat-card__label">Imbabura, Ecuador</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acciones rápidas: en mobile se agrupan en una tarjeta compacta -->
+          <div class="pp-actions pp-reveal">
+            {/* Google Maps */}
+            {
+              parroquia.coordenadas && (
+                <a
+                  href={`https://maps.google.com/?q=${parroquia.coordenadas.lat},${parroquia.coordenadas.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="pp-action-btn pp-action-btn--map"
+                  aria-label={`Ver ${parroquia.nombre} en Google Maps (abre en nueva pestaña)`}
+                >
+                  <span class="pp-action-btn__icon" aria-hidden="true">
+                    <svg
+                      width="17"
+                      height="17"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -110,67 +469,145 @@ if (!parroquia) {
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    Ver en Google Maps
-                  </a>
-                </div>
-              ) : (
-                <p class="p-5 text-brand-dark/50 text-sm">Coordenadas no disponibles.</p>
+                  </span>
+                  <span class="pp-action-btn__label">Ver en Google Maps</span>
+                  <svg
+                    class="pp-action-btn__chevron"
+                    width="14"
+                    height="14"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </a>
               )
             }
-          </div>
-        </div>
 
-        <!-- Sidebar de datos -->
-        <aside aria-label="Datos de la parroquia" class="lg:sticky lg:top-24 space-y-4">
-          <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            <div class="bg-brand-primary px-5 py-4">
-              <h2 class="text-white font-bold text-sm uppercase tracking-wide">Datos generales</h2>
-            </div>
-            <dl class="divide-y divide-gray-100">
-              <div class="px-5 py-3 flex justify-between text-sm">
-                <dt class="text-brand-dark/50 font-medium">Tipo</dt>
-                <dd class="font-semibold text-brand-dark">
-                  {parroquia.esCabeceraCantonal ? 'Urbana · Cabecera cantonal' : 'Rural'}
-                </dd>
-              </div>
-              {
-                parroquia.poblacion && (
-                  <div class="px-5 py-3 flex justify-between text-sm">
-                    <dt class="text-brand-dark/50 font-medium">Población</dt>
-                    <dd class="font-semibold text-brand-dark">
-                      {parroquia.poblacion.toLocaleString('es-EC')} hab.
-                    </dd>
-                  </div>
-                )
-              }
-              {
-                parroquia.superficieKm2 && (
-                  <div class="px-5 py-3 flex justify-between text-sm">
-                    <dt class="text-brand-dark/50 font-medium">Superficie</dt>
-                    <dd class="font-semibold text-brand-dark">{parroquia.superficieKm2} km²</dd>
-                  </div>
-                )
-              }
-              <div class="px-5 py-3 flex justify-between text-sm">
-                <dt class="text-brand-dark/50 font-medium">Cantón</dt>
-                <dd class="font-semibold text-brand-dark">Antonio Ante</dd>
-              </div>
-              <div class="px-5 py-3 flex justify-between text-sm">
-                <dt class="text-brand-dark/50 font-medium">Provincia</dt>
-                <dd class="font-semibold text-brand-dark">Imbabura</dd>
-              </div>
-            </dl>
+            {/* Explorar turismo */}
+            <a href="/turismo" class="pp-action-btn pp-action-btn--turismo">
+              <span class="pp-action-btn__icon" aria-hidden="true">🗺️</span>
+              <span class="pp-action-btn__label">Explorar turismo</span>
+              <svg
+                class="pp-action-btn__chevron"
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"></path>
+              </svg>
+            </a>
           </div>
 
-          <a
-            href="/parroquias"
-            class="flex items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-primary transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded p-1"
-          >
+          <!-- Redes sociales -->
+          {
+            (parroquia.redesSociales ?? []).length > 0 && (
+              <div class="pp-socials pp-reveal">
+                <p class="pp-socials__title">Síguenos en redes</p>
+                <div class="pp-socials__list">
+                  {(parroquia.redesSociales ?? []).map(({ red, url }) => (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class={`pp-social pp-social--${red}`}
+                      aria-label={`${red.charAt(0).toUpperCase() + red.slice(1)} de ${parroquia.nombre} (abre en nueva pestaña)`}
+                    >
+                      {red === 'facebook' && (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          width="16"
+                          height="16"
+                          aria-hidden="true"
+                        >
+                          <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
+                        </svg>
+                      )}
+                      {red === 'instagram' && (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          width="16"
+                          height="16"
+                          aria-hidden="true"
+                        >
+                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                        </svg>
+                      )}
+                      {red === 'twitter' && (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          width="16"
+                          height="16"
+                          aria-hidden="true"
+                        >
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                      )}
+                      {red === 'youtube' && (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          width="16"
+                          height="16"
+                          aria-hidden="true"
+                        >
+                          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-2.7A12.94 12.94 0 0012 3.5a12.94 12.94 0 00-3.82.49 4.83 4.83 0 01-3.77 2.7A4.78 4.78 0 002 11.5v1a4.78 4.78 0 002.41 4.31 4.83 4.83 0 013.77 2.7 12.94 12.94 0 003.82.49 12.94 12.94 0 003.82-.49 4.83 4.83 0 013.77-2.7A4.78 4.78 0 0022 12.5v-1a4.78 4.78 0 00-2.41-4.31zM10 15.5v-5l5 2.5z" />
+                        </svg>
+                      )}
+                      {red === 'tiktok' && (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          width="16"
+                          height="16"
+                          aria-hidden="true"
+                        >
+                          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-2.7V3h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.97a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.19a8.11 8.11 0 004.74 1.51V6.25a4.85 4.85 0 01-.97-.56z" />
+                        </svg>
+                      )}
+                      <span>
+                        {red === 'twitter'
+                          ? 'X (Twitter)'
+                          : red.charAt(0).toUpperCase() + red.slice(1)}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          <!-- Volver -->
+          <a href="/parroquias" class="pp-back">
             <svg
-              class="w-4 h-4"
+              width="15"
+              height="15"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -187,5 +624,1036 @@ if (!parroquia) {
         </aside>
       </div>
     </div>
-  </section>
+
+    {/* Lightbox — mismo componente que usa el mapa del homepage */}
+    <CantonGallery />
+
+    {/* Datos de galería para el script cliente */}
+    {
+      galleryImages.length > 0 && (
+        <script
+          id="parish-gallery-data"
+          type="application/json"
+          set:html={JSON.stringify({ name: parroquia.nombre, images: galleryImages, color })}
+        />
+      )
+    }
+  </div><!-- /pp-root -->
 </BaseLayout>
+
+<style>
+  /* ══════════════════════════════════════════════
+     ROOT — propaga --color a TODO el componente
+  ══════════════════════════════════════════════ */
+  .pp-root {
+    /* Contiene cualquier overflow horizontal antes de que llegue al viewport */
+    overflow-x: clip;
+  }
+
+  /* ══════════════════════════════════════════════
+     HERO — Minimalista compacto
+     Fondo: gradiente del color de parroquia.
+     Imagen: absoluta, flush-right, full-height,
+             fade izquierdo = un solo bloque visual.
+  ══════════════════════════════════════════════ */
+  .pp-hero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      128deg,
+      color-mix(in srgb, var(--color) 90%, #000) 0%,
+      color-mix(in srgb, var(--color) 74%, #000) 100%
+    );
+  }
+
+  /* Panel de imagen: pegado al borde derecho, alto completo del hero */
+  .pp-hero__panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: clamp(280px, 36vw, 520px);
+    z-index: 0;
+  }
+
+  .pp-hero__panel-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  /* Fade izquierdo: color del hero → transparent en oklch (sin paso por negro) */
+  .pp-hero__panel-fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      in oklch to right,
+      color-mix(in srgb, var(--color) 80%, #000) 0%,
+      color-mix(in srgb, var(--color) 80%, #000) 4%,
+      transparent 26%
+    );
+  }
+
+  /* Contenido: z-index sobre la imagen */
+  .pp-hero__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2.75rem 2.5rem 3rem;
+  }
+
+  /* Texto limitado al 62% para no solapar la zona nítida de la foto */
+  .pp-hero__text {
+    width: min(680px, 62%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.72rem;
+  }
+
+  /* Barra de acento */
+  .pp-hero__bar {
+    position: relative;
+    z-index: 2;
+    height: 4px;
+    background: var(--color);
+    filter: brightness(1.4);
+  }
+
+  /* ── Texto ── */
+  .pp-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    list-style: none;
+    margin: 0 0 0.2rem;
+    padding: 0;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.42);
+  }
+  .pp-breadcrumb a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .pp-breadcrumb a:hover {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .pp-breadcrumb [aria-current='page'] {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 600;
+  }
+
+  .pp-tipo {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    padding: 0.22rem 0.75rem;
+    border-radius: 9999px;
+    align-self: flex-start;
+  }
+
+  .pp-hero__title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: nowrap;
+  }
+
+  .pp-hero__icon {
+    font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .pp-hero__title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 4.5vw, 3.4rem);
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    margin: 0;
+  }
+
+  .pp-hero__slogan {
+    font-size: clamp(0.88rem, 1.5vw, 1rem);
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.68);
+    margin: 0;
+    font-style: italic;
+  }
+
+  .pp-hero__stats {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 0.35rem;
+    flex-wrap: nowrap;
+  }
+
+  .pp-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    font-size: 0.82rem;
+  }
+  .pp-stat strong {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: white;
+  }
+  .pp-stat span {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+  .pp-stat + .pp-stat::before {
+    content: '·';
+    margin: 0 0.65rem;
+    color: rgba(255, 255, 255, 0.28);
+    font-size: 1rem;
+  }
+
+  /* ══════════════════════════════════════════════
+     CONTENIDO
+  ══════════════════════════════════════════════ */
+  .pp-content {
+    background: #f1f5f9;
+    padding: 3rem 0 4.5rem;
+  }
+
+  .pp-layout {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2.25rem;
+    align-items: start;
+  }
+
+  /* ── Main ── */
+  .pp-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0; /* CSS Grid: evita que el track se expanda por el contenido */
+  }
+
+  .pp-block {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1.6rem 1.75rem;
+  }
+
+  .pp-block--empty {
+    border-style: dashed;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 2.5rem;
+  }
+
+  /* El título del bloque lleva la línea de color de la parroquia — ahora SÍ cascada */
+  .pp-block__title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+    margin: 0 0 1.1rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 2px solid var(--color); /* cascada de .pp-root ✓ */
+  }
+
+  .pp-prose {
+    font-size: 0.93rem;
+    line-height: 1.75;
+    color: #334155;
+  }
+  .pp-desc-text {
+    font-size: 0.93rem;
+    line-height: 1.75;
+    color: #334155;
+    margin: 0;
+  }
+
+  /* Actividades */
+  .pp-activities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .pp-act {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  .pp-act__emoji {
+    font-size: 1.05rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  /* Obras vinculadas */
+  .pp-obras {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pp-obra {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .pp-obra__thumb {
+    flex-shrink: 0;
+    width: 80px;
+    height: 62px;
+  }
+  .pp-obra__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .pp-obra__info {
+    flex: 1;
+    min-width: 0;
+    padding: 0.6rem 0.85rem 0.6rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.22rem;
+  }
+
+  .pp-obra__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pp-obra__badge {
+    font-size: 0.56rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.15rem 0.55rem;
+    border-radius: 9999px;
+  }
+  .pp-obra__badge--ok {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .pp-obra__badge--wip {
+    background: #fef9c3;
+    color: #854d0e;
+  }
+  .pp-obra__badge--plan {
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .pp-obra__pct {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #94a3b8;
+  }
+
+  .pp-obra__titulo {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pp-obra__link {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color);
+    text-decoration: none;
+  }
+  .pp-obra__link:hover {
+    opacity: 0.72;
+  }
+
+  .pp-obras__ver-todas {
+    display: inline-block;
+    margin-top: 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color);
+    text-decoration: none;
+  }
+  .pp-obras__ver-todas:hover {
+    opacity: 0.72;
+  }
+
+  /* ── Identidad strip ── */
+  .pp-identity {
+    background: color-mix(in srgb, var(--color) 7%, white);
+    border-bottom: 3px solid color-mix(in srgb, var(--color) 40%, white);
+  }
+  .pp-identity__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1rem 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .pp-identity__icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .pp-identity__quote {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    font-style: italic;
+    color: color-mix(in srgb, var(--color) 72%, #000);
+    margin: 0;
+    min-width: 0; /* Permite encoger en flex container */
+    overflow-wrap: break-word; /* Rompe palabras muy largas si es necesario */
+  }
+
+  /* ── Sidebar ── */
+  .pp-sidebar {
+    position: sticky;
+    top: 5.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0; /* CSS Grid: evita desbordamiento del track de 300px */
+  }
+
+  /* Stats visuales — reemplaza la tabla dl */
+  .pp-stats {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .pp-stats__tipo {
+    display: block;
+    background: var(--color);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.55rem 1.1rem;
+  }
+
+  .pp-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1.1rem;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .pp-stat-card__icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .pp-stat-card > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    min-width: 0;
+  }
+
+  .pp-stat-card__num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+
+  .pp-stat-card__label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Acciones rápidas (Maps + Turismo) ── */
+  .pp-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .pp-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    text-decoration: none;
+    font-size: 0.84rem;
+    font-weight: 700;
+    transition: background 0.15s ease;
+    border-top: 1px solid #f1f5f9;
+  }
+  .pp-action-btn:first-child {
+    border-top: none;
+  }
+  .pp-action-btn:hover {
+    background: #f8fafc;
+  }
+  .pp-action-btn:focus-visible {
+    outline: 3px solid var(--color);
+    outline-offset: -3px;
+  }
+
+  .pp-action-btn--map {
+    color: var(--color);
+  }
+  .pp-action-btn--turismo {
+    color: #0f172a;
+  }
+
+  .pp-action-btn__icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    line-height: 1;
+    display: flex;
+  }
+  .pp-action-btn__label {
+    flex: 1;
+  }
+  .pp-action-btn__chevron {
+    color: #cbd5e1;
+    flex-shrink: 0;
+  }
+  .pp-action-btn--map .pp-action-btn__chevron {
+    color: color-mix(in srgb, var(--color) 45%, #e2e8f0);
+  }
+
+  /* ── Animación scroll reveal ── */
+  .pp-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.5s ease,
+      transform 0.5s ease;
+  }
+  .pp-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pp-reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  /* Volver */
+  .pp-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    padding: 0.4rem 0;
+    border-radius: 6px;
+    transition: color 0.15s ease;
+  }
+  .pp-back:hover {
+    color: #0f172a;
+  }
+  .pp-back:focus-visible {
+    outline: 3px solid var(--color);
+    outline-offset: 2px;
+  }
+
+  /* En mobile el back link se convierte en botón full-width */
+  @media (max-width: 768px) {
+    .pp-back {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      color: #475569;
+      font-size: 0.84rem;
+    }
+    .pp-back:hover {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+  }
+
+  /* ══════════════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════════════ */
+  /* ── Tablet ── */
+  @media (max-width: 1024px) {
+    .pp-hero__panel {
+      width: clamp(240px, 40vw, 420px);
+    }
+    .pp-hero__inner {
+      padding: 2.25rem 2rem 2.5rem;
+    }
+    .pp-hero__text {
+      width: min(560px, 60%);
+    }
+    .pp-layout {
+      grid-template-columns: 1fr 260px;
+    }
+  }
+
+  /* ── Móvil ── */
+  @media (max-width: 768px) {
+    /* Hero: imagen full-width, gradiente bottom-up, texto al fondo */
+    .pp-hero__panel {
+      width: 100%;
+      left: 0;
+    }
+    .pp-hero__panel-fade {
+      background: linear-gradient(
+        in oklch to top,
+        color-mix(in srgb, var(--color) 85%, #000) 0%,
+        color-mix(in srgb, var(--color) 75%, #000) 18%,
+        transparent 52%
+      );
+    }
+    .pp-hero__inner {
+      padding: 0 1.25rem 1.75rem;
+      min-height: 240px;
+      display: flex;
+      align-items: flex-end;
+    }
+    .pp-hero__text {
+      width: 100%;
+    }
+    .pp-hero__title {
+      font-size: clamp(1.75rem, 7vw, 2.2rem);
+    }
+    /* Breadcrumb: wrap en pantallas pequeñas */
+    .pp-breadcrumb {
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    /* Hero stats: permitir wrap */
+    .pp-hero__stats {
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+    .pp-stat + .pp-stat::before {
+      margin: 0 0.4rem;
+    }
+
+    /* Identidad */
+    .pp-identity__inner {
+      padding: 0.85rem 1.25rem;
+    }
+
+    /* Layout principal: single column, padding reducido */
+    .pp-layout {
+      grid-template-columns: 1fr;
+      padding: 0 1rem;
+    }
+    .pp-sidebar {
+      position: static;
+      order: 1;
+    } /* sidebar debajo del main */
+    .pp-content {
+      padding: 1.5rem 0 3rem;
+    }
+
+    /* Sidebar: ocultar stats (ya están en el hero) */
+    .pp-stats {
+      display: none;
+    }
+
+    /* Gallery: grid 2 columnas en lugar de scroll horizontal */
+    .pp-gallery-strip {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      overflow-x: unset;
+      gap: 0.5rem;
+    }
+    .pp-gallery-thumb {
+      flex: unset;
+      width: 100%;
+      height: 120px;
+      scroll-snap-align: unset;
+      border-radius: 10px;
+    }
+
+    /* Obra: thumb más pequeño */
+    .pp-obra__thumb {
+      width: 64px;
+      height: 52px;
+    }
+    .pp-obra__titulo {
+      white-space: normal;
+    }
+
+    /* Actividades: touch target mayor */
+    .pp-act {
+      padding: 0.45rem 0.95rem;
+      font-size: 0.85rem;
+    }
+  }
+
+  /* ── Móvil pequeño ── */
+  @media (max-width: 480px) {
+    .pp-hero__inner {
+      padding: 0 1rem 1.5rem;
+      min-height: 200px;
+    }
+    .pp-hero__title {
+      font-size: clamp(1.5rem, 8vw, 2rem);
+    }
+    .pp-hero__slogan {
+      font-size: 0.82rem;
+    }
+    .pp-breadcrumb {
+      font-size: 0.68rem;
+      gap: 0.25rem;
+    }
+
+    .pp-identity__inner {
+      padding: 0.7rem 1rem;
+    }
+    .pp-identity__quote {
+      font-size: 0.88rem;
+    }
+
+    .pp-layout {
+      padding: 0 0.875rem;
+    }
+    .pp-content {
+      padding: 1.25rem 0 2.5rem;
+    }
+
+    /* Bloques: padding uniforme */
+    .pp-block {
+      padding: 1.1rem 1.1rem;
+    }
+    .pp-block__title {
+      font-size: 0.88rem;
+      margin-bottom: 0.8rem;
+      padding-bottom: 0.6rem;
+    }
+    .pp-main {
+      gap: 0.875rem;
+    }
+
+    /* Obra: sin thumb, solo texto */
+    .pp-obra__thumb {
+      display: none;
+    }
+    .pp-obra__info {
+      padding: 0.7rem 0.85rem;
+    }
+    .pp-obra__titulo {
+      font-size: 0.83rem;
+    }
+
+    /* Gallery: 2 cols, menos alta */
+    .pp-gallery-thumb {
+      height: 100px;
+      border-radius: 8px;
+    }
+
+    /* Redes */
+    .pp-social {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    /* Sidebar items más juntos */
+    .pp-sidebar {
+      gap: 0.75rem;
+    }
+    .pp-action-btn {
+      padding: 0.8rem 1rem;
+      font-size: 0.82rem;
+    }
+  }
+
+  /* ── Redes sociales ── */
+  .pp-socials {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1rem 1.1rem 1.1rem;
+  }
+
+  .pp-socials__title {
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #94a3b8;
+    margin: 0 0 0.75rem;
+  }
+
+  .pp-socials__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .pp-social {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+  }
+  .pp-social:hover {
+    opacity: 0.88;
+    transform: translateX(2px);
+  }
+  .pp-social:focus-visible {
+    outline: 3px solid var(--color);
+    outline-offset: 2px;
+  }
+
+  .pp-social--facebook {
+    background: #1877f2;
+  }
+  .pp-social--instagram {
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  }
+  .pp-social--twitter {
+    background: #000;
+  }
+  .pp-social--youtube {
+    background: #ff0000;
+  }
+  .pp-social--tiktok {
+    background: #010101;
+  }
+
+  /* ── Galería de fotos ── */
+
+  /* Wrapper para posicionar las flechas */
+  .pp-gallery-wrap {
+    position: relative;
+  }
+
+  /* Flechas prev/next — solo visibles en modo scroll (>768px) */
+  .pp-gnav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      border-color 0.18s ease;
+    padding: 0;
+  }
+  .pp-gnav:hover {
+    background: var(--color);
+    color: white;
+    border-color: var(--color);
+  }
+  .pp-gnav:focus-visible {
+    outline: 3px solid var(--color);
+    outline-offset: 2px;
+  }
+  .pp-gnav--prev {
+    left: -13px;
+  }
+  .pp-gnav--next {
+    right: -13px;
+  }
+  /* hidden attribute nativo oculta el botón cuando no hay más scroll */
+  .pp-gnav[hidden] {
+    display: none;
+  }
+
+  /* En mobile (<768px) la galería es grid, no necesita flechas */
+  @media (max-width: 768px) {
+    .pp-gnav {
+      display: none !important;
+    }
+  }
+
+  .pp-gallery-strip {
+    display: flex;
+    gap: 0.55rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+    /* width explícito + max-width garantizan que iOS Safari calcule
+       la caja antes de aplicar overflow → los thumbs scrollean internamente */
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .pp-gallery-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pp-gallery-thumb {
+    flex: 0 0 150px;
+    height: 106px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    scroll-snap-align: start;
+    padding: 0;
+    border: 2.5px solid transparent;
+    background: #e2e8f0;
+    transition:
+      border-color 0.2s ease,
+      transform 0.22s ease;
+  }
+  .pp-gallery-thumb:hover {
+    border-color: var(--color);
+    transform: scale(1.04);
+  }
+  .pp-gallery-thumb:focus-visible {
+    outline: 3px solid var(--color);
+    outline-offset: 2px;
+  }
+  .pp-gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pp-gnav,
+    .pp-action-btn,
+    .pp-back,
+    .pp-gallery-thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Scroll reveal
+  const io = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-visible');
+          io.unobserve(e.target);
+        }
+      }),
+    { threshold: 0.08, rootMargin: '0px 0px -32px 0px' }
+  );
+  document.querySelectorAll('.pp-reveal').forEach((el) => io.observe(el));
+</script>
+
+<script>
+  // Galería — lightbox + flechas prev/next del strip
+  import { openGallery } from '../../modules/canton/ui/canton-gallery';
+
+  const dataEl = document.getElementById('parish-gallery-data');
+  if (dataEl?.textContent) {
+    const { name, images, color } = JSON.parse(dataEl.textContent) as {
+      name: string;
+      images: string[];
+      color: string;
+    };
+    document.querySelectorAll<HTMLButtonElement>('[data-gallery-index]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.galleryIndex ?? '0', 10);
+        openGallery(name, images, color, idx);
+      });
+    });
+  }
+
+  // Flechas de navegación del strip (solo activas en modo scroll, >768px)
+  const strip = document.querySelector<HTMLElement>('.pp-gallery-strip');
+  const prevBtn = document.querySelector<HTMLButtonElement>('.pp-gnav--prev');
+  const nextBtn = document.querySelector<HTMLButtonElement>('.pp-gnav--next');
+
+  if (strip && prevBtn && nextBtn) {
+    const STEP = 160; // ~ancho de un thumb + gap
+
+    const sync = () => {
+      const atStart = strip.scrollLeft <= 2;
+      const atEnd = strip.scrollLeft >= strip.scrollWidth - strip.clientWidth - 2;
+      prevBtn.hidden = atStart;
+      nextBtn.hidden = atEnd;
+    };
+
+    prevBtn.addEventListener('click', () => strip.scrollBy({ left: -STEP, behavior: 'smooth' }));
+    nextBtn.addEventListener('click', () => strip.scrollBy({ left: STEP, behavior: 'smooth' }));
+
+    strip.addEventListener('scroll', sync, { passive: true });
+
+    // Estado inicial y también cuando la ventana cambia de tamaño
+    sync();
+    window.addEventListener('resize', sync, { passive: true });
+  }
+</script>

@@ -3,5 +3,6 @@ import { noticia } from './noticia';
 import { parroquia } from './parroquia';
 import { documentoOficial } from './documento-oficial';
 import { configSitio } from './config-sitio';
+import { obra } from './obra';
 
-export const schemas = [portableText, noticia, parroquia, documentoOficial, configSitio];
+export const schemas = [portableText, noticia, parroquia, documentoOficial, configSitio, obra];

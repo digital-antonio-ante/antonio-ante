@@ -361,4 +361,18 @@
 
 <script>
   import './canton-gallery';
+
+  /*
+   * Portal: mueve el overlay al <body> para sacarlo del stacking context de <main>.
+   *
+   * El CSS global aplica `position: relative; z-index: 1` a todos los hijos
+   * directos de <body>.  Como <footer> viene después de <main> en el DOM,
+   * ambos con z-index: 1, el footer pinta ENCIMA de <main> — y por tanto
+   * encima de la galería.  Al moverlo a <body> el overlay queda en el
+   * stacking context raíz con z-index: 9999, por encima de todo.
+   */
+  const overlay = document.getElementById('gallery-overlay');
+  if (overlay && overlay.parentElement !== document.body) {
+    document.body.appendChild(overlay);
+  }
 </script>

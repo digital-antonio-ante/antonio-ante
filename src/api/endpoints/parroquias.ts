@@ -16,15 +16,20 @@ const ParroquiaImageSchema = z.object({
   hotspotX: z.number().min(0).max(1).nullish(),
   /** Hotspot Y de Sanity (0–1). Convertir a % para object-position CSS. */
   hotspotY: z.number().min(0).max(1).nullish(),
+  /** URLs de la galería de fotos gestionada desde Sanity. */
+  galeria: z
+    .array(z.object({ url: z.string().url().nullish(), alt: z.string().nullish() }))
+    .nullish(),
 });
 export type ParroquiaImage = z.infer<typeof ParroquiaImageSchema>;
 
 const QUERY_IMAGES = `
-  *[_type == "parroquia" && defined(imagenPrincipal.asset)] {
+  *[_type == "parroquia"] {
     nombre,
     "imageUrl": imagenPrincipal.asset->url,
     "hotspotX": imagenPrincipal.hotspot.x,
-    "hotspotY": imagenPrincipal.hotspot.y
+    "hotspotY": imagenPrincipal.hotspot.y,
+    "galeria": galeria[]{ "url": asset->url, "alt": alt }
   }
 `;
 
@@ -37,7 +42,9 @@ const QUERY_LIST = `
     _id, _type, _createdAt, _updatedAt, _rev,
     nombre, slug, poblacion, superficieKm2,
     coordenadas, imagenPrincipal, esCabeceraCantonal,
-    "imageUrl": imagenPrincipal.asset->url
+    "imageUrl": imagenPrincipal.asset->url,
+    "hotspotX": imagenPrincipal.hotspot.x,
+    "hotspotY": imagenPrincipal.hotspot.y
   }
 `;
 
@@ -45,7 +52,12 @@ const QUERY_BY_SLUG = `
   *[_type == "parroquia" && slug.current == $slug][0] {
     _id, _type, _createdAt, _updatedAt, _rev,
     nombre, slug, descripcion, poblacion, superficieKm2,
-    coordenadas, imagenPrincipal, esCabeceraCantonal
+    coordenadas, imagenPrincipal, esCabeceraCantonal,
+    "imageUrl": imagenPrincipal.asset->url,
+    "hotspotX": imagenPrincipal.hotspot.x,
+    "hotspotY": imagenPrincipal.hotspot.y,
+    "galeria": galeria[]{ "url": asset->url, "alt": alt },
+    "redesSociales": redesSociales[]{ red, url }
   }
 `;
 

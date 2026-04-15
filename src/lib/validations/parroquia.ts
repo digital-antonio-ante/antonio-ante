@@ -33,6 +33,27 @@ export const ParroquiaSchema = SanityDocumentBaseSchema.extend({
   esCabeceraCantonal: z.boolean().default(false),
   /** URL resuelta en GROQ con asset->url — solo disponible cuando se proyecta en la query */
   imageUrl: z.string().url().nullish(),
+  /** Sanity hotspot — proyectados en GROQ como imagenPrincipal.hotspot.x/y */
+  hotspotX: z.number().min(0).max(1).nullish(),
+  hotspotY: z.number().min(0).max(1).nullish(),
+  /** Galería de fotos — proyectada en QUERY_BY_SLUG */
+  galeria: z
+    .array(
+      z.object({
+        url: z.string().url().nullish(),
+        alt: z.string().nullish(),
+      })
+    )
+    .nullish(),
+  /** Redes sociales de la parroquia */
+  redesSociales: z
+    .array(
+      z.object({
+        red: z.enum(['facebook', 'instagram', 'twitter', 'youtube', 'tiktok']),
+        url: z.string().url(),
+      })
+    )
+    .nullish(),
 });
 
 export type Parroquia = z.infer<typeof ParroquiaSchema>;

@@ -75,7 +75,7 @@ export function closeGallery(): void {
   document.body.style.overflow = '';
 }
 
-export function openGallery(name: string, images: string[], color: string): void {
+export function openGallery(name: string, images: string[], color: string, startIndex = 0): void {
   if (!images.length || !overlay) return;
   galleryImgs = images;
   cur = 0;
@@ -83,7 +83,7 @@ export function openGallery(name: string, images: string[], color: string): void
   if (nameEl) nameEl.textContent = name;
   if (dotEl) dotEl.style.background = color;
   buildThumbs();
-  show(0);
+  show(Math.max(0, Math.min(startIndex, images.length - 1)));
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';

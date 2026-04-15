@@ -25,5 +25,12 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# Local Netlify folder
-.netlify
+# Local Cloudflare / Wrangler
+.wrangler/
+
+# Sanity CLI cache (auto-generado)
+studio/.sanity/
+
+# Diseño anterior (archivos locales de referencia)
+"DISEÑO ANTIGUO/"
+DISEÑO\ ANTIGUO/

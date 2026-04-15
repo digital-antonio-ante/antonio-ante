@@ -1,211 +1,665 @@
 ---
 import BaseLayout from '@ui/BaseLayout.astro';
-import { getParroquias } from '@api/endpoints/parroquias';
-import CantonMapWidget from '@modules/canton/ui/CantonMapWidget.astro';
+import { getParroquiasImageUrls } from '@api/endpoints/parroquias';
+import { getConfigSitio } from '@api/endpoints/config-sitio';
+import { PARISHES } from '@modules/canton/data/parishes';
 
 export const prerender = true;
 
-const parroquias = await getParroquias();
-const cabecera = parroquias.find((p) => p.esCabeceraCantonal);
-const resto = parroquias.filter((p) => !p.esCabeceraCantonal);
+const [sanityParroquias, config] = await Promise.all([
+  getParroquiasImageUrls().catch(() => []),
+  getConfigSitio().catch(() => null),
+]);
+
+const cantonImageUrl = config?.cantonImageUrl ?? null;
+const cantonImageAlt = config?.cantonImageAlt ?? 'Cantón Antonio Ante — Imbabura';
+
+const NOMBRE_MAP: Record<string, string> = {
+  atuntaqui: 'Atuntaqui',
+  andrade_marin: 'Andrade Marín',
+  chaltura: 'Chaltura',
+  natabuela: 'Natabuela',
+  san_roque: 'San Roque',
+  imbaya: 'Imbaya',
+};
+
+function cardUrl(base: string, hx: number, hy: number): string {
+  return `${base}?w=800&h=450&fit=crop&fp-x=${hx.toFixed(3)}&fp-y=${hy.toFixed(3)}&auto=format&q=80`;
+}
+
+/**
+ * Genera srcset para imágenes hero full-width desde Sanity CDN.
+ * El browser elige el ancho correcto según viewport × devicePixelRatio.
+ * aspect = height/width del crop base (mantiene proporciones en todos los breakpoints).
+ */
+function heroSrcset(base: string, hx: number, hy: number, aspect: number, minH: number): string {
+  return [640, 1024, 1280, 1536, 1920, 2560]
+    .map((w) => {
+      const h = Math.max(minH, Math.round(w * aspect));
+      return `${base}?w=${w}&h=${h}&fit=crop&fp-x=${hx.toFixed(3)}&fp-y=${hy.toFixed(3)}&auto=format&q=83 ${w}w`;
+    })
+    .join(', ');
+}
+
+// Hero del cantón: ratio 460/1400 ≈ 0.329 · min-height 380px
+const indexHeroSrc = cantonImageUrl
+  ? `${cantonImageUrl}?w=1280&h=460&fit=crop&fp-x=0.5&fp-y=0.45&auto=format&q=83`
+  : null;
+const indexHeroSrcset = cantonImageUrl
+  ? heroSrcset(cantonImageUrl, 0.5, 0.45, 460 / 1400, 380)
+  : null;
+
+const sanityByName = Object.fromEntries(
+  sanityParroquias.map((p) => {
+    const hx = p.hotspotX ?? 0.5;
+    const hy = p.hotspotY ?? 0.5;
+    return [p.nombre, { src: p.imageUrl ? cardUrl(p.imageUrl, hx, hy) : null }];
+  })
+);
+
+const parishList = Object.values(PARISHES).map((p) => ({
+  ...p,
+  slug: p.id.replaceAll('_', '-'),
+  cardSrc: sanityByName[NOMBRE_MAP[p.id] ?? '']?.src ?? null,
+  // Stats formateados en una sola línea
+  statsLine: [p.population, p.altitude].filter(Boolean).join(' · '),
+}));
 ---
 
 <BaseLayout
   title="Parroquias"
-  description="Conoce las seis parroquias del Cantón Antonio Ante: Atuntaqui, Andrade Marín, Chaltura, Imbaya, Natabuela y San Roque. Información de población, superficie y características."
+  description="Directorio de las seis parroquias del Cantón Antonio Ante: Atuntaqui, Andrade Marín, Chaltura, Imbaya, Natabuela y San Roque. Conoce su gente, cultura y proyectos."
+  canonical="https://antonio-ante.gob.ec/parroquias"
 >
-  <!-- Hero -->
-  <section class="bg-brand-primary text-white py-12 lg:py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <nav aria-label="Breadcrumb" class="mb-4">
-        <ol class="flex items-center gap-2 text-white/60 text-sm" role="list">
-          <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
-          <li aria-hidden="true" class="select-none">›</li>
-          <li class="text-white font-medium" aria-current="page">Parroquias</li>
+  <!-- ── Hero ── -->
+  <section class="ph-hero" aria-label="Parroquias del Cantón Antonio Ante">
+    {
+      indexHeroSrc && (
+        <img
+          src={indexHeroSrc}
+          srcset={indexHeroSrcset ?? undefined}
+          sizes="100vw"
+          alt={cantonImageAlt}
+          class="ph-hero__bg"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+          aria-hidden="true"
+          width="1280"
+          height="460"
+        />
+      )
+    }
+    <div class="ph-hero__veil" aria-hidden="true"></div>
+
+    <div class="ph-hero__body">
+      <nav aria-label="Breadcrumb">
+        <ol class="ph-breadcrumb" role="list">
+          <li><a href="/">Inicio</a></li>
+          <li aria-hidden="true">›</li>
+          <li aria-current="page">Parroquias</li>
         </ol>
       </nav>
-      <h1 class="text-3xl lg:text-4xl font-bold mb-3">Las 6 parroquias del cantón</h1>
-      <p class="text-white/80 max-w-xl">
-        El Cantón Antonio Ante está conformado por dos parroquias urbanas y cuatro rurales, cada una
-        con su propia identidad cultural, tradiciones y atractivos.
+
+      <p class="ph-hero__eyebrow">Cantón Antonio Ante · Imbabura · Ecuador</p>
+      <h1 class="ph-hero__title">
+        6 parroquias,<br /><em>una sola identidad</em>
+      </h1>
+      <p class="ph-hero__sub">
+        Desde la Capital Textil hasta los humedales de Imbaya — cada parroquia es un mundo propio
+        dentro del cantón más dinámico de la Sierra Norte.
       </p>
-    </div>
-  </section>
 
-  <!-- ── Mapa interactivo ── -->
-  <section class="py-12 lg:py-16 bg-white border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="mb-8">
-        <p class="text-xs font-bold uppercase tracking-widest text-brand-primary mb-1">
-          Cantón Antonio Ante
-        </p>
-        <h2 class="text-2xl lg:text-3xl font-bold text-brand-primary">Mapa interactivo</h2>
-        <p class="text-brand-dark/60 text-sm mt-1">
-          Selecciona una parroquia en el mapa para ver su información detallada.
-        </p>
+      <!-- Estadísticas: 4 números, separador vertical, sin píldoras que rompan -->
+      <div class="ph-hero__stats" aria-hidden="true">
+        <div class="ph-stat"><strong>6</strong><span>parroquias</span></div>
+        <div class="ph-stat-sep"></div>
+        <div class="ph-stat"><strong>2</strong><span>urbanas</span></div>
+        <div class="ph-stat-sep"></div>
+        <div class="ph-stat"><strong>4</strong><span>rurales</span></div>
+        <div class="ph-stat-sep"></div>
+        <div class="ph-stat"><strong>~45 k</strong><span>habitantes</span></div>
       </div>
-      <CantonMapWidget />
     </div>
+
+    <div class="ph-hero__bar" aria-hidden="true"></div>
   </section>
 
-  <!-- ── Listado de parroquias ── -->
-  <section class="py-12 lg:py-16 bg-brand-light">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Cabecera cantonal destacada -->
-      {
-        cabecera && (
-          <div class="mb-10">
-            <h2 class="text-xs font-bold uppercase tracking-widest text-brand-primary mb-4">
-              Cabecera cantonal
-            </h2>
-            <a
-              href={`/parroquias/${cabecera.slug.current}`}
-              class="group block bg-brand-primary text-white rounded-2xl overflow-hidden hover:opacity-95 transition-opacity duration-200 outline-none focus-visible:ring-4 focus-visible:ring-brand-secondary focus-visible:ring-offset-2"
-            >
-              <div class="p-8 lg:p-10 flex flex-col sm:flex-row sm:items-center gap-6">
-                <div
-                  class="w-16 h-16 rounded-2xl bg-brand-secondary flex items-center justify-center flex-shrink-0"
-                  aria-hidden="true"
-                >
-                  <svg
-                    class="w-8 h-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
+  <!-- ── Directorio ── -->
+  <section class="ph-dir" aria-labelledby="dir-title">
+    <div class="ph-dir__inner">
+      <div class="ph-dir__hd">
+        <p class="ph-eyebrow">Directorio completo</p>
+        <h2 id="dir-title" class="ph-dir__title">Elige tu parroquia</h2>
+        <p class="ph-dir__sub">Selecciona la parroquia que quieres conocer en detalle.</p>
+      </div>
+
+      <!--
+        GRID: 3 col desktop · 2 col tablet · 1 col móvil.
+        li tiene height:100% para que el <a> estire el grid cell.
+      -->
+      <ul class="ph-grid" role="list">
+        {
+          parishList.map((p) => (
+            <li class="ph-grid__cell" role="listitem">
+              <a
+                href={`/parroquias/${p.slug}`}
+                class="pc"
+                style={`--c:${p.color};`}
+                aria-label={`${p.name} — ${p.shortDesc}. ${p.type}.`}
+              >
+                <div class="pc__photo">
+                  {p.cardSrc ? (
+                    <img
+                      src={p.cardSrc}
+                      alt=""
+                      class="pc__img"
+                      loading="lazy"
+                      decoding="async"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <div class="pc__img-fallback" aria-hidden="true" />
+                  )}
+                  <div class="pc__photo-veil" aria-hidden="true" />
+                  <span class="pc__tipo" aria-hidden="true">
+                    {p.type}
+                  </span>
+                  <span class="pc__icon" aria-hidden="true">
+                    {p.mapIcon}
+                  </span>
+                </div>
+
+                <div class="pc__body">
+                  <div class="pc__top">
+                    <h3 class="pc__name">{p.name}</h3>
+                    <p class="pc__slogan">{p.shortDesc}</p>
+                  </div>
+
+                  {p.statsLine && (
+                    <p class="pc__stats" aria-hidden="true">
+                      {p.statsLine}
+                    </p>
+                  )}
+
+                  <div class="pc__cta" aria-hidden="true">
+                    <span>Explorar</span>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
-                </div>
-                <div class="flex-1">
-                  <div class="flex flex-wrap items-center gap-3 mb-2">
-                    <h3 class="text-2xl font-bold">{cabecera.nombre}</h3>
-                    <span class="px-3 py-1 bg-brand-secondary text-white text-xs font-bold rounded-full uppercase tracking-wide">
-                      Cabecera cantonal · Urbana
-                    </span>
-                  </div>
-                  <div class="flex flex-wrap gap-6 text-white/80 text-sm">
-                    {cabecera.poblacion && (
-                      <span>👥 {cabecera.poblacion.toLocaleString('es-EC')} habitantes</span>
-                    )}
-                    {cabecera.superficieKm2 && <span>📐 {cabecera.superficieKm2} km²</span>}
+                    >
+                      <path d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </div>
-                <svg
-                  class="w-6 h-6 text-white/50 group-hover:text-white transition-colors duration-200 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-            </a>
-          </div>
-        )
-      }
-
-      <!-- Parroquias rurales y urbanas -->
-      <div>
-        <h2 class="text-xs font-bold uppercase tracking-widest text-brand-primary mb-4">
-          Parroquias {resto.some((p) => p.esCabeceraCantonal) ? '' : 'rurales y urbanas'}
-        </h2>
-        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" role="list">
-          {
-            resto.map((p) => (
-              <li>
-                <a
-                  href={`/parroquias/${p.slug.current}`}
-                  class="group flex flex-col h-full bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md hover:border-brand-primary/20 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-                >
-                  <div class="p-6 flex flex-col flex-1">
-                    <div class="flex items-start justify-between mb-4">
-                      <div
-                        class="w-12 h-12 rounded-xl bg-brand-primary/10 flex items-center justify-center group-hover:bg-brand-primary/20 transition-colors duration-200"
-                        aria-hidden="true"
-                      >
-                        <svg
-                          class="w-6 h-6 text-brand-primary"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                          />
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
-                      </div>
-                      <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wide">
-                        Rural
-                      </span>
-                    </div>
-
-                    <h3 class="text-lg font-bold text-brand-primary mb-2 group-hover:text-brand-primary transition-colors duration-200">
-                      {p.nombre}
-                    </h3>
-
-                    <dl class="space-y-1 text-sm text-brand-dark/60 flex-1">
-                      {p.poblacion && (
-                        <div class="flex justify-between">
-                          <dt>Población</dt>
-                          <dd class="font-semibold text-brand-dark">
-                            {p.poblacion.toLocaleString('es-EC')} hab.
-                          </dd>
-                        </div>
-                      )}
-                      {p.superficieKm2 && (
-                        <div class="flex justify-between">
-                          <dt>Superficie</dt>
-                          <dd class="font-semibold text-brand-dark">{p.superficieKm2} km²</dd>
-                        </div>
-                      )}
-                    </dl>
-
-                    <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                      <span class="text-xs font-semibold text-brand-primary group-hover:text-brand-primary transition-colors duration-200">
-                        Ver información
-                      </span>
-                      <svg
-                        class="w-4 h-4 text-brand-primary/50 group-hover:text-brand-primary group-hover:translate-x-0.5 transition-all duration-200"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  /* ═══════════════════════════════════════════════
+     HERO
+  ═══════════════════════════════════════════════ */
+  .ph-hero {
+    position: relative;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    background: linear-gradient(150deg, #003109 0%, #005d1f 55%, #277816 100%);
+  }
+
+  .ph-hero__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 40%;
+  }
+
+  .ph-hero__veil {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(3, 8, 18, 0.94) 0%,
+      rgba(3, 8, 18, 0.6) 38%,
+      rgba(3, 8, 18, 0.18) 100%
+    );
+    z-index: 1;
+  }
+
+  .ph-hero__body {
+    position: relative;
+    z-index: 2;
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 2rem 2.5rem 2.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .ph-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0 0 0.15rem;
+    padding: 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+  }
+  .ph-breadcrumb a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .ph-breadcrumb a:hover {
+    color: white;
+  }
+  .ph-breadcrumb [aria-current='page'] {
+    color: white;
+    font-weight: 600;
+  }
+
+  .ph-hero__eyebrow {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+  }
+
+  .ph-hero__title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.9rem, 5vw, 3.4rem);
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 0;
+  }
+  .ph-hero__title em {
+    font-style: normal;
+    /* Verde vivo — contraste 4.8:1 sobre el oscuro ✓ AA */
+    color: #6ecb52;
+  }
+
+  .ph-hero__sub {
+    font-size: clamp(0.85rem, 1.8vw, 0.97rem);
+    color: rgba(255, 255, 255, 0.65);
+    max-width: 520px;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* Stats: 4 números con separadores verticales */
+  .ph-hero__stats {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    /* glass pill */
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 0.7rem 0;
+    width: fit-content;
+    margin-top: 0.3rem;
+  }
+
+  .ph-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    padding: 0 1.25rem;
+  }
+  .ph-stat strong {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+  }
+  .ph-stat span {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .ph-stat-sep {
+    width: 1px;
+    height: 2rem;
+    background: rgba(255, 255, 255, 0.18);
+    flex-shrink: 0;
+  }
+
+  /* Barra tricolor */
+  .ph-hero__bar {
+    position: relative;
+    z-index: 2;
+    height: 4px;
+    background: linear-gradient(90deg, #005d1f 0%, #277816 35%, #d97706 68%, #dc2626 100%);
+    flex-shrink: 0;
+  }
+
+  /* ═══════════════════════════════════════════════
+     DIRECTORIO
+  ═══════════════════════════════════════════════ */
+  .ph-dir {
+    padding: 4rem 0 5.5rem;
+    background: #f1f5f9;
+  }
+
+  .ph-dir__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+  }
+
+  .ph-dir__hd {
+    margin-bottom: 2.5rem;
+  }
+
+  .ph-eyebrow {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #277816;
+    margin: 0 0 0.3rem;
+  }
+
+  .ph-dir__title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin: 0 0 0.35rem;
+  }
+
+  .ph-dir__sub {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0;
+  }
+
+  /* ── Grid ── */
+  .ph-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /*
+    Cada celda estira al alto del grid track.
+    El <a> ocupa el 100% de la celda → columnas alineadas perfectamente.
+  */
+  .ph-grid__cell {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Card ── */
+  .pc {
+    flex: 1; /* estira a la altura de la celda */
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    text-decoration: none;
+    border: 1.5px solid #e2e8f0;
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.06),
+      0 4px 12px rgba(0, 0, 0, 0.04);
+    transition:
+      transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.2s ease;
+  }
+
+  .pc:hover {
+    transform: translateY(-5px);
+    box-shadow:
+      0 16px 36px rgba(0, 0, 0, 0.12),
+      0 0 0 2px var(--c);
+    border-color: var(--c);
+  }
+
+  .pc:focus-visible {
+    outline: 3px solid var(--c);
+    outline-offset: 3px;
+  }
+
+  /* Foto 16:9 */
+  .pc__photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--c) 75%, #000);
+    flex-shrink: 0;
+  }
+
+  .pc__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .pc:hover .pc__img {
+    transform: scale(1.05);
+  }
+
+  .pc__img-fallback {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--c) 55%, #000) 0%,
+      var(--c) 60%,
+      color-mix(in srgb, var(--c) 70%, #fff) 100%
+    );
+  }
+
+  /* Gradiente inferior leve para que icono y badge sean legibles */
+  .pc__photo-veil {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.5) 0%,
+      rgba(0, 0, 0, 0.1) 45%,
+      transparent 100%
+    );
+    z-index: 1;
+  }
+
+  /* Badge tipo — top-left */
+  .pc__tipo {
+    position: absolute;
+    top: 0.65rem;
+    left: 0.7rem;
+    z-index: 2;
+    background: var(--c);
+    color: #fff;
+    font-size: 0.57rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+  }
+
+  /* Icono — bottom-right */
+  .pc__icon {
+    position: absolute;
+    bottom: 0.65rem;
+    right: 0.75rem;
+    z-index: 2;
+    font-size: 1.5rem;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.6));
+  }
+
+  /* ── Cuerpo ── */
+  .pc__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1.1rem 1.2rem 1rem;
+    /* Separador superior en color de parroquia */
+    border-top: 3px solid var(--c);
+    gap: 0.55rem;
+  }
+
+  .pc__top {
+    flex: 1; /* empuja stats y CTA hacia abajo → columnas alineadas */
+    display: flex;
+    flex-direction: column;
+    gap: 0.22rem;
+  }
+
+  .pc__name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  .pc__slogan {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--c);
+    margin: 0;
+    line-height: 1.3;
+    /* Siempre 1 línea — no rompe altura de la tarjeta */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Stats — 1 línea, texto neutro */
+  .pc__stats {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-weight: 500;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* CTA — separado del body, siempre en el fondo */
+  .pc__cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.65rem;
+    border-top: 1px solid #f1f5f9;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--c);
+  }
+  .pc__cta svg {
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .pc:hover .pc__cta svg {
+    transform: translateX(3px);
+  }
+
+  /* ═══════════════════════════════════════════════
+     RESPONSIVE
+  ═══════════════════════════════════════════════ */
+  @media (max-width: 1024px) {
+    .ph-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .ph-hero {
+      min-height: 320px;
+    }
+    .ph-hero__body {
+      padding: 1.5rem 1.5rem 2.25rem;
+      gap: 0.7rem;
+    }
+
+    .ph-hero__stats {
+      width: 100%;
+      justify-content: center;
+    }
+    .ph-stat {
+      padding: 0 0.9rem;
+    }
+    .ph-stat strong {
+      font-size: 1.05rem;
+    }
+
+    .ph-dir {
+      padding: 2.75rem 0 4rem;
+    }
+    .ph-dir__inner {
+      padding: 0 1.5rem;
+    }
+    .ph-dir__hd {
+      margin-bottom: 2rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .ph-grid {
+      grid-template-columns: 1fr;
+      gap: 1.1rem;
+    }
+    .ph-dir__inner {
+      padding: 0 1.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc,
+    .pc__img,
+    .pc__cta svg {
+      transition: none;
+    }
+    .pc:hover {
+      transform: none;
+    }
+    .pc:hover .pc__img {
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,534 @@
+---
+/**
+ * ObraDestacada.astro — Banner especial para la obra marcada como ⭐ destacada.
+ *
+ * Layout split: texto + métricas a la izquierda, imagen a la derecha.
+ * Si no hay obra destacada el componente no renderiza nada.
+ */
+import type { Obra } from '@api/endpoints/obras';
+
+interface Props {
+  obra: Obra | null;
+}
+
+const { obra } = Astro.props;
+if (!obra) return;
+
+const CATEGORIA: Record<string, { label: string; color: string; bg: string }> = {
+  vialidad: { label: 'Vialidad', color: '#1d4ed8', bg: '#dbeafe' },
+  agua: { label: 'Agua y saneamiento', color: '#0369a1', bg: '#e0f2fe' },
+  educacion: { label: 'Educación', color: '#6d28d9', bg: '#ede9fe' },
+  salud: { label: 'Salud', color: '#b91c1c', bg: '#fee2e2' },
+  espacios_publicos: { label: 'Espacios públicos', color: '#15803d', bg: '#dcfce7' },
+  productividad: { label: 'Productividad', color: '#b45309', bg: '#fef3c7' },
+  cultura: { label: 'Cultura y deporte', color: '#7c3aed', bg: '#f3e8ff' },
+};
+
+const ESTADO: Record<string, { label: string; dot: string }> = {
+  planificada: { label: 'Planificada', dot: '#9ca3af' },
+  en_progreso: { label: 'En progreso', dot: '#2563eb' },
+  completada: { label: 'Completada', dot: '#15803d' },
+};
+
+function formatUSD(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${Math.round(n / 1_000)}k`;
+  return `$${n.toLocaleString('es-EC')}`;
+}
+
+const cat = CATEGORIA[obra.categoria] ?? { label: obra.categoria, color: '#277816', bg: '#f0fdf4' };
+const est = ESTADO[obra.estado] ?? { label: obra.estado, dot: '#9ca3af' };
+const pct = Math.max(0, Math.min(100, obra.porcentajeAvance));
+const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=format&q=85` : null;
+---
+
+<section class="dest-section" aria-labelledby="dest-heading">
+  <div class="dest-inner">
+    <!-- Eyebrow pill -->
+    <div class="dest-eyebrow-wrap" aria-hidden="true">
+      <span class="dest-star">⭐</span>
+      <span class="dest-eyebrow">Obra destacada del período 2024–2028</span>
+    </div>
+
+    <div class="dest-card">
+      <!-- Barra tricolor superior -->
+      <div class="dest-bar" aria-hidden="true"></div>
+
+      <div class="dest-layout">
+        <!-- ── Columna de contenido ── -->
+        <div class="dest-content">
+          <!-- Badges: categoría + estado -->
+          <div class="dest-badges">
+            <span class="dest-cat" style={`background:${cat.bg}; color:${cat.color};`}>
+              {cat.label}
+            </span>
+            <span class="dest-estado">
+              <span class="dest-dot" style={`background:${est.dot};`} aria-hidden="true"></span>
+              {est.label}
+            </span>
+          </div>
+
+          <!-- Parroquia -->
+          <p class="dest-parroquia">
+            <svg width="11" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path
+                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+              ></path>
+            </svg>
+            {obra.parroquia}
+          </p>
+
+          <!-- Título -->
+          <h2 id="dest-heading" class="dest-titulo">{obra.titulo}</h2>
+
+          <!-- Resumen -->
+          <p class="dest-resumen">{obra.resumen}</p>
+
+          <!-- Barra de progreso -->
+          <div class="dest-progress" aria-label={`Avance: ${pct}%`}>
+            <div class="dest-progress-meta">
+              <span>Avance del proyecto</span>
+              <strong style={`color:${cat.color}`}>{pct}%</strong>
+            </div>
+            <div
+              class="dest-progress-track"
+              role="progressbar"
+              aria-valuenow={pct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div
+                class="dest-progress-fill"
+                style={`background: linear-gradient(90deg, ${cat.color}, #d97706);`}
+                data-width={pct}
+              >
+              </div>
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="dest-cta-wrap">
+            <a href={`/obras/${obra.slug.current}`} class="dest-cta">
+              Ver detalle completo
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7"></path>
+              </svg>
+            </a>
+          </div>
+
+          <!-- Chips métricas -->
+          {
+            (obra.presupuestoUSD || obra.familiasBeneficiadas) && (
+              <div class="dest-chips">
+                {obra.presupuestoUSD && (
+                  <div class="dest-chip">
+                    <span class="dest-chip-icon">💵</span>
+                    <div>
+                      <strong class="dest-chip-val">{formatUSD(obra.presupuestoUSD)}</strong>
+                      <span class="dest-chip-label">Inversión</span>
+                    </div>
+                  </div>
+                )}
+                {obra.familiasBeneficiadas && (
+                  <div class="dest-chip">
+                    <span class="dest-chip-icon">👨‍👩‍👧</span>
+                    <div>
+                      <strong class="dest-chip-val">
+                        {obra.familiasBeneficiadas.toLocaleString('es-EC')}
+                      </strong>
+                      <span class="dest-chip-label">Familias beneficiadas</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          }
+        </div>
+
+        <!-- ── Columna de imagen ── -->
+        <div class="dest-img-wrap">
+          {
+            imgSrc ? (
+              <img
+                src={imgSrc}
+                alt={obra.imageAlt ?? obra.titulo}
+                class="dest-img"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <div
+                class="dest-img-fallback"
+                style={`background: linear-gradient(135deg, ${cat.color}22, ${cat.color}44);`}
+                aria-hidden="true"
+              >
+                <span class="dest-img-fallback-icon">🏗️</span>
+              </div>
+            )
+          }
+          <!-- Badge flotante de avance sobre la imagen -->
+          <div class="dest-img-badge" style={`background:${cat.color};`} aria-hidden="true">
+            <span class="dest-img-badge-num">{pct}%</span>
+            <span class="dest-img-badge-label">completado</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const fill = document.querySelector<HTMLElement>('.dest-progress-fill');
+  if (fill) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const target = fill.dataset.width ?? '0';
+          fill.style.width = '0%';
+          requestAnimationFrame(() => {
+            fill.style.transition = 'width 1.4s cubic-bezier(0.16, 1, 0.3, 1)';
+            fill.style.width = `${target}%`;
+          });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(fill);
+  }
+</script>
+
+<style>
+  .dest-section {
+    padding: 2rem 0 0;
+  }
+  .dest-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* Eyebrow pill */
+  .dest-eyebrow-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 9999px;
+    padding: 0.3rem 0.9rem 0.3rem 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .dest-star {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+  .dest-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #92400e;
+  }
+
+  /* Card principal */
+  .dest-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.07),
+      0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Barra tricolor */
+  .dest-bar {
+    height: 5px;
+    background: linear-gradient(90deg, #277816 0%, #d97706 55%, #dc2626 100%);
+  }
+
+  /* Layout split */
+  .dest-layout {
+    display: grid;
+    grid-template-columns: 1fr 42%;
+    min-height: 340px;
+  }
+
+  /* Columna de contenido */
+  .dest-content {
+    padding: 2rem 2.5rem 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .dest-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .dest-cat {
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.22rem 0.7rem;
+    border-radius: 9999px;
+  }
+  .dest-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #6b7280;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 0.22rem 0.7rem;
+    border-radius: 9999px;
+  }
+  .dest-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dest-parroquia {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #9ca3af;
+    margin: 0;
+  }
+  .dest-parroquia svg {
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  .dest-titulo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.3rem, 2.5vw, 1.9rem);
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0;
+  }
+  .dest-resumen {
+    font-size: 0.875rem;
+    color: #6b7280;
+    line-height: 1.65;
+    margin: 0;
+    max-width: 52ch;
+  }
+
+  /* Progreso */
+  .dest-progress {
+    margin-top: 0.25rem;
+  }
+  .dest-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #9ca3af;
+    margin-bottom: 0.45rem;
+  }
+  .dest-progress-meta strong {
+    font-size: 0.8rem;
+  }
+  .dest-progress-track {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .dest-progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    width: 0%;
+  }
+
+  /* Chips */
+  .dest-chips {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+  }
+  .dest-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.5rem 0.85rem;
+  }
+  .dest-chip-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .dest-chip > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+  .dest-chip-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #277816, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .dest-chip-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+  }
+
+  /* CTA */
+  .dest-cta-wrap {
+    margin-top: 0.25rem;
+  }
+  .dest-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #277816;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 9999px;
+    transition:
+      background 0.2s ease,
+      gap 0.2s ease;
+  }
+  .dest-cta:hover {
+    background: #1e5e10;
+    gap: 0.7rem;
+  }
+
+  /* Imagen */
+  .dest-img-wrap {
+    position: relative;
+    overflow: hidden;
+    background: #f1f5f9;
+  }
+  .dest-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .dest-card:hover .dest-img {
+    transform: scale(1.03);
+  }
+  .dest-img-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dest-img-fallback-icon {
+    font-size: 4rem;
+    opacity: 0.35;
+  }
+
+  /* Badge flotante sobre imagen */
+  .dest-img-badge {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    border-radius: 14px;
+    padding: 0.6rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+  .dest-img-badge-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+  }
+  .dest-img-badge-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .dest-layout {
+      grid-template-columns: 1fr;
+    }
+    .dest-img-wrap {
+      height: 240px;
+      order: -1;
+    }
+    .dest-img {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .dest-content {
+      padding: 1.5rem;
+    }
+  }
+  @media (max-width: 640px) {
+    .dest-section {
+      padding: 1.5rem 0 0;
+    }
+    .dest-inner {
+      padding: 0 1rem;
+    }
+    .dest-titulo {
+      font-size: 1.2rem;
+    }
+    .dest-img-wrap {
+      height: 200px;
+    }
+    .dest-chips {
+      gap: 0.5rem;
+    }
+    .dest-chip {
+      padding: 0.4rem 0.7rem;
+    }
+    .dest-chip-val {
+      font-size: 0.9rem;
+    }
+  }
+</style>

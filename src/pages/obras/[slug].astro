@@ -1,0 +1,653 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+import { getObraBySlug } from '@api/endpoints/obras';
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect('/obras');
+
+const obra = await getObraBySlug(slug).catch(() => null);
+if (!obra) return new Response(null, { status: 404 });
+
+// ── Metadatos visuales ─────────────────────────────────────────────────────────
+const CATEGORIA: Record<string, { label: string; color: string; bg: string }> = {
+  vialidad: { label: 'Vialidad', color: '#1d4ed8', bg: '#dbeafe' },
+  agua: { label: 'Agua y saneamiento', color: '#0369a1', bg: '#e0f2fe' },
+  educacion: { label: 'Educación', color: '#6d28d9', bg: '#ede9fe' },
+  salud: { label: 'Salud', color: '#b91c1c', bg: '#fee2e2' },
+  espacios_publicos: { label: 'Espacios públicos', color: '#15803d', bg: '#dcfce7' },
+  productividad: { label: 'Productividad', color: '#b45309', bg: '#fef3c7' },
+  cultura: { label: 'Cultura y deporte', color: '#7c3aed', bg: '#f3e8ff' },
+};
+
+const ESTADO: Record<string, { label: string; color: string; dot: string }> = {
+  planificada: { label: 'Planificada', color: '#6b7280', dot: '#9ca3af' },
+  en_progreso: { label: 'En progreso', color: '#2563eb', dot: '#2563eb' },
+  completada: { label: 'Completada', color: '#15803d', dot: '#15803d' },
+};
+
+function formatUSD(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${Math.round(n / 1_000)}k`;
+  return `$${n.toLocaleString('es-EC')}`;
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('es-EC', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+const cat = CATEGORIA[obra.categoria] ?? { label: obra.categoria, color: '#277816', bg: '#f0fdf4' };
+const est = ESTADO[obra.estado] ?? { label: obra.estado, color: '#6b7280', dot: '#9ca3af' };
+const pct = Math.max(0, Math.min(100, obra.porcentajeAvance));
+const heroImg = obra.imageUrl ? `${obra.imageUrl}?w=1600&h=700&fit=crop&auto=format&q=85` : null;
+const ogImg = obra.imageUrl ? `${obra.imageUrl}?w=1200&h=630&fit=crop&auto=format&q=80` : undefined;
+---
+
+<BaseLayout
+  title={obra.titulo}
+  description={obra.resumen}
+  image={ogImg}
+  type="article"
+  canonical={`/obras/${slug}`}
+>
+  <!-- ─── Breadcrumb ────────────────────────────────────────────────────────── -->
+  <nav class="breadcrumb" aria-label="Ruta de navegación">
+    <div class="breadcrumb-inner">
+      <ol>
+        <li><a href="/">Inicio</a></li>
+        <li aria-hidden="true">›</li>
+        <li><a href="/obras">Obras</a></li>
+        <li aria-hidden="true">›</li>
+        <li aria-current="page">{obra.titulo}</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- ─── Hero ──────────────────────────────────────────────────────────────── -->
+  <section class="hero" aria-label="Encabezado de obra">
+    {
+      heroImg && (
+        <div class="hero-img-wrap" aria-hidden="true">
+          <img src={heroImg} alt="" class="hero-img" decoding="async" />
+          <div class="hero-overlay" />
+        </div>
+      )
+    }
+    <div class={`hero-content ${!heroImg ? 'hero-content--no-img' : ''}`}>
+      <div class="hero-inner">
+        <div class="hero-badges">
+          <span class="hero-cat" style={`background:${cat.bg}; color:${cat.color};`}
+            >{cat.label}</span
+          >
+          <span class="hero-estado" style={`border-color:${est.dot}33;`}>
+            <span class="hero-dot" style={`background:${est.dot};`} aria-hidden="true"></span>
+            {est.label}
+          </span>
+          {
+            obra.destacada && (
+              <span class="hero-star" aria-label="Obra destacada">
+                ⭐ Destacada
+              </span>
+            )
+          }
+        </div>
+        <h1 class="hero-title">{obra.titulo}</h1>
+        <p class="hero-parroquia">
+          <svg width="13" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+            ></path>
+          </svg>
+          {obra.parroquia}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Cuerpo ────────────────────────────────────────────────────────────── -->
+  <div class="body-wrap">
+    <div class="body-inner">
+      <!-- Col. izquierda: descripción + progreso + fechas -->
+      <main class="main-col">
+        <div class="card">
+          <h2 class="card-title">Descripción del proyecto</h2>
+          <p class="card-text">{obra.resumen}</p>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Avance de ejecución</h2>
+          <div class="progress-header">
+            <span class="progress-label">Completado</span>
+            <strong class="progress-pct" style={`color:${cat.color}`}>{pct}%</strong>
+          </div>
+          <div
+            class="progress-track"
+            role="progressbar"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Avance: ${pct}%`}
+          >
+            <div
+              class="progress-fill"
+              style={`background: linear-gradient(90deg, ${cat.color}, #d97706);`}
+              data-width={pct}
+            >
+            </div>
+          </div>
+          <p class="progress-caption">
+            {
+              pct === 100
+                ? 'Obra finalizada y entregada a la comunidad.'
+                : `Obra en ejecución — ${100 - pct}% restante.`
+            }
+          </p>
+        </div>
+
+        {
+          (obra.fechaInicio || obra.fechaEstimadaFin) && (
+            <div class="card">
+              <h2 class="card-title">Cronograma</h2>
+              <dl class="dates-grid">
+                {obra.fechaInicio && (
+                  <>
+                    <dt>Inicio</dt>
+                    <dd>{formatDate(obra.fechaInicio)}</dd>
+                  </>
+                )}
+                {obra.fechaEstimadaFin && (
+                  <>
+                    <dt>{pct === 100 ? 'Finalización' : 'Finalización estimada'}</dt>
+                    <dd>{formatDate(obra.fechaEstimadaFin)}</dd>
+                  </>
+                )}
+              </dl>
+            </div>
+          )
+        }
+
+        <a href="/obras" class="back-link">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            aria-hidden="true"
+          >
+            <path d="M19 12H5M5 12l7 7M5 12l7-7"></path>
+          </svg>
+          Ver todas las obras
+        </a>
+      </main>
+
+      <!-- Col. derecha: métricas -->
+      <aside class="metrics-col" aria-label="Métricas de impacto">
+        {
+          (obra.presupuestoUSD || obra.familiasBeneficiadas) && (
+            <div class="card metrics-card">
+              <h2 class="card-title">Impacto</h2>
+              <ul class="metrics-list">
+                {obra.presupuestoUSD && (
+                  <li class="metric-item">
+                    <span class="metric-icon" aria-hidden="true">
+                      💵
+                    </span>
+                    <div>
+                      <strong class="metric-val">{formatUSD(obra.presupuestoUSD)}</strong>
+                      <span class="metric-label">Inversión total</span>
+                    </div>
+                  </li>
+                )}
+                {obra.familiasBeneficiadas && (
+                  <li class="metric-item">
+                    <span class="metric-icon" aria-hidden="true">
+                      👨‍👩‍👧
+                    </span>
+                    <div>
+                      <strong class="metric-val">
+                        {obra.familiasBeneficiadas.toLocaleString('es-EC')}
+                      </strong>
+                      <span class="metric-label">Familias beneficiadas</span>
+                    </div>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )
+        }
+
+        <div class="card info-card">
+          <h2 class="card-title">Información</h2>
+          <dl class="info-list">
+            <dt>Categoría</dt>
+            <dd>
+              <span class="info-badge" style={`background:${cat.bg}; color:${cat.color};`}>
+                {cat.label}
+              </span>
+            </dd>
+            <dt>Parroquia</dt>
+            <dd>{obra.parroquia}</dd>
+            <dt>Estado</dt>
+            <dd>
+              <span class="info-estado" style={`color:${est.color};`}>
+                <span class="info-dot" style={`background:${est.dot};`} aria-hidden="true"></span>
+                {est.label}
+              </span>
+            </dd>
+          </dl>
+        </div>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const fill = document.querySelector<HTMLElement>('.progress-fill');
+  if (fill) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const target = fill.dataset.width ?? '0';
+          fill.style.width = '0%';
+          requestAnimationFrame(() => {
+            fill.style.transition = 'width 1.4s cubic-bezier(0.16, 1, 0.3, 1)';
+            fill.style.width = `${target}%`;
+          });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(fill);
+  }
+</script>
+
+<style>
+  /* ── Breadcrumb ─────────────────────────────────────────────────────────── */
+  .breadcrumb {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .breadcrumb-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0.65rem 1.5rem;
+  }
+  .breadcrumb ol {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+  .breadcrumb li {
+    font-size: 0.78rem;
+    color: #9ca3af;
+  }
+  .breadcrumb a {
+    color: #6b7280;
+    text-decoration: none;
+  }
+  .breadcrumb a:hover {
+    color: #277816;
+  }
+  .breadcrumb [aria-current='page'] {
+    color: #374151;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 28ch;
+  }
+
+  /* ── Hero ───────────────────────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    min-height: 340px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+  .hero-img-wrap {
+    position: absolute;
+    inset: 0;
+  }
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.35) 55%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
+  }
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding-top: 5rem;
+  }
+  .hero-content--no-img {
+    background: linear-gradient(160deg, #003109 0%, #005d1f 55%, #003109 100%);
+  }
+  .hero-content--no-img::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #277816 0%, #d97706 55%, #dc2626 100%);
+  }
+  .hero-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 2.5rem;
+  }
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .hero-cat {
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+  }
+  .hero-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    backdrop-filter: blur(4px);
+  }
+  .hero-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .hero-star {
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+  }
+  .hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.75rem);
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin: 0 0 0.75rem;
+    max-width: 52rem;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  }
+  .hero-parroquia {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+  }
+
+  /* ── Body layout ────────────────────────────────────────────────────────── */
+  .body-wrap {
+    background: #f9fafb;
+    padding: 2.5rem 1.5rem 4rem;
+    min-height: 40vh;
+  }
+  .body-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.75rem;
+    align-items: start;
+  }
+
+  /* ── Cards ──────────────────────────────────────────────────────────────── */
+  .card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .card:last-child {
+    margin-bottom: 0;
+  }
+  .card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #9ca3af;
+    margin: 0 0 1rem;
+  }
+  .card-text {
+    font-size: 0.95rem;
+    color: #374151;
+    line-height: 1.75;
+    margin: 0;
+  }
+
+  /* ── Progreso ───────────────────────────────────────────────────────────── */
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+  }
+  .progress-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6b7280;
+  }
+  .progress-pct {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .progress-track {
+    height: 10px;
+    background: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    width: 0%;
+  }
+  .progress-caption {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin: 0;
+  }
+
+  /* ── Fechas ─────────────────────────────────────────────────────────────── */
+  .dates-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1.5rem;
+    margin: 0;
+  }
+  .dates-grid dt {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #9ca3af;
+    align-self: center;
+  }
+  .dates-grid dd {
+    font-size: 0.9rem;
+    color: #374151;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  /* ── Back link ──────────────────────────────────────────────────────────── */
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #277816;
+    text-decoration: none;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0;
+    transition: gap 0.2s ease;
+  }
+  .back-link:hover {
+    gap: 0.65rem;
+  }
+
+  /* ── Métricas ───────────────────────────────────────────────────────────── */
+  .metrics-card,
+  .info-card {
+    margin-bottom: 1.25rem;
+  }
+  .metrics-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .metric-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .metric-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+  .metric-item > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .metric-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #277816, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .metric-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+  }
+
+  /* ── Info card ──────────────────────────────────────────────────────────── */
+  .info-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.65rem 1.25rem;
+    margin: 0;
+    align-items: center;
+  }
+  .info-list dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+  }
+  .info-list dd {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #374151;
+    font-weight: 500;
+  }
+  .info-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+  }
+  .info-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 600;
+  }
+  .info-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .body-inner {
+      grid-template-columns: 1fr;
+    }
+    .metrics-col {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    .metrics-card,
+    .info-card {
+      margin-bottom: 0;
+    }
+  }
+  @media (max-width: 640px) {
+    .body-wrap {
+      padding: 1.5rem 1rem 3rem;
+    }
+    .hero-inner {
+      padding: 1.5rem 1rem 2rem;
+    }
+    .hero {
+      min-height: 280px;
+    }
+    .metrics-col {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

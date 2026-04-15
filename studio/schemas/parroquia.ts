@@ -40,8 +40,10 @@ export const parroquia = defineType({
       name: 'esCabeceraCantonal',
       title: '¿Es la cabecera cantonal?',
       type: 'boolean',
+      readOnly: true,
       initialValue: false,
-      description: 'Solo Atuntaqui es cabecera cantonal.',
+      description:
+        'Valor fijo — no se puede cambiar. Atuntaqui es y siempre será la cabecera cantonal del Cantón Antonio Ante.',
     }),
     defineField({
       name: 'descripcion',
@@ -58,9 +60,41 @@ export const parroquia = defineType({
           name: 'alt',
           title: 'Texto alternativo',
           type: 'string',
+          description:
+            'Describe brevemente lo que muestra la foto. Ejemplo: "Vista del parque central de Atuntaqui al atardecer". ' +
+            'Los lectores de pantalla lo leen en voz alta para personas con discapacidad visual, ' +
+            'y Google lo usa para indexar la imagen en búsquedas (SEO).',
           validation: (Rule) => Rule.required(),
         }),
       ],
+    }),
+    defineField({
+      name: 'galeria',
+      title: 'Galería de fotos',
+      type: 'array',
+      description:
+        'Fotos que aparecen en el lightbox del mapa interactivo al seleccionar la parroquia.',
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: 'alt',
+              title: 'Texto alternativo',
+              type: 'string',
+              description:
+                'Describe lo que se ve en esta foto. Ejemplo: "Artesanas tejiendo en el mercado de Chaltura". ' +
+                'Aparece cuando la imagen no carga y es leída por lectores de pantalla.',
+              validation: (Rule) => Rule.required(),
+            }),
+          ],
+          preview: {
+            select: { media: 'asset', title: 'alt' },
+          },
+        },
+      ],
+      options: { layout: 'grid' },
     }),
     defineField({
       name: 'poblacion',
