@@ -8,6 +8,12 @@ compatibility_date = "2025-01-01"
 # nodejs_compat: habilita APIs de Node.js en el Worker (requerido por @sanity/client)
 compatibility_flags = ["nodejs_compat"]
 
+# ─── Variables de entorno (producción) ───────────────────────────────────────
+# NOTA: SANITY_API_TOKEN va como Secret en el dashboard (no se pone aquí).
+[vars]
+PUBLIC_SANITY_PROJECT_ID = "lmfef6xr"
+PUBLIC_SANITY_DATASET = "production"
+
 # ─── Webhook de Sanity → redeploy (hacer una sola vez) ────────────────────────
 # SETUP:
 #   1. Cloudflare Dashboard → Workers → antonio-ante → Settings → Deploy hooks
