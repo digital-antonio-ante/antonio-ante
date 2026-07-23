@@ -1,0 +1,442 @@
+---
+/**
+ * EventosGrid.astro — Grid de eventos con tabs Próximos / Pasados
+ * y filtro por categoría.
+ *
+ * Recibe dos arrays pre-separados por el servidor. El switching
+ * entre tabs y el filtro de categoría se manejan en el cliente
+ * con data-attributes para evitar re-fetches.
+ */
+import type { Evento } from '@api/endpoints/eventos';
+import EventoCard from './EventoCard.astro';
+
+interface Props {
+  proximos: Evento[];
+  pasados: Evento[];
+}
+
+const { proximos, pasados } = Astro.props;
+
+const CATEGORIA: Record<string, { label: string; emoji: string }> = {
+  feria: { label: 'Ferias', emoji: '🎪' },
+  cultura: { label: 'Cultura', emoji: '🎭' },
+  deporte: { label: 'Deporte', emoji: '🏃' },
+  civico: { label: 'Cívico', emoji: '🏛️' },
+  comunitario: { label: 'Comunitario', emoji: '🤝' },
+  agropecuario: { label: 'Agropecuario', emoji: '🌾' },
+};
+
+// Categorías presentes en el dataset completo (para los chips de filtro)
+const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categoria))].filter(
+  (c) => c in CATEGORIA
+);
+---
+
+<section class="evg-section" aria-labelledby="evg-heading">
+  <div class="evg-inner">
+    <!-- ── Header ── -->
+    <div class="evg-header">
+      <div>
+        <p class="evg-eyebrow">Cantón Antonio Ante</p>
+        <h2 id="evg-heading" class="evg-title">Eventos y actividades</h2>
+        <p class="evg-sub">Ferias, cultura, deporte y vida comunitaria.</p>
+      </div>
+      <a href="/eventos" class="evg-ver-todos" aria-label="Ver todos los eventos">
+        Ver todos
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          aria-hidden="true"
+        >
+          <path d="M5 12h14M12 5l7 7-7 7"></path>
+        </svg>
+      </a>
+    </div>
+
+    <!-- ── Controles: tabs + filtros ── -->
+    <div class="evg-controls">
+      <!-- Tabs próximos / pasados -->
+      <div class="evg-tabs" role="tablist" aria-label="Filtrar por estado del evento">
+        <button
+          class="evg-tab evg-tab--active"
+          role="tab"
+          aria-selected="true"
+          aria-controls="evg-panel"
+          data-tab="proximo"
+          id="tab-proximos"
+        >
+          Próximos
+          {proximos.length > 0 && <span class="evg-tab-count">{proximos.length}</span>}
+        </button>
+        <button
+          class="evg-tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="evg-panel"
+          data-tab="pasado"
+          id="tab-pasados"
+        >
+          Pasados
+          {pasados.length > 0 && <span class="evg-tab-count">{pasados.length}</span>}
+        </button>
+      </div>
+
+      <!-- Chips de categoría -->
+      {
+        todasCategorias.length > 1 && (
+          <div class="evg-filters" role="group" aria-label="Filtrar por categoría">
+            <button class="evg-filter evg-filter--active" data-filter="all">
+              Todas
+            </button>
+            {todasCategorias.map((cat) => (
+              <button class="evg-filter" data-filter={cat}>
+                {CATEGORIA[cat]?.emoji} {CATEGORIA[cat]?.label ?? cat}
+              </button>
+            ))}
+          </div>
+        )
+      }
+    </div>
+
+    <!-- ── Grid ── -->
+    <div id="evg-panel" role="tabpanel" aria-labelledby="tab-proximos">
+      {
+        proximos.length > 0 || pasados.length > 0 ? (
+          <ul class="evg-grid" role="list">
+            {proximos.map((evento, i) => (
+              <li class="evg-item" data-tipo="proximo" data-categoria={evento.categoria}>
+                <EventoCard evento={evento} loading={i < 3 ? 'eager' : 'lazy'} />
+              </li>
+            ))}
+            {pasados.map((evento) => (
+              <li
+                class="evg-item evg-item--hidden"
+                data-tipo="pasado"
+                data-categoria={evento.categoria}
+              >
+                <EventoCard evento={evento} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div class="evg-empty">
+            <span class="evg-empty-icon" aria-hidden="true">
+              📅
+            </span>
+            <h3 class="evg-empty-title">Sin eventos por el momento</h3>
+            <p class="evg-empty-desc">
+              Pronto publicaremos los próximos eventos del cantón. ¡Vuelve pronto!
+            </p>
+          </div>
+        )
+      }
+
+      <!-- Estado vacío por tab/filtro (oculto por JS cuando corresponde) -->
+      <div class="evg-no-results evg-item--hidden" aria-live="polite">
+        <span class="evg-empty-icon" aria-hidden="true">🔍</span>
+        <p class="evg-empty-desc">No hay eventos en esta categoría.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.evg-tab');
+  const filters = document.querySelectorAll<HTMLButtonElement>('.evg-filter');
+  const items = document.querySelectorAll<HTMLElement>('.evg-item[data-tipo]');
+  const noResults = document.querySelector<HTMLElement>('.evg-no-results');
+
+  let activeTab = 'proximo';
+  let activeFilter = 'all';
+
+  function update() {
+    let visible = 0;
+
+    items.forEach((item) => {
+      const tipo = item.dataset.tipo ?? '';
+      const categoria = item.dataset.categoria ?? '';
+
+      const matchTab = tipo === activeTab;
+      const matchFilter = activeFilter === 'all' || categoria === activeFilter;
+      const show = matchTab && matchFilter;
+
+      item.classList.toggle('evg-item--hidden', !show);
+      if (show) visible++;
+    });
+
+    noResults?.classList.toggle('evg-item--hidden', visible > 0);
+
+    // Actualiza aria-selected en tabs
+    tabs.forEach((t) => {
+      const selected = t.dataset.tab === activeTab;
+      t.setAttribute('aria-selected', String(selected));
+      t.classList.toggle('evg-tab--active', selected);
+    });
+
+    // Actualiza aria-pressed en filters (mejor semántica para botones toggle)
+    filters.forEach((f) => {
+      const selected = f.dataset.filter === activeFilter;
+      f.setAttribute('aria-pressed', String(selected));
+      f.classList.toggle('evg-filter--active', selected);
+    });
+  }
+
+  tabs.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeTab = btn.dataset.tab ?? 'proximo';
+      // Resetea filtro de categoría al cambiar de tab
+      activeFilter = 'all';
+      filters.forEach((f) => {
+        f.classList.toggle('evg-filter--active', f.dataset.filter === 'all');
+      });
+      update();
+    });
+  });
+
+  filters.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeFilter = btn.dataset.filter ?? 'all';
+      update();
+    });
+  });
+</script>
+
+<style>
+  /* ── Sección ── */
+  .evg-section {
+    padding: 5rem 0;
+  }
+  .evg-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* Header */
+  .evg-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+  .evg-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #7c3aed;
+    margin: 0 0 0.4rem;
+  }
+  .evg-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.4rem;
+    line-height: 1.1;
+  }
+  .evg-sub {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+  }
+  .evg-ver-todos {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #277816;
+    text-decoration: none;
+    padding: 0.45rem 1rem;
+    border: 1.5px solid #277816;
+    border-radius: 9999px;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease;
+    white-space: nowrap;
+  }
+  .evg-ver-todos:hover {
+    background: #277816;
+    color: #fff;
+  }
+
+  /* Controles */
+  .evg-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Tabs */
+  .evg-tabs {
+    display: flex;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    padding: 3px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .evg-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.38rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #6b7280;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+  .evg-tab--active {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+  .evg-tab:focus-visible {
+    outline: 2px solid #277816;
+    outline-offset: 2px;
+  }
+  .evg-tab-count {
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.1rem 0.45rem;
+    border-radius: 9999px;
+    min-width: 20px;
+    text-align: center;
+  }
+  .evg-tab--active .evg-tab-count {
+    background: #f0fdf4;
+    color: #15803d;
+  }
+
+  /* Filtros de categoría */
+  .evg-filters {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .evg-filter {
+    padding: 0.3rem 0.8rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #6b7280;
+    background: #f9fafb;
+    border: 1.5px solid #e5e7eb;
+    cursor: pointer;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      border-color 0.18s ease;
+    white-space: nowrap;
+  }
+  .evg-filter--active {
+    background: #f3e8ff;
+    color: #7c3aed;
+    border-color: #c4b5fd;
+  }
+  .evg-filter:hover:not(.evg-filter--active) {
+    background: #f3f4f6;
+    color: #374151;
+  }
+  .evg-filter:focus-visible {
+    outline: 2px solid #277816;
+    outline-offset: 2px;
+  }
+
+  /* Grid */
+  .evg-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Visibilidad controlada por JS */
+  .evg-item--hidden {
+    display: none !important;
+  }
+
+  /* Estado vacío */
+  .evg-empty,
+  .evg-no-results {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 2px dashed #e9d5ff;
+    border-radius: 20px;
+  }
+  .evg-empty-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+  }
+  .evg-empty-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #374151;
+    margin: 0 0 0.5rem;
+  }
+  .evg-empty-desc {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    max-width: 360px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .evg-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .evg-section {
+      padding: 3.5rem 0;
+    }
+    .evg-inner {
+      padding: 0 1rem;
+    }
+    .evg-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .evg-ver-todos {
+      align-self: flex-start;
+    }
+    .evg-controls {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .evg-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+</style>

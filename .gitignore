@@ -34,3 +34,6 @@ studio/.sanity/
 # Diseño anterior (archivos locales de referencia)
 "DISEÑO ANTIGUO/"
 DISEÑO\ ANTIGUO/
+
+# Netlify (migrado a Cloudflare Pages)
+.netlify/

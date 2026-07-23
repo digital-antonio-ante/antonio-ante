@@ -950,6 +950,10 @@ const jsonLd = JSON.stringify({
     flex-direction: column;
     gap: 0.22rem;
   }
+  /* Sin imagen: el info es primer hijo → añade padding izquierdo para no pegar al borde */
+  .pp-obra__info:first-child {
+    padding-left: 0.85rem;
+  }
 
   .pp-obra__meta {
     display: flex;

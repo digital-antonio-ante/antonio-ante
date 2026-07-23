@@ -1,0 +1,377 @@
+---
+/**
+ * EventoCard.astro — Tarjeta de evento para grids y strips.
+ *
+ * Muestra: imagen, badge de categoría, fecha prominente,
+ * título, resumen (2 líneas), venue y tipo de entrada.
+ */
+import type { Evento } from '@api/endpoints/eventos';
+
+interface Props {
+  evento: Evento;
+  /** Controla loading eagerness. Primeras cards: 'eager'. */
+  loading?: 'lazy' | 'eager';
+}
+
+const { evento, loading = 'lazy' } = Astro.props;
+
+const CATEGORIA: Record<string, { label: string; emoji: string; color: string; bg: string }> = {
+  feria: { label: 'Ferias', emoji: '🎪', color: '#7c3aed', bg: '#f3e8ff' },
+  cultura: { label: 'Cultura', emoji: '🎭', color: '#be185d', bg: '#fce7f3' },
+  deporte: { label: 'Deporte', emoji: '🏃', color: '#1d4ed8', bg: '#dbeafe' },
+  civico: { label: 'Cívico', emoji: '🏛️', color: '#15803d', bg: '#dcfce7' },
+  comunitario: { label: 'Comunitario', emoji: '🤝', color: '#b45309', bg: '#fef3c7' },
+  agropecuario: { label: 'Agropecuario', emoji: '🌾', color: '#0369a1', bg: '#e0f2fe' },
+};
+
+const cat = CATEGORIA[evento.categoria] ?? {
+  label: evento.categoria,
+  emoji: '📅',
+  color: '#277816',
+  bg: '#f0fdf4',
+};
+
+const fecha = new Date(evento.fechaInicio);
+const dia = fecha.getDate().toString().padStart(2, '0');
+const mes = fecha.toLocaleDateString('es-EC', { month: 'short' }).replace('.', '').toUpperCase();
+const año = fecha.getFullYear();
+const horaStr = fecha.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+
+const esPasado = fecha < new Date();
+
+const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=600&h=340&fit=crop&auto=format&q=80` : null;
+
+const esEntradaLibre = evento.entradaLibre !== false;
+---
+
+<article
+  class="ev-card"
+  data-categoria={evento.categoria}
+  data-tipo={esPasado ? 'pasado' : 'proximo'}
+>
+  <a
+    href={`/eventos/${evento.slug.current}`}
+    class="ev-card__link"
+    aria-label={`Ver detalles: ${evento.titulo}`}
+  >
+    <!-- Imagen -->
+    <div class="ev-card__img-wrap">
+      {
+        imgSrc ? (
+          <img
+            src={imgSrc}
+            alt={evento.imageAlt ?? evento.titulo}
+            class="ev-card__img"
+            loading={loading}
+            decoding="async"
+          />
+        ) : (
+          <div
+            class="ev-card__img-fallback"
+            style={`background: linear-gradient(135deg, ${cat.color}22, ${cat.color}44);`}
+            aria-hidden="true"
+          >
+            <span class="ev-card__img-fallback-icon">{cat.emoji}</span>
+          </div>
+        )
+      }
+
+      <!-- Badge de categoría -->
+      <span
+        class="ev-card__cat-badge"
+        style={`background:${cat.bg}; color:${cat.color};`}
+        aria-label={`Categoría: ${cat.label}`}
+      >
+        {cat.emoji}
+        {cat.label}
+      </span>
+
+      <!-- Badge "Pasado" si ya ocurrió -->
+      {
+        esPasado && (
+          <span class="ev-card__past-badge" aria-label="Evento ya realizado">
+            Realizado
+          </span>
+        )
+      }
+    </div>
+
+    <!-- Cuerpo -->
+    <div class="ev-card__body">
+      <!-- Fila fecha -->
+      <div class="ev-card__date-row" aria-label={`Fecha: ${dia} de ${mes} de ${año}`}>
+        <div class="ev-card__date-block" style={`border-color: ${cat.color}33;`}>
+          <span class="ev-card__date-mes" style={`color: ${cat.color};`}>{mes}</span>
+          <span class="ev-card__date-dia">{dia}</span>
+          <span class="ev-card__date-año">{año}</span>
+        </div>
+        <div class="ev-card__date-meta">
+          <span class="ev-card__hora">
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"
+              ></polyline>
+            </svg>
+            {horaStr}
+          </span>
+          <span class="ev-card__parroquia">{evento.parroquia}</span>
+        </div>
+      </div>
+
+      <!-- Título -->
+      <h3 class="ev-card__title">{evento.titulo}</h3>
+
+      <!-- Resumen -->
+      <p class="ev-card__resumen">{evento.resumen}</p>
+
+      <!-- Footer -->
+      <div class="ev-card__footer">
+        <span class="ev-card__lugar" title={evento.lugar}>
+          <svg width="11" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+            ></path>
+          </svg>
+          {evento.lugar}
+        </span>
+        <span
+          class="ev-card__entrada"
+          style={esEntradaLibre
+            ? 'color:#15803d; background:#dcfce7;'
+            : 'color:#b45309; background:#fef3c7;'}
+        >
+          {esEntradaLibre ? '✓ Gratis' : 'Con inscripción'}
+        </span>
+      </div>
+    </div>
+  </a>
+</article>
+
+<style>
+  .ev-card {
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    transition:
+      box-shadow 0.25s ease,
+      transform 0.25s ease;
+  }
+  .ev-card:hover {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+  }
+  .ev-card__link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+  }
+
+  /* Imagen */
+  .ev-card__img-wrap {
+    position: relative;
+    width: 100%;
+    height: 196px;
+    flex-shrink: 0;
+    background: #f1f5f9;
+    overflow: hidden;
+  }
+  .ev-card__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .ev-card:hover .ev-card__img {
+    transform: scale(1.04);
+  }
+  .ev-card__img-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ev-card__img-fallback-icon {
+    font-size: 3.5rem;
+    opacity: 0.45;
+  }
+
+  /* Badges sobre imagen */
+  .ev-card__cat-badge {
+    position: absolute;
+    top: 0.7rem;
+    left: 0.7rem;
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    padding: 0.22rem 0.6rem;
+    border-radius: 9999px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    line-height: 1.4;
+  }
+  .ev-card__past-badge {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    padding: 0.22rem 0.6rem;
+    border-radius: 9999px;
+    background: rgba(17, 24, 39, 0.65);
+    color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  /* Cuerpo */
+  .ev-card__body {
+    flex: 1;
+    padding: 1rem 1.15rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  /* Fecha */
+  .ev-card__date-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .ev-card__date-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.3rem 0.55rem;
+    min-width: 46px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+  .ev-card__date-mes {
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+  .ev-card__date-dia {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.1;
+  }
+  .ev-card__date-año {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #9ca3af;
+    line-height: 1;
+  }
+  .ev-card__date-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    min-width: 0;
+  }
+  .ev-card__hora {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6b7280;
+  }
+  .ev-card__hora svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .ev-card__parroquia {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+  }
+
+  /* Título */
+  .ev-card__title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  /* Resumen */
+  .ev-card__resumen {
+    font-size: 0.82rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Footer */
+  .ev-card__footer {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-top: 1px solid #f1f5f9;
+  }
+  .ev-card__lugar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6b7280;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ev-card__lugar svg {
+    flex-shrink: 0;
+    opacity: 0.65;
+  }
+  .ev-card__entrada {
+    flex-shrink: 0;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+  }
+</style>

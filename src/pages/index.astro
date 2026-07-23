@@ -4,9 +4,12 @@ import CantonHero from '../modules/canton/ui/CantonHero.astro';
 import ImpactCounters from '../modules/obras/ui/ImpactCounters.astro';
 import ObrasGrid from '../modules/obras/ui/ObrasGrid.astro';
 import ObraDestacada from '../modules/obras/ui/ObraDestacada.astro';
+import EventoDestacado from '../modules/eventos/ui/EventoDestacado.astro';
+import EventoCard from '../modules/eventos/ui/EventoCard.astro';
 import { getObrasRecientes, getObraDestacada } from '@api/endpoints/obras';
+import { getEventoDestacado, getEventosProximos } from '@api/endpoints/eventos';
 
-const [obras, obraDestacada] = await Promise.all([
+const [obras, obraDestacada, eventoDestacado, eventosProximos] = await Promise.all([
   getObrasRecientes(6).catch((err) => {
     console.error('[ObrasGrid]', err?.message ?? err);
     return [];
@@ -15,7 +18,18 @@ const [obras, obraDestacada] = await Promise.all([
     console.error('[ObraDestacada]', err?.message ?? err);
     return null;
   }),
+  getEventoDestacado().catch((err) => {
+    console.error('[EventoDestacado]', err?.message ?? err);
+    return null;
+  }),
+  getEventosProximos(3).catch((err) => {
+    console.error('[EventosProximos]', err?.message ?? err);
+    return [];
+  }),
 ]);
+
+// Excluir el destacado del strip de próximos (ya tiene su propia sección)
+const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._id).slice(0, 3);
 ---
 
 <BaseLayout
@@ -35,6 +49,48 @@ const [obras, obraDestacada] = await Promise.all([
 
   <!-- ─── Obras en marcha ───────────────────────────────────────────────────── -->
   <ObrasGrid obras={obras} />
+
+  <!-- ─── Evento destacado ─────────────────────────────────────────────────── -->
+  <EventoDestacado evento={eventoDestacado} />
+
+  <!-- ─── Próximos eventos ─────────────────────────────────────────────────── -->
+  {
+    eventosStrip.length > 0 && (
+      <section class="eventos-strip" aria-labelledby="eventos-heading">
+        <div class="eventos-strip-inner">
+          <div class="eventos-strip-header">
+            <div>
+              <p class="eventos-strip-eyebrow">Agenda del cantón</p>
+              <h2 id="eventos-heading" class="eventos-strip-title">
+                Próximos eventos
+              </h2>
+            </div>
+            <a href="/eventos" class="eventos-strip-link">
+              Ver todos
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+          <ul class="eventos-strip-grid" role="list">
+            {eventosStrip.map((evento, i) => (
+              <li>
+                <EventoCard evento={evento} loading={i < 2 ? 'eager' : 'lazy'} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
 
   <!-- ─── Identidad cantonal ──────────────────────────────────────────────── -->
   <section class="canton-callout" aria-labelledby="callout-heading">
@@ -75,6 +131,89 @@ const [obras, obraDestacada] = await Promise.all([
 </BaseLayout>
 
 <style>
+  /* ── Eventos strip ────────────────────────────────────────────────────────── */
+  .eventos-strip {
+    padding: 0 0 3rem;
+  }
+  .eventos-strip-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .eventos-strip-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .eventos-strip-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #7c3aed;
+    margin: 0 0 0.35rem;
+  }
+  .eventos-strip-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.3rem, 2.5vw, 1.75rem);
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0;
+  }
+  .eventos-strip-link {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #7c3aed;
+    text-decoration: none;
+    padding: 0.4rem 0.9rem;
+    border: 1.5px solid #7c3aed;
+    border-radius: 9999px;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease;
+    white-space: nowrap;
+  }
+  .eventos-strip-link:hover {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .eventos-strip-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  @media (max-width: 1024px) {
+    .eventos-strip-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .eventos-strip-inner {
+      padding: 0 1rem;
+    }
+    .eventos-strip-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .eventos-strip-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
   /* ── Canton callout ───────────────────────────────────────────────────────── */
   .canton-callout {
     background: #ffffff;

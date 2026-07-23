@@ -4,5 +4,14 @@ import { parroquia } from './parroquia';
 import { documentoOficial } from './documento-oficial';
 import { configSitio } from './config-sitio';
 import { obra } from './obra';
+import { evento } from './evento';
 
-export const schemas = [portableText, noticia, parroquia, documentoOficial, configSitio, obra];
+export const schemas = [
+  portableText,
+  noticia,
+  parroquia,
+  documentoOficial,
+  configSitio,
+  obra,
+  evento,
+];

@@ -1,0 +1,494 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+import EventoCard from '../../modules/eventos/ui/EventoCard.astro';
+import { getEventosProximos, getEventosPasados } from '@api/endpoints/eventos';
+
+const [proximos, pasados] = await Promise.all([
+  getEventosProximos(30).catch(() => []),
+  getEventosPasados(30).catch(() => []),
+]);
+
+// Filtro por parroquia vía query param — ej: /eventos?parroquia=Atuntaqui
+const parroquiaFiltro = Astro.url.searchParams.get('parroquia') ?? null;
+const filtrar = (arr: typeof proximos) =>
+  parroquiaFiltro
+    ? arr.filter((e) => e.parroquia.toLowerCase() === parroquiaFiltro.toLowerCase())
+    : arr;
+
+const proximosFiltrados = filtrar(proximos);
+const pasadosFiltrados = filtrar(pasados);
+const total = proximosFiltrados.length + pasadosFiltrados.length;
+
+const CATEGORIA: Record<string, { label: string; emoji: string }> = {
+  feria: { label: 'Ferias', emoji: '🎪' },
+  cultura: { label: 'Cultura', emoji: '🎭' },
+  deporte: { label: 'Deporte', emoji: '🏃' },
+  civico: { label: 'Cívico', emoji: '🏛️' },
+  comunitario: { label: 'Comunitario', emoji: '🤝' },
+  agropecuario: { label: 'Agropecuario', emoji: '🌾' },
+};
+
+const todasCategorias = [
+  ...new Set([...proximosFiltrados, ...pasadosFiltrados].map((e) => e.categoria)),
+].filter((c) => c in CATEGORIA);
+
+const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos del cantón';
+---
+
+<BaseLayout
+  title={pageTitle}
+  description="Descubre los eventos, ferias, festividades y actividades culturales del Cantón Antonio Ante. Expo Atuntaqui, Inti Raymi, Fiestas de Cantonización y más."
+>
+  <!-- ─── Hero ──────────────────────────────────────────────────────────────── -->
+  <section class="ev-hero">
+    <div class="ev-hero-inner">
+      <p class="ev-eyebrow">Cantón Antonio Ante</p>
+      <h1 class="ev-title">
+        {parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos y actividades'}
+      </h1>
+      <p class="ev-sub">
+        {
+          parroquiaFiltro
+            ? `Ferias, cultura, deporte y vida comunitaria en ${parroquiaFiltro}.`
+            : 'Ferias, cultura, deporte y vida comunitaria en todo el cantón.'
+        }
+      </p>
+
+      {
+        total > 0 && (
+          <div class="ev-pills">
+            <span class="pill pill--total">
+              {total} {total === 1 ? 'evento' : 'eventos'}
+            </span>
+            {proximosFiltrados.length > 0 && (
+              <span class="pill pill--proximos">📅 {proximosFiltrados.length} próximos</span>
+            )}
+            {pasadosFiltrados.length > 0 && (
+              <span class="pill pill--pasados">✓ {pasadosFiltrados.length} realizados</span>
+            )}
+          </div>
+        )
+      }
+
+      {
+        parroquiaFiltro && (
+          <a href="/eventos" class="ev-clear-filter">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+            Ver todos los eventos
+          </a>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- ─── Controles: tabs + filtros ─────────────────────────────────────────── -->
+  <section class="ev-body">
+    <div class="ev-body-inner">
+      <div class="ev-controls">
+        <div class="ev-tabs" role="tablist" aria-label="Filtrar por estado del evento">
+          <button
+            class="ev-tab ev-tab--active"
+            role="tab"
+            aria-selected="true"
+            data-tab="proximo"
+            id="tab-proximos"
+          >
+            Próximos
+            {
+              proximosFiltrados.length > 0 && (
+                <span class="ev-tab-count">{proximosFiltrados.length}</span>
+              )
+            }
+          </button>
+          <button
+            class="ev-tab"
+            role="tab"
+            aria-selected="false"
+            data-tab="pasado"
+            id="tab-pasados"
+          >
+            Pasados
+            {
+              pasadosFiltrados.length > 0 && (
+                <span class="ev-tab-count">{pasadosFiltrados.length}</span>
+              )
+            }
+          </button>
+        </div>
+
+        {
+          todasCategorias.length > 1 && (
+            <div class="ev-filters" role="group" aria-label="Filtrar por categoría">
+              <button class="ev-filter ev-filter--active" data-filter="all">
+                Todas
+              </button>
+              {todasCategorias.map((cat) => (
+                <button class="ev-filter" data-filter={cat}>
+                  {CATEGORIA[cat]?.emoji} {CATEGORIA[cat]?.label ?? cat}
+                </button>
+              ))}
+            </div>
+          )
+        }
+      </div>
+
+      <!-- ─── Grid ──────────────────────────────────────────────────────────── -->
+      {
+        proximosFiltrados.length > 0 || pasadosFiltrados.length > 0 ? (
+          <ul class="ev-grid" role="list">
+            {proximosFiltrados.map((evento, i) => (
+              <li class="ev-item" data-tipo="proximo" data-categoria={evento.categoria}>
+                <EventoCard evento={evento} loading={i < 3 ? 'eager' : 'lazy'} />
+              </li>
+            ))}
+            {pasadosFiltrados.map((evento) => (
+              <li
+                class="ev-item ev-item--hidden"
+                data-tipo="pasado"
+                data-categoria={evento.categoria}
+              >
+                <EventoCard evento={evento} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div class="ev-empty">
+            <span class="ev-empty-icon" aria-hidden="true">
+              📅
+            </span>
+            <h3 class="ev-empty-title">Sin eventos por el momento</h3>
+            <p class="ev-empty-desc">
+              Pronto publicaremos los próximos eventos del cantón. ¡Vuelve pronto!
+            </p>
+          </div>
+        )
+      }
+
+      <!-- Estado vacío por tab/filtro -->
+      <div class="ev-no-results ev-item--hidden" aria-live="polite">
+        <span class="ev-empty-icon" aria-hidden="true">🔍</span>
+        <p class="ev-empty-desc">No hay eventos en esta categoría.</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.ev-tab');
+  const filters = document.querySelectorAll<HTMLButtonElement>('.ev-filter');
+  const items = document.querySelectorAll<HTMLElement>('.ev-item[data-tipo]');
+  const noResults = document.querySelector<HTMLElement>('.ev-no-results');
+
+  let activeTab = 'proximo';
+  let activeFilter = 'all';
+
+  function update() {
+    let visible = 0;
+    items.forEach((item) => {
+      const tipo = item.dataset.tipo ?? '';
+      const categoria = item.dataset.categoria ?? '';
+      const show = tipo === activeTab && (activeFilter === 'all' || categoria === activeFilter);
+      item.classList.toggle('ev-item--hidden', !show);
+      if (show) visible++;
+    });
+    noResults?.classList.toggle('ev-item--hidden', visible > 0);
+    tabs.forEach((t) => {
+      const sel = t.dataset.tab === activeTab;
+      t.setAttribute('aria-selected', String(sel));
+      t.classList.toggle('ev-tab--active', sel);
+    });
+    filters.forEach((f) => {
+      const sel = f.dataset.filter === activeFilter;
+      f.classList.toggle('ev-filter--active', sel);
+    });
+  }
+
+  tabs.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeTab = btn.dataset.tab ?? 'proximo';
+      activeFilter = 'all';
+      update();
+    });
+  });
+
+  filters.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeFilter = btn.dataset.filter ?? 'all';
+      update();
+    });
+  });
+</script>
+
+<style>
+  /* ── Hero ─────────────────────────────────────────────────────────────── */
+  .ev-hero {
+    background: linear-gradient(160deg, #1e1b4b 0%, #4c1d95 55%, #1e1b4b 100%);
+    padding: 3.5rem 1.5rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .ev-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #7c3aed 0%, #d97706 55%, #dc2626 100%);
+  }
+  .ev-hero-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .ev-eyebrow {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #c4b5fd;
+    margin: 0 0 0.5rem;
+  }
+  .ev-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin: 0 0 0.6rem;
+  }
+  .ev-sub {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 1.5rem;
+    max-width: 42rem;
+    line-height: 1.6;
+  }
+  .ev-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.3rem 0.85rem;
+    border-radius: 9999px;
+  }
+  .pill--total {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  .pill--proximos {
+    background: rgba(124, 58, 237, 0.3);
+    color: #c4b5fd;
+    border: 1px solid rgba(124, 58, 237, 0.45);
+  }
+  .pill--pasados {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .ev-clear-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.3rem 0.85rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+  .ev-clear-filter:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+  }
+
+  /* ── Body ─────────────────────────────────────────────────────────────── */
+  .ev-body {
+    padding: 2rem 0 4rem;
+  }
+  .ev-body-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* ── Controles ────────────────────────────────────────────────────────── */
+  .ev-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+  }
+  .ev-tabs {
+    display: flex;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    padding: 3px;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .ev-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 1.1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #6b7280;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+  .ev-tab--active {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+  .ev-tab:focus-visible {
+    outline: 2px solid #7c3aed;
+    outline-offset: 2px;
+  }
+  .ev-tab-count {
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: #e5e7eb;
+    color: #374151;
+    padding: 0.1rem 0.45rem;
+    border-radius: 9999px;
+    min-width: 20px;
+    text-align: center;
+  }
+  .ev-tab--active .ev-tab-count {
+    background: #f3e8ff;
+    color: #7c3aed;
+  }
+  .ev-filters {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .ev-filter {
+    padding: 0.3rem 0.8rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #6b7280;
+    background: #f9fafb;
+    border: 1.5px solid #e5e7eb;
+    cursor: pointer;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      border-color 0.18s ease;
+    white-space: nowrap;
+  }
+  .ev-filter--active {
+    background: #f3e8ff;
+    color: #7c3aed;
+    border-color: #c4b5fd;
+  }
+  .ev-filter:hover:not(.ev-filter--active) {
+    background: #f3f4f6;
+    color: #374151;
+  }
+  .ev-filter:focus-visible {
+    outline: 2px solid #7c3aed;
+    outline-offset: 2px;
+  }
+
+  /* ── Grid ──────────────────────────────────────────────────────────────── */
+  .ev-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .ev-item--hidden {
+    display: none !important;
+  }
+
+  /* ── Empty ─────────────────────────────────────────────────────────────── */
+  .ev-empty,
+  .ev-no-results {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 2px dashed #e9d5ff;
+    border-radius: 20px;
+  }
+  .ev-empty-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+  }
+  .ev-empty-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #374151;
+    margin: 0 0 0.5rem;
+  }
+  .ev-empty-desc {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    max-width: 360px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── Responsive ────────────────────────────────────────────────────────── */
+  @media (max-width: 1024px) {
+    .ev-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .ev-hero {
+      padding: 2.5rem 1rem 2rem;
+    }
+    .ev-body-inner {
+      padding: 0 1rem;
+    }
+    .ev-controls {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .ev-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+</style>

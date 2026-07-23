@@ -16,6 +16,14 @@ export default defineConfig({
           .title('Portal GAD Antonio Ante')
           .items([
             S.listItem()
+              .title('📅 Eventos')
+              .child(
+                S.documentTypeList('evento')
+                  .title('Eventos del cantón')
+                  .defaultOrdering([{ field: 'fechaInicio', direction: 'desc' }])
+              ),
+
+            S.listItem()
               .title('🏗️ Obras')
               .child(
                 S.documentTypeList('obra')
@@ -45,7 +53,8 @@ export default defineConfig({
 
   schema: {
     types: schemas,
-    // Solo Obras puede crearse libremente. El resto son fijos o están fuera del portal.
-    templates: (templates) => templates.filter((t) => t.schemaType === 'obra'),
+    // Obras y Eventos pueden crearse libremente. El resto son fijos o están fuera del portal.
+    templates: (templates) =>
+      templates.filter((t) => t.schemaType === 'obra' || t.schemaType === 'evento'),
   },
 });

@@ -1,0 +1,916 @@
+---
+import BaseLayout from '@ui/BaseLayout.astro';
+import PortableText from '@ui/PortableText.astro';
+import CantonGallery from '../../modules/canton/ui/CantonGallery.astro';
+import { getEventoBySlug, getEventosProximos } from '@api/endpoints/eventos';
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect('/eventos');
+
+const evento = await getEventoBySlug(slug).catch(() => null);
+if (!evento) return new Response(null, { status: 404 });
+
+// ── Metadatos visuales ─────────────────────────────────────────────────────
+const CATEGORIA: Record<string, { label: string; emoji: string; color: string; bg: string }> = {
+  feria: { label: 'Ferias y exposiciones', emoji: '🎪', color: '#7c3aed', bg: '#f3e8ff' },
+  cultura: { label: 'Cultura y arte', emoji: '🎭', color: '#be185d', bg: '#fce7f3' },
+  deporte: { label: 'Deporte y recreación', emoji: '🏃', color: '#1d4ed8', bg: '#dbeafe' },
+  civico: { label: 'Cívico', emoji: '🏛️', color: '#15803d', bg: '#dcfce7' },
+  comunitario: { label: 'Comunitario', emoji: '🤝', color: '#b45309', bg: '#fef3c7' },
+  agropecuario: { label: 'Agropecuario', emoji: '🌾', color: '#0369a1', bg: '#e0f2fe' },
+};
+
+const cat = CATEGORIA[evento.categoria] ?? {
+  label: evento.categoria,
+  emoji: '📅',
+  color: '#277816',
+  bg: '#f0fdf4',
+};
+
+const fechaInicio = new Date(evento.fechaInicio);
+const dia = fechaInicio.getDate().toString().padStart(2, '0');
+const mesCorto = fechaInicio
+  .toLocaleDateString('es-EC', { month: 'short' })
+  .replace('.', '')
+  .toUpperCase();
+const mesLargo = fechaInicio.toLocaleDateString('es-EC', { month: 'long' });
+const año = fechaInicio.getFullYear();
+const horaStr = fechaInicio.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+const diaSemana = fechaInicio.toLocaleDateString('es-EC', { weekday: 'long' });
+const fechaLarga = `${diaSemana}, ${fechaInicio.getDate()} de ${mesLargo} de ${año}`;
+const esPasado = fechaInicio < new Date();
+
+const fechaFin = evento.fechaFin ? new Date(evento.fechaFin) : null;
+const fechaFinStr = fechaFin
+  ? fechaFin.toLocaleDateString('es-EC', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  : null;
+const horaFinStr = fechaFin
+  ? fechaFin.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })
+  : null;
+
+const esEntradaLibre = evento.entradaLibre !== false;
+const heroImg = evento.imageUrl
+  ? `${evento.imageUrl}?w=1600&h=700&fit=crop&auto=format&q=85`
+  : null;
+const ogImg = evento.imageUrl
+  ? `${evento.imageUrl}?w=1200&h=630&fit=crop&auto=format&q=80`
+  : undefined;
+
+// Galería limpia (sin items incompletos)
+const galeria = (evento.galeria ?? []).filter((g) => g.url);
+
+// Eventos relacionados (próximos, misma categoría, excluyendo este)
+const relacionados = (await getEventosProximos(5).catch(() => []))
+  .filter((e) => e._id !== evento._id)
+  .slice(0, 3);
+---
+
+<BaseLayout
+  title={evento.titulo}
+  description={evento.resumen}
+  image={ogImg}
+  type="article"
+  canonical={`/eventos/${slug}`}
+>
+  <!-- ─── Breadcrumb ──────────────────────────────────────────────────────── -->
+  <nav class="evd-breadcrumb" aria-label="Ruta de navegación">
+    <div class="evd-bc-inner">
+      <ol>
+        <li><a href="/">Inicio</a></li>
+        <li aria-hidden="true">›</li>
+        <li><a href="/eventos">Eventos</a></li>
+        <li aria-hidden="true">›</li>
+        <li aria-current="page">{evento.titulo}</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- ─── Hero ────────────────────────────────────────────────────────────── -->
+  <section class="evd-hero" aria-label="Encabezado del evento">
+    {
+      heroImg && (
+        <div class="evd-hero-img-wrap" aria-hidden="true">
+          <img src={heroImg} alt="" class="evd-hero-img" decoding="async" />
+          <div class="evd-hero-overlay" />
+        </div>
+      )
+    }
+    <div class={`evd-hero-content ${!heroImg ? 'evd-hero-content--no-img' : ''}`}>
+      <div class="evd-hero-inner">
+        <div class="evd-hero-badges">
+          <span class="evd-hero-cat" style={`background:${cat.bg}; color:${cat.color};`}>
+            {cat.emoji}
+            {cat.label}
+          </span>
+          {
+            esPasado ? (
+              <span class="evd-hero-status evd-hero-status--past">Evento realizado</span>
+            ) : (
+              <span class="evd-hero-status evd-hero-status--live">Próximamente</span>
+            )
+          }
+          {
+            evento.destacado && (
+              <span class="evd-hero-star" aria-label="Evento destacado">
+                ⭐ Destacado
+              </span>
+            )
+          }
+        </div>
+        <h1 class="evd-hero-title">{evento.titulo}</h1>
+        <p class="evd-hero-meta">
+          <svg width="11" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+            ></path>
+          </svg>
+          {evento.lugar} · {evento.parroquia}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Cuerpo ──────────────────────────────────────────────────────────── -->
+  <div class="evd-body-wrap">
+    <div class="evd-body-inner">
+      <!-- Col. izquierda: contenido -->
+      <main class="evd-main-col">
+        <!-- Descripción -->
+        {
+          evento.descripcion && evento.descripcion.length > 0 ? (
+            <div class="evd-card">
+              <h2 class="evd-card-title">Acerca del evento</h2>
+              <PortableText blocks={evento.descripcion} />
+            </div>
+          ) : (
+            <div class="evd-card">
+              <h2 class="evd-card-title">Acerca del evento</h2>
+              <p class="evd-card-text">{evento.resumen}</p>
+            </div>
+          )
+        }
+
+        <!-- Galería -->
+        {
+          galeria.length > 0 && (
+            <div class="evd-card">
+              <h2 class="evd-card-title">Galería de fotos</h2>
+              <div class="evd-galeria">
+                {galeria.map((img, i) => (
+                  <button
+                    class="evd-galeria-thumb"
+                    data-gallery-open={i}
+                    aria-label={`Ver foto ${i + 1}: ${img.alt ?? ''}`}
+                  >
+                    <img
+                      src={`${img.url}?w=400&h=280&fit=crop&auto=format&q=75`}
+                      alt={img.alt ?? ''}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        <!-- Relacionados -->
+        {
+          relacionados.length > 0 && (
+            <div class="evd-card">
+              <h2 class="evd-card-title">Otros eventos próximos</h2>
+              <ul class="evd-relacionados" role="list">
+                {relacionados.map((rel) => {
+                  const relFecha = new Date(rel.fechaInicio);
+                  const relDia = relFecha.getDate().toString().padStart(2, '0');
+                  const relMes = relFecha
+                    .toLocaleDateString('es-EC', { month: 'short' })
+                    .replace('.', '')
+                    .toUpperCase();
+                  const relCat = CATEGORIA[rel.categoria];
+                  return (
+                    <li>
+                      <a href={`/eventos/${rel.slug.current}`} class="evd-rel-card">
+                        <div
+                          class="evd-rel-date"
+                          style={`border-color: ${relCat?.color ?? '#7c3aed'}33;`}
+                        >
+                          <span class="evd-rel-mes" style={`color: ${relCat?.color ?? '#7c3aed'};`}>
+                            {relMes}
+                          </span>
+                          <span class="evd-rel-dia">{relDia}</span>
+                        </div>
+                        <div class="evd-rel-info">
+                          <span class="evd-rel-titulo">{rel.titulo}</span>
+                          <span class="evd-rel-lugar">{rel.lugar}</span>
+                        </div>
+                        <svg
+                          class="evd-rel-chevron"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          aria-hidden="true"
+                        >
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )
+        }
+
+        <a href="/eventos" class="evd-back-link">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            aria-hidden="true"
+          >
+            <path d="M19 12H5M5 12l7 7M5 12l7-7"></path>
+          </svg>
+          Ver todos los eventos
+        </a>
+      </main>
+
+      <!-- Col. derecha: info panel -->
+      <aside class="evd-aside" aria-label="Información del evento">
+        <!-- Bloque de fecha -->
+        <div class="evd-card evd-date-card">
+          <div class="evd-date-big" style={`border-top: 4px solid ${cat.color};`}>
+            <span class="evd-date-mes" style={`color:${cat.color};`}>{mesCorto}</span>
+            <span class="evd-date-dia">{dia}</span>
+            <span class="evd-date-año">{año}</span>
+          </div>
+
+          <dl class="evd-date-list">
+            <dt>Fecha</dt>
+            <dd class="evd-date-capitalize">{fechaLarga}</dd>
+            {
+              !esPasado && (
+                <>
+                  <dt>Hora</dt>
+                  <dd>{horaStr} hrs</dd>
+                </>
+              )
+            }
+            {
+              fechaFin && (
+                <>
+                  <dt>Finaliza</dt>
+                  <dd class="evd-date-capitalize">
+                    {fechaFinStr}
+                    {horaFinStr && ` · ${horaFinStr} hrs`}
+                  </dd>
+                </>
+              )
+            }
+            <dt>Lugar</dt>
+            <dd>{evento.lugar}</dd>
+            <dt>Parroquia</dt>
+            <dd>{evento.parroquia}</dd>
+          </dl>
+
+          <div class="evd-date-footer">
+            {
+              esEntradaLibre ? (
+                <span class="evd-entrada evd-entrada--libre">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Entrada libre
+                </span>
+              ) : (
+                <span class="evd-entrada evd-entrada--inscripcion">Requiere inscripción</span>
+              )
+            }
+          </div>
+        </div>
+
+        <!-- CTAs -->
+        <div class="evd-card evd-cta-card">
+          {
+            evento.enlaceRegistro && !esPasado && (
+              <a
+                href={evento.enlaceRegistro}
+                class="evd-cta-btn evd-cta-btn--primary"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={`background:${cat.color};`}
+              >
+                Registrarme
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 12 12"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M3.5 1H1.5A.5.5 0 0 0 1 1.5v9A.5.5 0 0 0 1.5 11h9a.5.5 0 0 0 .5-.5V8.5a.5.5 0 0 0-1 0V10H2V2h1.5a.5.5 0 0 0 0-1zM11 1H7.5a.5.5 0 0 0 0 1h2.293L5.146 6.646a.5.5 0 1 0 .708.708L10.5 2.707V5a.5.5 0 0 0 1 0V1.5a.5.5 0 0 0-.5-.5z" />
+                </svg>
+              </a>
+            )
+          }
+          <a href="/eventos" class="evd-cta-btn evd-cta-btn--secondary"> Ver todos los eventos </a>
+        </div>
+
+        <!-- Info -->
+        <div class="evd-card evd-info-card">
+          <h2 class="evd-card-title">Información</h2>
+          <dl class="evd-info-list">
+            <dt>Categoría</dt>
+            <dd>
+              <span class="evd-info-badge" style={`background:${cat.bg}; color:${cat.color};`}>
+                {cat.emoji}
+                {cat.label}
+              </span>
+            </dd>
+            <dt>Parroquia</dt>
+            <dd>{evento.parroquia}</dd>
+            <dt>Estado</dt>
+            <dd>
+              <span
+                class="evd-info-estado"
+                style={`color: ${esPasado ? '#6b7280' : '#15803d'}; background: ${esPasado ? '#f3f4f6' : '#dcfce7'};`}
+              >
+                {esPasado ? 'Realizado' : 'Próximamente'}
+              </span>
+            </dd>
+          </dl>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Lightbox para galería (reutiliza el componente existente) -->
+  {galeria.length > 0 && <CantonGallery />}
+</BaseLayout>
+
+<script define:vars={{ galeria, titulo: evento.titulo, color: cat.color }}>
+  // Abre la galería lightbox al hacer click en una foto
+  document.querySelectorAll('[data-gallery-open]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.getAttribute('data-gallery-open') ?? '0', 10);
+      const images = galeria.map((g) => ({
+        src: `${g.url}?w=1200&auto=format&q=85`,
+        thumb: `${g.url}?w=200&h=130&fit=crop&auto=format&q=70`,
+        alt: g.alt ?? '',
+      }));
+      if (typeof window.openGallery === 'function') {
+        window.openGallery(titulo, images, color);
+        // Navega al índice clickeado
+        if (typeof window.goToSlide === 'function') {
+          window.goToSlide(idx);
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  /* ── Breadcrumb ─────────────────────────────────────────────────────── */
+  .evd-breadcrumb {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .evd-bc-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0.65rem 1.5rem;
+  }
+  .evd-breadcrumb ol {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+  .evd-breadcrumb li {
+    font-size: 0.78rem;
+    color: #9ca3af;
+  }
+  .evd-breadcrumb a {
+    color: #6b7280;
+    text-decoration: none;
+  }
+  .evd-breadcrumb a:hover {
+    color: #7c3aed;
+  }
+  .evd-breadcrumb [aria-current='page'] {
+    color: #374151;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 28ch;
+  }
+
+  /* ── Hero ────────────────────────────────────────────────────────────── */
+  .evd-hero {
+    position: relative;
+    min-height: 340px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+  .evd-hero-img-wrap {
+    position: absolute;
+    inset: 0;
+  }
+  .evd-hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .evd-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.35) 55%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
+  }
+  .evd-hero-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding-top: 5rem;
+  }
+  .evd-hero-content--no-img {
+    background: linear-gradient(160deg, #1e1b4b 0%, #4c1d95 55%, #1e1b4b 100%);
+  }
+  .evd-hero-content--no-img::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #7c3aed 0%, #d97706 55%, #dc2626 100%);
+  }
+  .evd-hero-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 2.5rem;
+  }
+  .evd-hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .evd-hero-cat {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+  }
+  .evd-hero-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .evd-hero-status--live {
+    background: rgba(21, 128, 61, 0.3);
+    color: #86efac;
+    border: 1px solid rgba(21, 128, 61, 0.4);
+  }
+  .evd-hero-status--past {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .evd-hero-star {
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+  }
+  .evd-hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.75rem);
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin: 0 0 0.75rem;
+    max-width: 52rem;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  }
+  .evd-hero-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+  }
+
+  /* ── Body layout ────────────────────────────────────────────────────── */
+  .evd-body-wrap {
+    background: #f9fafb;
+    padding: 2.5rem 1.5rem 4rem;
+    min-height: 40vh;
+  }
+  .evd-body-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.75rem;
+    align-items: start;
+  }
+
+  /* ── Cards ──────────────────────────────────────────────────────────── */
+  .evd-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .evd-card:last-child {
+    margin-bottom: 0;
+  }
+  .evd-card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #9ca3af;
+    margin: 0 0 1rem;
+  }
+  .evd-card-text {
+    font-size: 0.95rem;
+    color: #374151;
+    line-height: 1.75;
+    margin: 0;
+  }
+
+  /* ── Galería inline ─────────────────────────────────────────────────── */
+  .evd-galeria {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+  }
+  .evd-galeria-thumb {
+    aspect-ratio: 4 / 3;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    padding: 0;
+    background: #f1f5f9;
+    transition:
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+  .evd-galeria-thumb:hover {
+    transform: translateY(-2px);
+    border-color: #c4b5fd;
+  }
+  .evd-galeria-thumb:focus-visible {
+    outline: 2px solid #7c3aed;
+    outline-offset: 2px;
+  }
+  .evd-galeria-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── Relacionados ───────────────────────────────────────────────────── */
+  .evd-relacionados {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .evd-rel-card {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 0;
+    text-decoration: none;
+    color: inherit;
+    border-top: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+  }
+  .evd-relacionados li:first-child .evd-rel-card {
+    border-top: none;
+  }
+  .evd-rel-card:hover {
+    background: #f8fafc;
+    margin: 0 -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  .evd-rel-date {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.25rem 0.5rem;
+    min-width: 40px;
+  }
+  .evd-rel-mes {
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+  .evd-rel-dia {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1;
+  }
+  .evd-rel-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .evd-rel-titulo {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .evd-rel-lugar {
+    font-size: 0.72rem;
+    color: #9ca3af;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .evd-rel-chevron {
+    flex-shrink: 0;
+    color: #cbd5e1;
+  }
+
+  /* ── Back link ──────────────────────────────────────────────────────── */
+  .evd-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #7c3aed;
+    text-decoration: none;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0;
+    transition: gap 0.2s ease;
+  }
+  .evd-back-link:hover {
+    gap: 0.65rem;
+  }
+
+  /* ── Aside: Fecha card ──────────────────────────────────────────────── */
+  .evd-date-card {
+    text-align: center;
+  }
+  .evd-date-big {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.65rem 1rem;
+    margin-bottom: 1.2rem;
+    gap: 0.05rem;
+  }
+  .evd-date-mes {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+  .evd-date-dia {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1;
+  }
+  .evd-date-año {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #9ca3af;
+    line-height: 1;
+  }
+  .evd-date-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+    margin: 0;
+    text-align: left;
+  }
+  .evd-date-list dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+    align-self: center;
+  }
+  .evd-date-list dd {
+    font-size: 0.85rem;
+    color: #374151;
+    font-weight: 500;
+    margin: 0;
+  }
+  .evd-date-capitalize {
+    text-transform: capitalize;
+  }
+  .evd-date-footer {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: center;
+  }
+  .evd-entrada {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.3rem 0.8rem;
+    border-radius: 9999px;
+  }
+  .evd-entrada--libre {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .evd-entrada--inscripcion {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  /* ── CTAs ────────────────────────────────────────────────────────────── */
+  .evd-cta-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 1rem;
+  }
+  .evd-cta-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+    transition: opacity 0.2s ease;
+  }
+  .evd-cta-btn:hover {
+    opacity: 0.9;
+  }
+  .evd-cta-btn--primary {
+    color: #fff;
+  }
+  .evd-cta-btn--secondary {
+    color: #6b7280;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+  }
+  .evd-cta-btn--secondary:hover {
+    background: #e5e7eb;
+    color: #374151;
+    opacity: 1;
+  }
+
+  /* ── Info card ──────────────────────────────────────────────────────── */
+  .evd-info-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.65rem 1.25rem;
+    margin: 0;
+    align-items: center;
+  }
+  .evd-info-list dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+  }
+  .evd-info-list dd {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #374151;
+    font-weight: 500;
+  }
+  .evd-info-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+  }
+  .evd-info-estado {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .evd-body-inner {
+      grid-template-columns: 1fr;
+    }
+    .evd-aside {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    .evd-aside .evd-card {
+      margin-bottom: 0;
+    }
+    .evd-date-card {
+      grid-column: 1 / -1;
+    }
+    .evd-galeria {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .evd-body-wrap {
+      padding: 1.5rem 1rem 3rem;
+    }
+    .evd-hero-inner {
+      padding: 1.5rem 1rem 2rem;
+    }
+    .evd-hero {
+      min-height: 280px;
+    }
+    .evd-aside {
+      grid-template-columns: 1fr;
+    }
+    .evd-galeria {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
