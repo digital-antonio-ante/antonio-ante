@@ -28,7 +28,13 @@ const BUDGETS = {
   // El pequeño incremento sobre 30 KB corresponde a los @font-face de las fuentes
   // auto-hospedadas (Inter/Space Grotesk) que sustituyen a Google Fonts.
   CSS_INITIAL_GZIP: 33 * 1024, //  33 KB gzipped
-  HTML_PAGE_RAW: 100 * 1024, // 100 KB raw
+  // 220 KB raw: con inlineStylesheets:'always' el CSS crítico (~100 KB) viaja
+  // dentro del HTML — por eso el inicio ronda 190 KB en crudo. Lo que se entrega
+  // al usuario va comprimido (~25 KB gzip) y sin peticiones de CSS bloqueantes,
+  // que es justo lo que sube el Lighthouse. El presupuesto en crudo se ajusta a
+  // esa estrategia; el control real de peso es el de CSS/JS gzip de arriba.
+  HTML_PAGE_RAW: 220 * 1024, // 220 KB raw
+
   TOTAL_DIST_RAW: 5 * 1024 * 1024, //   5 MB raw
 } as const;
 
