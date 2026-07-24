@@ -5,16 +5,15 @@ import { defineMiddleware, sequence } from 'astro:middleware';
  * Previene que crawlers indexen previews, staging o branches de Netlify.
  */
 const robotsGuard = defineMiddleware(async (_, next) => {
+  // En un build de producción (`astro build`) el sitio es público e indexable.
+  // Solo se marca noindex en desarrollo (`astro dev`, donde PROD es false) o si se
+  // declara explícitamente un entorno no público con APP_ENV=staging|preview.
   const appEnv = import.meta.env.APP_ENV;
-  const isProduction = appEnv === 'production';
-
-  // Netlify deploy previews exponen CONTEXT — doble protección
-  const isNetlifyPreview =
-    import.meta.env.CONTEXT === 'deploy-preview' || import.meta.env.CONTEXT === 'branch-deploy';
+  const isPublic = import.meta.env.PROD && appEnv !== 'staging' && appEnv !== 'preview';
 
   const response = await next();
 
-  if (!isProduction || isNetlifyPreview) {
+  if (!isPublic) {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow');
   }
 
