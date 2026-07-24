@@ -29,15 +29,13 @@ const parishList = Object.values(parishes);
   </div>
 
   <div class="strip-track-wrapper">
-    <div class="strip-track" role="list">
+    <div class="strip-track">
       {
         parishList.map((p) => (
           <a
             class="pcard"
             href={`/parroquias/${p.id.replaceAll('_', '-')}`}
             style={`--parish-color: ${p.color};`}
-            role="listitem"
-            aria-label={`Explorar ${p.name} — ${p.type} — ${p.shortDesc}`}
           >
             {/* Foto de fondo con fallback al color de parroquia */}
             {p.imageSrc ? (

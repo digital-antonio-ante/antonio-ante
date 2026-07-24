@@ -45,6 +45,15 @@ const highlights: HighlightItem[] =
         { icono: '🍽️', titulo: 'Capital del Cuy', subtitulo: 'Gastronomía reconocida' },
         { icono: '🏭', titulo: 'Fábrica Imbabura', subtitulo: 'Patrimonio histórico nacional' },
       ];
+
+// La foto del cantón es el elemento LCP de la home. asset->url entrega el
+// original (puede ser un PNG de varios MB); pedimos al CDN de Sanity una
+// versión redimensionada y en formato moderno (WebP/AVIF) — mismo patrón que
+// el resto del sitio. fit=max preserva el encuadre; auto=format negocia el
+// formato según el navegador.
+const cantonImgSrc = cantonImageUrl
+  ? `${cantonImageUrl}${cantonImageUrl.includes('?') ? '&' : '?'}w=1200&auto=format&fit=max&q=80`
+  : null;
 ---
 
 <div id="info-panel" class="glass-panel info-panel-container">
@@ -56,9 +65,9 @@ const highlights: HighlightItem[] =
     <!-- Foto del cantón — cargada desde Sanity CDN, con fallback de gradiente -->
     <div class="canton-hero" class:list={[!cantonImageUrl && 'canton-hero--fallback']}>
       {
-        cantonImageUrl && (
+        cantonImgSrc && (
           <img
-            src={cantonImageUrl}
+            src={cantonImgSrc}
             alt={cantonImageAlt ?? 'Cantón Antonio Ante'}
             class="canton-hero-img"
             loading="eager"
@@ -69,7 +78,7 @@ const highlights: HighlightItem[] =
       <div class="canton-hero-overlay">
         <div class="canton-hero-content">
           <p class="canton-eyebrow">Provincia de Imbabura · Ecuador</p>
-          <h3 class="canton-title">Antonio Ante</h3>
+          <h2 class="canton-title">Antonio Ante</h2>
           <span class="canton-badge">{slogan}</span>
         </div>
       </div>
@@ -129,7 +138,7 @@ const highlights: HighlightItem[] =
     <div class="panel-body">
       <div class="panel-header">
         <span id="panel-type" class="tag-parish">Tipo</span>
-        <h3 id="panel-title" class="panel-title">Título</h3>
+        <h2 id="panel-title" class="panel-title">Título</h2>
       </div>
 
       <p id="panel-desc" class="desc-text"></p>
@@ -152,12 +161,12 @@ const highlights: HighlightItem[] =
       </div>
 
       <div>
-        <h4 class="section-label">Actividades Principales</h4>
+        <h3 class="section-label">Actividades Principales</h3>
         <div id="panel-activities" class="activities-chips"></div>
       </div>
 
       <div class="projects-box">
-        <h4 class="section-label">Proyectos destacados</h4>
+        <h3 class="section-label">Proyectos destacados</h3>
         <ul id="panel-projects" class="projects-list"></ul>
       </div>
 

@@ -1,6 +1,15 @@
 import type { APIRoute } from 'astro';
+import { createClient } from '@sanity/client';
+import { env as cfEnv } from 'cloudflare:workers';
 import { ContactFormSchema } from '../../lib/validations/contact';
 import { sanitizeFormField } from '../../shared/utils/sanitize';
+
+// Token de escritura de Sanity: en Cloudflare llega como secret en el runtime
+// del Worker (cloudflare:workers → env); en dev/build se toma de import.meta.env.
+function getSanityWriteToken(): string | undefined {
+  const runtimeEnv = cfEnv as Record<string, string | undefined>;
+  return runtimeEnv?.SANITY_API_TOKEN ?? import.meta.env.SANITY_API_TOKEN;
+}
 
 const ALLOWED_ORIGINS = [import.meta.env.SITE ?? '', 'https://antonio-ante.gob.ec'].filter(Boolean);
 
@@ -97,11 +106,47 @@ export const POST: APIRoute = async ({ request }) => {
     mensaje: sanitizeFormField(parsed.data.mensaje, 2000),
   };
 
-  // ── 8. Envío (aquí conectar con el servicio de email o Sanity) ─────────────
-  // TODO: integrar Resend / SendGrid / Sanity webhook en siguiente sprint
-  if (!import.meta.env.PROD) {
+  // ── 8. Persistencia: se guarda como documento en Sanity ────────────────────
+  // El mensaje llega al Studio (sección "Mensajes de contacto") donde el GAD
+  // gestiona el resto del contenido. Requiere SANITY_API_TOKEN con permiso de
+  // escritura (secret en Cloudflare).
+  const token = getSanityWriteToken();
+  if (!token) {
     // eslint-disable-next-line no-console
-    console.log('[contact] New submission from', ip, { ...safe, mensaje: '[REDACTED]' });
+    console.error('[contact] Falta SANITY_API_TOKEN: no se pudo registrar el mensaje.');
+    return jsonError(
+      'No pudimos registrar tu mensaje en este momento. Por favor intenta más tarde o ' +
+        'escríbenos a comunicacion@antonioante.gob.ec.',
+      503
+    );
+  }
+
+  try {
+    const writeClient = createClient({
+      projectId: import.meta.env.PUBLIC_SANITY_PROJECT_ID,
+      dataset: import.meta.env.PUBLIC_SANITY_DATASET ?? 'production',
+      apiVersion: '2025-01-01',
+      token,
+      useCdn: false,
+    });
+    await writeClient.create({
+      _type: 'mensajeContacto',
+      nombre: safe.nombre,
+      email: safe.email,
+      telefono: safe.telefono,
+      asunto: safe.asunto,
+      mensaje: safe.mensaje,
+      recibidoEn: new Date().toISOString(),
+      leido: false,
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[contact] Error al guardar el mensaje en Sanity:', err);
+    return jsonError(
+      'No pudimos registrar tu mensaje en este momento. Por favor intenta más tarde o ' +
+        'escríbenos a comunicacion@antonioante.gob.ec.',
+      503
+    );
   }
 
   return jsonOk('Tu mensaje fue enviado. Te responderemos pronto.');

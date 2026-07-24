@@ -49,11 +49,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
   data-categoria={evento.categoria}
   data-tipo={esPasado ? 'pasado' : 'proximo'}
 >
-  <a
-    href={`/eventos/${evento.slug.current}`}
-    class="ev-card__link"
-    aria-label={`Ver detalles: ${evento.titulo}`}
-  >
+  <a href={`/eventos/${evento.slug.current}`} class="ev-card__link">
     <!-- Imagen -->
     <div class="ev-card__img-wrap">
       {
@@ -286,7 +282,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
   .ev-card__date-año {
     font-size: 0.6rem;
     font-weight: 600;
-    color: #9ca3af;
+    color: #6b7280;
     line-height: 1;
   }
   .ev-card__date-meta {
@@ -312,7 +308,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #9ca3af;
+    color: #6b7280;
   }
 
   /* Título */

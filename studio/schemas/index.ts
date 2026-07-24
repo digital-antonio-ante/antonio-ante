@@ -5,6 +5,7 @@ import { documentoOficial } from './documento-oficial';
 import { configSitio } from './config-sitio';
 import { obra } from './obra';
 import { evento } from './evento';
+import { mensajeContacto } from './mensaje-contacto';
 
 export const schemas = [
   portableText,
@@ -14,4 +15,5 @@ export const schemas = [
   configSitio,
   obra,
   evento,
+  mensajeContacto,
 ];

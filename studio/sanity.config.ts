@@ -38,6 +38,14 @@ export default defineConfig({
             S.divider(),
 
             S.listItem()
+              .title('📬 Mensajes de contacto')
+              .child(
+                S.documentTypeList('mensajeContacto')
+                  .title('Mensajes de contacto')
+                  .defaultOrdering([{ field: 'recibidoEn', direction: 'desc' }])
+              ),
+
+            S.listItem()
               .title('⚙️ Configuración del Sitio')
               .child(
                 S.document()

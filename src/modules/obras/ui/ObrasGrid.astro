@@ -73,11 +73,7 @@ function formatUSD(n: number): string {
 
             return (
               <li>
-                <a
-                  href={`/obras/${obra.slug.current}`}
-                  class="obra-card"
-                  aria-label={`Ver detalle: ${obra.titulo}`}
-                >
+                <a href={`/obras/${obra.slug.current}`} class="obra-card">
                   <div class="obra-img-wrap">
                     {obra.imageUrl ? (
                       <img
@@ -137,6 +133,7 @@ function formatUSD(n: number): string {
                       <div
                         class="progress-track"
                         role="progressbar"
+                        aria-label={`Avance de la obra: ${avance}%`}
                         aria-valuenow={avance}
                         aria-valuemin={0}
                         aria-valuemax={100}
@@ -252,7 +249,7 @@ function formatUSD(n: number): string {
   .obras-count {
     font-size: 0.75rem;
     font-weight: 700;
-    color: #9ca3af;
+    color: #6b7280;
     background: #f9fafb;
     border: 1px solid #e5e7eb;
     padding: 0.3rem 0.8rem;
@@ -367,7 +364,7 @@ function formatUSD(n: number): string {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #9ca3af;
+    color: #6b7280;
     margin: 0;
   }
   .obra-parroquia svg {
@@ -405,7 +402,7 @@ function formatUSD(n: number): string {
     align-items: center;
     font-size: 0.7rem;
     font-weight: 600;
-    color: #9ca3af;
+    color: #6b7280;
     margin-bottom: 0.4rem;
   }
   .progress-meta strong {
@@ -465,7 +462,7 @@ function formatUSD(n: number): string {
   }
   .obras-empty-desc {
     font-size: 0.875rem;
-    color: #9ca3af;
+    color: #6b7280;
     max-width: 360px;
     margin: 0 auto;
     line-height: 1.6;

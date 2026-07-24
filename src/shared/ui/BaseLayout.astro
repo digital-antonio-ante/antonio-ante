@@ -21,13 +21,16 @@ const config = await getConfigSitio().catch(() => null);
 // La imagen OG: prioridad → prop explícita → Sanity ogImageDefault → fallback local
 const ogImage = props.image ?? config?.ogImageUrl ?? undefined;
 
-// GA4 se inyecta solo en producción (import.meta.env.PROD = true en build)
-const ga4 = import.meta.env.PROD
-  ? `<script async src="https://www.googletagmanager.com/gtag/js?id=G-JER9NBHCGP"></script>` +
-    `<script>window.dataLayer=window.dataLayer||[];` +
-    `function gtag(){dataLayer.push(arguments);}` +
-    `gtag('js',new Date());gtag('config','G-JER9NBHCGP');</script>`
-  : '';
+// GA4 se inyecta solo en producción y solo si hay un ID de medición configurado
+// en la variable de entorno PUBLIC_GA4_ID (ej. G-XXXXXXXXXX). La configuración
+// vive en /js/analytics.js (externo, script-src 'self'); el ID viaja como
+// atributo data-ga-id, por lo que cambiarlo no requiere tocar la CSP.
+const ga4Id = import.meta.env.PUBLIC_GA4_ID;
+const ga4 =
+  import.meta.env.PROD && ga4Id
+    ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${ga4Id}"></script>` +
+      `<script src="/js/analytics.js" data-ga-id="${ga4Id}"></script>`
+    : '';
 ---
 
 <html lang="es">

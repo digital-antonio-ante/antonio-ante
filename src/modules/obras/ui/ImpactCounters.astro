@@ -48,14 +48,14 @@ const metricas = [
       <h2 id="impact-heading" class="impact-title">Gestión en números</h2>
     </div>
 
-    <dl class="impact-grid" aria-label="Métricas de impacto del cantón">
+    <div class="impact-grid" role="list" aria-label="Métricas de impacto del cantón">
       {
         metricas.map((m, i) => (
-          <div class="impact-card" style={`animation-delay: ${i * 0.1}s`}>
+          <div class="impact-card" role="listitem" style={`animation-delay: ${i * 0.1}s`}>
             <span class="impact-icon" aria-hidden="true">
               {m.icono}
             </span>
-            <dd
+            <div
               class="impact-num"
               data-target={m.valor}
               data-suffix={m.sufijo ?? ''}
@@ -64,13 +64,13 @@ const metricas = [
               aria-label={`${m.prefijo ?? ''}${m.valor}${m.sufijo ?? ''} ${m.label}`}
             >
               {m.prefijo ?? ''}0{m.sufijo ?? ''}
-            </dd>
-            <dt class="impact-label">{m.label}</dt>
+            </div>
+            <div class="impact-label">{m.label}</div>
             <span class="impact-sublabel">{m.sublabel}</span>
           </div>
         ))
       }
-    </dl>
+    </div>
   </div>
 </section>
 
