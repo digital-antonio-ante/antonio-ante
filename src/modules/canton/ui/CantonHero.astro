@@ -460,19 +460,22 @@ const highlightsCanton = config?.highlightsCanton ?? null;
     display: inline-block;
   }
 
-  /* ── Animación de entrada ── */
+  /* ── Animación de entrada ──
+   * Solo transform (deslizamiento), SIN opacity: un elemento que arranca en
+   * opacity:0 no cuenta como "pintado" hasta que se desvanece, lo que retrasaba
+   * el LCP (Largest Contentful Paint) en escritorio ~0.8 s. Con transform puro el
+   * contenido se pinta de inmediato a opacidad plena y el LCP baja, conservando
+   * el movimiento de entrada. */
   @keyframes fade-up {
     from {
-      opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(16px);
     }
     to {
-      opacity: 1;
       transform: translateY(0);
     }
   }
   .animate-fade-up {
-    animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   /* ── Responsive: tablet ── */

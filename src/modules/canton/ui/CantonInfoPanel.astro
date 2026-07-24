@@ -46,13 +46,21 @@ const highlights: HighlightItem[] =
         { icono: '🏭', titulo: 'Fábrica Imbabura', subtitulo: 'Patrimonio histórico nacional' },
       ];
 
-// La foto del cantón es el elemento LCP de la home. asset->url entrega el
-// original (puede ser un PNG de varios MB); pedimos al CDN de Sanity una
-// versión redimensionada y en formato moderno (WebP/AVIF) — mismo patrón que
-// el resto del sitio. fit=max preserva el encuadre; auto=format negocia el
-// formato según el navegador.
-const cantonImgSrc = cantonImageUrl
-  ? `${cantonImageUrl}${cantonImageUrl.includes('?') ? '&' : '?'}w=1200&auto=format&fit=max&q=80`
+// La foto del cantón es el elemento LCP (Largest Contentful Paint) de la home.
+// asset->url entrega el original (puede ser un PNG de varios MB); pedimos al CDN
+// de Sanity una versión recortada al encuadre real del slot (≈400×240 px, ratio
+// 5:3) y en formato moderno (WebP/AVIF vía auto=format).
+//
+// Se sirve un srcset 1x/2x en lugar de un único w=1200: el panel nunca supera
+// los 400 px de ancho en escritorio, así que pedir 1200 px desperdiciaba ~630 KiB
+// y retrasaba el LCP. fit=crop respeta el ratio del slot y evita reflow.
+const cantonImgBase = cantonImageUrl
+  ? `${cantonImageUrl}${cantonImageUrl.includes('?') ? '&' : '?'}`
+  : null;
+const cantonImgSrc = cantonImgBase ? `${cantonImgBase}w=800&h=480&fit=crop&auto=format&q=72` : null;
+const cantonImgSrcset = cantonImgBase
+  ? `${cantonImgBase}w=400&h=240&fit=crop&auto=format&q=72 400w, ` +
+    `${cantonImgBase}w=800&h=480&fit=crop&auto=format&q=72 800w`
   : null;
 ---
 
@@ -68,9 +76,14 @@ const cantonImgSrc = cantonImageUrl
         cantonImgSrc && (
           <img
             src={cantonImgSrc}
+            srcset={cantonImgSrcset ?? undefined}
+            sizes="(max-width: 768px) 100vw, 400px"
+            width="400"
+            height="240"
             alt={cantonImageAlt ?? 'Cantón Antonio Ante'}
             class="canton-hero-img"
             loading="eager"
+            fetchpriority="high"
             decoding="async"
           />
         )

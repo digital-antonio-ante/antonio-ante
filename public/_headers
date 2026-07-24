@@ -1,7 +1,7 @@
 # ─── Security Headers — todas las rutas ───────────────────────────────────────
 /*
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-L+tqfrulmhaidEcHPc7vuiFX4l1lkIjG0X20R9XIDfk=' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.sanity.io https://www.google-analytics.com; connect-src 'self' https://api.sanity.io https://cdn.sanity.io https://www.google-analytics.com https://region1.google-analytics.com; media-src 'self' https://cdn.sanity.io; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-L+tqfrulmhaidEcHPc7vuiFX4l1lkIjG0X20R9XIDfk=' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://cdn.sanity.io https://www.google-analytics.com; connect-src 'self' https://api.sanity.io https://cdn.sanity.io https://www.google-analytics.com https://region1.google-analytics.com; media-src 'self' https://cdn.sanity.io; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

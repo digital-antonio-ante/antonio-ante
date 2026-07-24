@@ -1,4 +1,9 @@
 ---
+// Prerenderizada: HTML estático generado en build (los datos de Sanity se
+// consultan una sola vez al construir, no en cada request). El webhook de Sanity
+// dispara un redeploy al publicar contenido. Elimina el TTFB del SSR por request.
+export const prerender = true;
+
 import BaseLayout from '@ui/BaseLayout.astro';
 import CantonHero from '../modules/canton/ui/CantonHero.astro';
 import ImpactCounters from '../modules/obras/ui/ImpactCounters.astro';
@@ -8,6 +13,22 @@ import EventoDestacado from '../modules/eventos/ui/EventoDestacado.astro';
 import EventoCard from '../modules/eventos/ui/EventoCard.astro';
 import { getObrasRecientes, getObraDestacada } from '@api/endpoints/obras';
 import { getEventoDestacado, getEventosProximos } from '@api/endpoints/eventos';
+import { getConfigSitio } from '@api/endpoints/config-sitio';
+
+// La imagen del panel del cantón es el elemento LCP de la home. Como la página es
+// estática, conocemos su URL en build y podemos precargarla en el <head> con la
+// misma srcset/sizes que el <img> — así el navegador la descarga de inmediato en
+// lugar de esperar a parsear el DOM hasta el panel. Baja el LCP en escritorio.
+const configHome = await getConfigSitio().catch(() => null);
+const cantonImgBase = configHome?.cantonImageUrl
+  ? `${configHome.cantonImageUrl}${configHome.cantonImageUrl.includes('?') ? '&' : '?'}`
+  : null;
+const heroPreloadHref = cantonImgBase
+  ? `${cantonImgBase}w=800&h=480&fit=crop&auto=format&q=72`
+  : null;
+const heroPreloadSrcset = cantonImgBase
+  ? `${cantonImgBase}w=400&h=240&fit=crop&auto=format&q=72 400w, ${cantonImgBase}w=800&h=480&fit=crop&auto=format&q=72 800w`
+  : null;
 
 const [obras, obraDestacada, eventoDestacado, eventosProximos] = await Promise.all([
   getObrasRecientes(6).catch((err) => {
@@ -36,6 +57,20 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
   title="Inicio"
   description="Portal oficial del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador. Conoce las obras, proyectos y gestión municipal."
 >
+  {
+    heroPreloadHref && (
+      <link
+        slot="head"
+        rel="preload"
+        as="image"
+        href={heroPreloadHref}
+        imagesrcset={heroPreloadSrcset}
+        imagesizes="(max-width: 768px) 100vw, 400px"
+        fetchpriority="high"
+      />
+    )
+  }
+
   <!-- ─── Hero — Mapa interactivo + Panel de parroquias ────────────────────── -->
   <CantonHero />
 

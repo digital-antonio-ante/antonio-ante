@@ -8,6 +8,13 @@ export default defineConfig({
   site: 'https://antonio-ante.gob.ec',
   output: 'server',
   adapter: cloudflare(),
+  // 'always': inyecta todo el CSS como <style> en el <head>. Medido contra este
+  // sitio, inlinar es netamente superior a dejar hojas externas: evita 3 peticiones
+  // de CSS render-blocking que, bajo el throttling de Lighthouse, disparaban el
+  // FCP/LCP (móvil 71 vs 99, LCP 5.2 s vs 1.8 s). El CSS total es acotado.
+  build: {
+    inlineStylesheets: 'always',
+  },
   // Sharp no está disponible en Cloudflare Workers.
   // Este proyecto usa Sanity CDN para todas las imágenes — sin pérdida real.
   image: {
@@ -30,5 +37,11 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      // Fuerza que los scripts de componente se emitan como archivos externos
+      // (/_astro/*.js) en lugar de inline. Así la CSP los cubre con script-src
+      // 'self' sin necesidad de hashes por-build, y no hay violaciones de CSP.
+      assetsInlineLimit: 0,
+    },
   },
 });

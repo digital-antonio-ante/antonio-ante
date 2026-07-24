@@ -22,7 +22,12 @@ import { join, extname, relative } from 'node:path';
 
 const BUDGETS = {
   JS_INITIAL_GZIP: 50 * 1024, //  50 KB gzipped
-  CSS_INITIAL_GZIP: 30 * 1024, //  30 KB gzipped
+  // 33 KB: con inlineStylesheets:'always' el CSS crítico viaja dentro del HTML
+  // (que tiene su propio presupuesto) y este total externo pasa a ser una cota
+  // conservadora que sobrecuenta hojas que las páginas prerenderizadas ni piden.
+  // El pequeño incremento sobre 30 KB corresponde a los @font-face de las fuentes
+  // auto-hospedadas (Inter/Space Grotesk) que sustituyen a Google Fonts.
+  CSS_INITIAL_GZIP: 33 * 1024, //  33 KB gzipped
   HTML_PAGE_RAW: 100 * 1024, // 100 KB raw
   TOTAL_DIST_RAW: 5 * 1024 * 1024, //   5 MB raw
 } as const;

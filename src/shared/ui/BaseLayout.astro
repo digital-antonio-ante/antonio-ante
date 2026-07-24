@@ -41,12 +41,25 @@ const ga4 =
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
-    <!-- Preconnect a Google Fonts: establece conexión antes de que la CSS la pida -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Preconnect al CDN de imágenes (Sanity): adelanta DNS+TLS para que la
+         imagen LCP y las galerías carguen antes. -->
+    <link rel="preconnect" href="https://cdn.sanity.io" crossorigin />
+    <link rel="dns-prefetch" href="https://cdn.sanity.io" />
+    <!-- Fuentes auto-hospedadas: se precargan para que estén listas antes del primer
+         pintado (evita el reflow de texto). @font-face vive en global.css. -->
     <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;800&display=swap"
+      rel="preload"
+      href="/fonts/inter-latin-var.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/spacegrotesk-latin-var.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
     <SEOHead {...props} image={ogImage} />
     <slot name="head" />
