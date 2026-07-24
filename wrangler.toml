@@ -2,7 +2,7 @@
 # Deployment: Workers with Assets (modelo unificado 2025)
 # Deploy command en dashboard: npx wrangler deploy
 
-name = "antonio-ante"
+name = "portal"
 compatibility_date = "2025-01-01"
 
 # nodejs_compat: habilita APIs de Node.js en el Worker (requerido por @sanity/client)
