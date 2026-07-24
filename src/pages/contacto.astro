@@ -1,4 +1,9 @@
 ---
+// La página es estática (prerender); el envío del formulario va a /api/contact,
+// que permanece SSR. Separar el formulario (estático) del handler (dinámico) da
+// lo mejor de ambos: carga instantánea + procesamiento en servidor.
+export const prerender = true;
+
 import BaseLayout from '@ui/BaseLayout.astro';
 import Input from '@ui/Input.astro';
 import Button from '@ui/Button.astro';
@@ -7,7 +12,7 @@ import { getConfigSitio } from '@api/endpoints/config-sitio';
 const config = await getConfigSitio().catch(() => null);
 
 const direccion =
-  config?.direccion ?? 'Av. Luis Leoro Franco y Olmedo, Atuntaqui, Imbabura, Ecuador';
+  config?.direccion ?? 'Amazonas 11-19 y Av. Julio M. Aguinaga, Atuntaqui, Imbabura, Ecuador';
 const telefono = config?.telefonoContacto ?? '+593 6 2908-200';
 const email = config?.emailContacto ?? 'comunicacion@antonioante.gob.ec';
 const horario = config?.horarioAtencion ?? 'Lun–Vie 08h00–17h00';
@@ -170,10 +175,8 @@ function toTelHref(phone: string): string {
             </div>
 
             <p class="text-xs text-brand-dark/50">
-              Al enviar este formulario aceptas que tu información sea tratada conforme a nuestra
-              <a href="/transparencia" class="text-brand-primary underline hover:text-brand-primary"
-                >política de transparencia</a
-              >.
+              Al enviar este formulario aceptas que tu información sea tratada conforme a la
+              normativa de protección de datos vigente.
             </p>
 
             <Button type="submit" id="submit-btn"> Enviar mensaje </Button>
@@ -293,16 +296,6 @@ function toTelHref(phone: string): string {
                 </div>
               </li>
             </ul>
-          </div>
-
-          <div class="bg-brand-accent rounded-xl p-5 border border-gray-100">
-            <p class="text-xs text-brand-dark/60 leading-relaxed">
-              Para solicitudes de información pública bajo la LOTAIP, visita la sección de
-              <a
-                href="/transparencia"
-                class="text-brand-primary font-semibold hover:text-brand-primary">Transparencia</a
-              >.
-            </p>
           </div>
         </aside>
       </div>

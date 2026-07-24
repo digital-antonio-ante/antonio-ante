@@ -135,7 +135,7 @@ export const PARISHES: Record<string, ParishData> = {
   san_roque: {
     id: 'san_roque',
     name: 'San Roque',
-    type: 'Urbana',
+    type: 'Rural',
     shortDesc: 'Tradición y música',
     description:
       'Destacada por su arraigada tradición musical. Representa la alegría de su gente a través de sus bandas y festividades.',

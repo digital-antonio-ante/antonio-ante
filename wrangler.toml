@@ -14,6 +14,15 @@ compatibility_flags = ["nodejs_compat"]
 PUBLIC_SANITY_PROJECT_ID = "lmfef6xr"
 PUBLIC_SANITY_DATASET = "production"
 
+# ─── KV para sesiones (Astro) ─────────────────────────────────────────────────
+# El namespace "antonio-ante-session" YA existe. Se enlaza por su ID para que
+# wrangler NO intente crearlo de nuevo (error 10014). Obtén el ID con:
+#   npx wrangler kv namespace list
+# y reemplaza REEMPLAZA_CON_EL_ID por el valor mostrado para "antonio-ante-session".
+[[kv_namespaces]]
+binding = "SESSION"
+id = "a47314771dd245ca86e2f30c0a9f25b9"
+
 # ─── Webhook de Sanity → redeploy (hacer una sola vez) ────────────────────────
 # SETUP:
 #   1. Cloudflare Dashboard → Workers → antonio-ante → Settings → Deploy hooks

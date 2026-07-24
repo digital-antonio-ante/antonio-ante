@@ -256,7 +256,7 @@ const configSitio = {
     'Portal oficial del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador.',
   emailContacto: 'comunicacion@antonioante.gob.ec',
   telefonoContacto: '+593 6 2908-200',
-  direccion: 'Av. Luis Leoro Franco y Olmedo, Atuntaqui, Imbabura, Ecuador',
+  direccion: 'Amazonas 11-19 y Av. Julio M. Aguinaga, Atuntaqui, Imbabura, Ecuador',
   horarioAtencion: 'Lun–Vie 08h00–17h00',
   redesSocialesInstitucionales: [
     { _key: 'fb', red: 'facebook', url: 'https://www.facebook.com/GADAntonioAnte' },

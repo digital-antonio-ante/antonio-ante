@@ -47,7 +47,7 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
     <!-- Eyebrow pill -->
     <div class="dest-eyebrow-wrap" aria-hidden="true">
       <span class="dest-star">⭐</span>
-      <span class="dest-eyebrow">Obra destacada del período 2024–2028</span>
+      <span class="dest-eyebrow">Obra destacada del período 2023–2027</span>
     </div>
 
     <div class="dest-card">
@@ -488,7 +488,9 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.8);
+    /* Blanco puro (no 0.8): garantiza contraste AA sobre cualquier color de
+       categoría — el peor caso (#b45309) da 5.03:1 sobre blanco. */
+    color: #ffffff;
   }
 
   /* Responsive */
