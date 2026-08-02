@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
+import { OBRAS_HABILITADAS } from './src/shared/config/features.ts';
 
 export default defineConfig({
   site: 'https://antonio-ante.gob.ec',
@@ -25,7 +26,8 @@ export default defineConfig({
       filter: (page) =>
         !page.includes('/api/') &&
         !page.includes('/admin') &&
-        !page.includes('/preview'),
+        !page.includes('/preview') &&
+        (OBRAS_HABILITADAS || !page.includes('/obras')),
       changefreq: 'weekly',
       priority: 0.7,
       lastmod: new Date(),

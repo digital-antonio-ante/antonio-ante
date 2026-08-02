@@ -1,6 +1,11 @@
 ---
 import BaseLayout from '@ui/BaseLayout.astro';
 import { getObraBySlug } from '@api/endpoints/obras';
+import { OBRAS_HABILITADAS } from '@shared/config/features';
+
+if (!OBRAS_HABILITADAS) {
+  return new Response(null, { status: 404, statusText: 'Not Found' });
+}
 
 const { slug } = Astro.params;
 if (!slug) return Astro.redirect('/obras');

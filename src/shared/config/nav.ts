@@ -3,13 +3,15 @@
  * Importado por Header.astro y Footer.astro.
  */
 
+import { OBRAS_HABILITADAS } from './features';
+
 export interface NavItem {
   readonly href: string;
   readonly label: string;
   readonly external?: boolean;
 }
 
-export const NAV_ITEMS: readonly NavItem[] = [
+const ALL_NAV_ITEMS: readonly NavItem[] = [
   { href: '/', label: 'Inicio' },
   { href: '/obras', label: 'Obras' },
   { href: '/eventos', label: 'Eventos' },
@@ -21,3 +23,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     external: true,
   },
 ] as const;
+
+export const NAV_ITEMS: readonly NavItem[] = OBRAS_HABILITADAS
+  ? ALL_NAV_ITEMS
+  : ALL_NAV_ITEMS.filter((item) => item.href !== '/obras');
