@@ -42,3 +42,12 @@ navegación con Tab por las 6 zonas, Enter activa, Espacio no desplaza, 0 errore
 Pendiente (tarea separada): dejar vitest.config.ts compatible con @astrojs/cloudflare.
 Autorizado por el usuario en la conversación: eligió explícitamente "Bypass justificado +
 PR + merge (como el PR #2)".
+
+2026-08-02T14:25:00-05:00 | bypass=YAPI_PREMERGE_OK=1 | pr=3 | branch=feat/mapa-canton-interactivo | user=jerxav101@gmail.com
+Justificación: guard-premerge-gate.sh bloquea el squash-merge porque exige 7/7 gates
+locales en verde (CI remoto caído/sin minutos). Siguen en rojo los mismos 2 gates
+preexistentes y no relacionados descritos en la entrada anterior (tsc y vitest, ambos por
+`vitest.config.ts`, sin versionar y ajeno a este cambio). No hay cambios de código desde
+el commit b0e3ef5 salvo esta propia línea de auditoría.
+Mismo alcance y misma autorización del usuario: eligió "Bypass justificado + PR + merge
+(como el PR #2)", que incluye explícitamente el merge.
