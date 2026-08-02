@@ -45,12 +45,14 @@ export const ParroquiaSchema = SanityDocumentBaseSchema.extend({
       })
     )
     .nullish(),
-  /** Redes sociales de la parroquia */
+  /** Cuentas propias de la parroquia. Vacío = todavía no tiene ninguna. */
   redesSociales: z
     .array(
       z.object({
         red: z.enum(['facebook', 'instagram', 'twitter', 'youtube', 'tiktok']),
         url: z.string().url(),
+        /** @usuario, para que se reconozca la cuenta antes de pulsar */
+        handle: z.string().nullish(),
       })
     )
     .nullish(),

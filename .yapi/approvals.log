@@ -51,3 +51,19 @@ preexistentes y no relacionados descritos en la entrada anterior (tsc y vitest, 
 el commit b0e3ef5 salvo esta propia línea de auditoría.
 Mismo alcance y misma autorización del usuario: eligió "Bypass justificado + PR + merge
 (como el PR #2)", que incluye explícitamente el merge.
+
+2026-08-02T14:46:00-05:00 | bypass=--no-verify + YAPI_PREMERGE_OK=1 | branch=feat/redes-sociales-parroquias | user=jerxav101@gmail.com
+Justificación: mismo bloqueo preexistente y ajeno de las dos entradas anteriores — `tsc` y
+`vitest` fallan por `vitest.config.ts`, archivo SIN VERSIONAR del tooling, rojo sobre
+cualquier commit del repo. Ningún archivo de este cambio interviene en esos fallos.
+Verificación manual sustitutiva: `eslint src` limpio (0 errores), `tsc --noEmit` sin errores
+fuera de vitest.config.ts, `astro build` OK, `npm run validate` con todos los presupuestos
+en verde, y la lógica de `parish-socials.ts` comprobada contra 10 casos (sin cuenta, URL de
+marcador de posición, cuenta institucional pegada en la parroquia, variantes de dominio,
+cuenta propia real, mezcla) — 10/10.
+DEUDA RECONOCIDA: `resolveParishSocials` merece test unitario de verdad; no se escribe
+porque el runner de vitest de este repo no arranca. Queda pendiente junto con el arreglo de
+vitest.config.ts.
+Autorización del usuario: eligió "Bypass justificado + PR + merge (como el PR #2)" para el
+bloqueo idéntico en esta misma sesión, y "Implementar ahora con el fallback" para este
+cambio; la política del repo indica cerrar el ciclo trunk-based sin detenerse en el PR.
