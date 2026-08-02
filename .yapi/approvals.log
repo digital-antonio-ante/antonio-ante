@@ -83,3 +83,12 @@ componente (mismo valor visual, sin cambio de contraste). Verificado con grep di
 la regla exacta: 0 coincidencias tras el fix. Este commit sube esa corrección.
 Autorizado por el usuario en la conversación: pidió cerrar el PR #4 y, para los fixes
 detectados en el camino, completarlos y cerrarlos.
+
+2026-08-02T15:28:00-05:00 | bypass=YAPI_PREMERGE_OK=1 | pr=5 | branch=chore/rebuild-tras-limpieza-sanity | user=jorgepazos100@gmail.com
+Justificación: guard-premerge-gate.sh bloquea por falta de 7/7 local en verde. El PR #5
+es un commit VACÍO (0 archivos) para forzar el rebuild de Cloudflare tras limpiar un dato
+de prueba en Sanity; no puede tocar ni tsc ni vitest. Los 2 gates rojos siguen siendo los
+mismos preexistentes de siempre (tsc/vitest por vitest.config.ts sin versionar, ver
+entradas anteriores del 2026-08-02). staged-only sobre este commit dio 0 archivos y PASSED
+7/7 antes de crear la rama.
+Autorizado por el usuario en la conversación: pidió disparar el rebuild manual.
