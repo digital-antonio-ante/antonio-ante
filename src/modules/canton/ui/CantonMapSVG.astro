@@ -2,104 +2,162 @@
 /**
  * CantonMapSVG.astro — Mapa interactivo del Cantón Antonio Ante.
  *
- * Visual layer : franja_g-dos.svg — diseño ilustrado, incrustado vía <image>
- *                (mismo viewBox 1694×2528, sin recálculo de coordenadas).
- * Interaction layer: polígonos transparentes extraídos del mismo SVG que
- *                capturan hover/focus/click y activan el InfoPanel.
+ * El SVG del diseñador ("Mapa antonio ante.svg") trae las 6 parroquias como
+ * paths vectoriales reales, así que aquí NO hay capa de polígonos aproximados:
+ * **el contorno que se pinta es el mismo que recibe el clic**. Un solo path por
+ * parroquia hace de relleno, de borde, de zona clicable y de recorte de su foto.
  *
- * El JS en canton-hero.ts detecta data-select-parish — sin cambios.
+ * La geometría y los degradados vienen de `canton-map-geometry.ts` (generado por
+ * `scripts/build-canton-map.mjs`); las fotos de fondo, de /images/mapa/*.webp —
+ * fuera del SVG, porque incrustadas en base64 pesaban 5,7 MB en el elemento LCP
+ * de la home.
+ *
+ * El JS de canton-hero.ts / canton-map-widget.ts detecta `data-select-parish`
+ * — mismo contrato que antes, sin cambios.
  */
-import { PARISHES, PARISH_POLYGONS } from '../data/parishes';
+import { PARISHES } from '../data/parishes';
+import {
+  MAP_VIEWBOX,
+  MAP_ASPECT_RATIO,
+  MAP_UNITS_PER_KM,
+  MAP_GRADIENTS,
+  PARISH_GEOMETRY,
+} from '../data/canton-map-geometry';
+
+/** Prefijo de ids: el SVG va incrustado en el HTML y sus ids son globales. */
+const UID = 'aa-map';
+
+const [vbX, vbY, vbW, vbH] = MAP_VIEWBOX.split(' ').map(Number);
+
+/**
+ * NO reordenar `PARISH_GEOMETRY`. Los contornos del diseño se solapan en varias
+ * zonas (comprobado: reordenarlos mueve ~0,3 % de los píxeles del mapa, en
+ * manchas macizas, no en los bordes). El orden del archivo del diseñador decide
+ * qué parroquia queda encima en cada solape y, como el path pintado es el mismo
+ * que recibe el clic, también decide cuál se lleva la pulsación. Respetarlo es lo
+ * que mantiene alineado lo que se ve con lo que se selecciona.
+ *
+ * Efecto colateral asumido: el orden de tabulación es el del diseño, no el de la
+ * tira de tarjetas. Cada zona lleva su aria-label, así que sigue siendo navegable.
+ */
+
+/** Rosa de los vientos y escala gráfica, sobre el margen libre del lienzo. */
+const compass = { x: vbX + vbW * 0.06, y: vbY + vbH * 0.06 };
+const scaleBar = { x: vbX + vbW * 0.03, y: vbY + vbH * 0.965, km: 2 };
+const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
 ---
 
-<div class="map-root" aria-label="Mapa interactivo del Cantón Antonio Ante">
+<div class="map-root" style={`--map-aspect: ${MAP_ASPECT_RATIO};`}>
   <svg
     class="canton-svg"
-    viewBox="0 0 1694 2528"
+    viewBox={MAP_VIEWBOX}
     preserveAspectRatio="xMidYMid meet"
     xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-    role="img"
-    aria-label="Mapa del Cantón Antonio Ante con sus seis parroquias"
+    role="group"
+    aria-label="Mapa del Cantón Antonio Ante — sus seis parroquias son seleccionables"
   >
     <defs>
-      <!-- Glow de color por parroquia para el estado activo -->
+      <!-- Degradados de relleno del diseño original -->
       {
-        PARISH_POLYGONS.map(({ id }) => {
-          const p = PARISHES[id];
-          return (
-            <filter id={`glow-${id}`} x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="22" result="blur" />
-              <feFlood flood-color={p.color} flood-opacity="0.65" result="color" />
-              <feComposite in="color" in2="blur" operator="in" result="colored-blur" />
-              <feMerge>
-                <feMergeNode in="colored-blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
+        MAP_GRADIENTS.map((g) => (
+          <linearGradient
+            id={`${UID}-grad-${g.id}`}
+            x1={g.x1}
+            y1={g.y1}
+            x2={g.x2}
+            y2={g.y2}
+            gradientUnits="userSpaceOnUse"
+          >
+            {g.stops.map((s) => (
+              <stop offset={s.offset} stop-color={s.color} />
+            ))}
+          </linearGradient>
+        ))
+      }
+
+      {
+        PARISH_GEOMETRY.map((p) => (
+          <>
+            {/* La foto se recorta contra el propio contorno de la parroquia */}
+            <clipPath id={`${UID}-clip-${p.id}`}>
+              <path d={p.d} />
+            </clipPath>
+            {/* Sombra proyectada del rótulo — color propio de cada parroquia */}
+            <filter id={`${UID}-shadow-${p.id}`} x="-25%" y="-25%" width="150%" height="150%">
+              <feOffset dx="2" dy="4" />
+              <feGaussianBlur result="blur" stdDeviation="2" />
+              <feFlood flood-color={p.shadowColor} flood-opacity="0.61" />
+              <feComposite in2="blur" operator="in" />
+              <feComposite in="SourceGraphic" />
             </filter>
-          );
-        })
+          </>
+        ))
       }
     </defs>
 
-    <!-- Fondo transparente: la ilustración flota sobre el fondo de la página -->
-
-    <!-- ── Arte ilustrado (franja_g-dos.svg) — mismo viewBox → sin transformación -->
-    <image
-      href="/images/franja_g-dos.svg"
-      x="0"
-      y="0"
-      width="1694"
-      height="2528"
-      preserveAspectRatio="xMidYMid meet"
-    />
-
-    <!-- ── Capa de interacción: polígonos extraídos del mismo arte -->
+    <!-- ── Una parroquia = un grupo clicable ─────────────────────────────── -->
     {
-      PARISH_POLYGONS.map(({ id, points }) => {
-        const p = PARISHES[id];
+      PARISH_GEOMETRY.map((p) => {
+        const parish = PARISHES[p.id];
         return (
           <g
             class="parish-zone"
-            data-select-parish={id}
-            style={`--pc: ${p.color};`}
+            data-select-parish={p.id}
+            style={`--pc: ${parish.color};`}
             role="button"
             tabindex="0"
-            aria-label={`Seleccionar parroquia ${p.name}`}
+            aria-label={`Seleccionar parroquia ${parish.name}`}
           >
-            {/* Overlay semitransparente — absorbe pointer events */}
-            <polygon class="parish-overlay" points={points} />
-            {/* Borde de resaltado */}
-            <polygon class="parish-stroke" points={points} fill="none" />
+            <path class="parish-fill" d={p.d} fill={`url(#${UID}-grad-${p.gradientId})`} />
+            {/* El recorte va en el <g>, NO en el <image>: clipPathUnits es
+                userSpaceOnUse y aplicarlo al <image> lo sometería al transform
+                de éste, con lo que la foto se saldría del contorno. */}
+            <g clip-path={`url(#${UID}-clip-${p.id})`} aria-hidden="true">
+              <image
+                class="parish-texture"
+                href={p.texture.src}
+                width={p.texture.width}
+                height={p.texture.height}
+                transform={p.texture.transform}
+              />
+            </g>
+            <text
+              class="parish-label"
+              x={p.label.x}
+              y={p.label.y}
+              text-anchor="middle"
+              filter={`url(#${UID}-shadow-${p.id})`}
+              aria-hidden="true"
+            >
+              {p.label.lines.map((line, i) => (
+                <tspan x={p.label.x} dy={i === 0 ? 0 : 20.44}>
+                  {line}
+                </tspan>
+              ))}
+            </text>
           </g>
         );
       })
     }
 
-    <!-- ── Indicador norte -->
-    <g transform="translate(80, 2420)" aria-hidden="true">
-      <circle
-        cx="0"
-        cy="0"
-        r="42"
-        fill="white"
-        fill-opacity="0.88"
-        stroke="rgba(26,95,122,0.25)"
-        stroke-width="2"></circle>
-      <text x="0" y="-10" text-anchor="middle" font-size="34" font-weight="900" fill="#1a5f7a"
-        >N</text
-      >
-      <polygon points="0,-5 -5,12 0,8 5,12" fill="#DC2626"></polygon>
+    <!-- ── Rosa de los vientos ───────────────────────────────────────────── -->
+    <g class="compass" transform={`translate(${compass.x}, ${compass.y})`} aria-hidden="true">
+      <circle class="compass-disc" cx="0" cy="0" r="19"></circle>
+      <text class="compass-n" x="0" y="-3" text-anchor="middle">N</text>
+      <polygon class="compass-needle" points="0,-2 -2.6,7 0,5 2.6,7"></polygon>
     </g>
 
-    <!-- ── Escala gráfica -->
-    <g transform="translate(1520, 2460)" aria-hidden="true">
-      <rect x="-80" y="-5" width="80" height="5" fill="#1a5f7a" fill-opacity="0.45"></rect>
-      <rect x="0" y="-5" width="80" height="5" fill="#1a5f7a" fill-opacity="0.2"></rect>
-      <text x="-80" y="-14" text-anchor="start" font-size="22" fill="rgba(100,116,139,0.75)">0</text
-      >
-      <text x="80" y="-14" text-anchor="end" font-size="22" fill="rgba(100,116,139,0.75)">5 km</text
-      >
+    <!-- ── Escala gráfica ────────────────────────────────────────────────── -->
+    <g class="scale" transform={`translate(${scaleBar.x}, ${scaleBar.y})`} aria-hidden="true">
+      <rect class="scale-tick" x="0" y="0" width={scaleBarWidth / 2} height="3.5"></rect>
+      <rect
+        class="scale-tick scale-tick--light"
+        x={scaleBarWidth / 2}
+        y="0"
+        width={scaleBarWidth / 2}
+        height="3.5"></rect>
+      <text class="scale-label" x="0" y="-5" text-anchor="start">0</text>
+      <text class="scale-label" x={scaleBarWidth} y="-5" text-anchor="end">{scaleBar.km} km</text>
     </g>
   </svg>
 </div>
@@ -109,7 +167,7 @@ import { PARISHES, PARISH_POLYGONS } from '../data/parishes';
   .map-root {
     position: relative;
     width: 100%;
-    max-width: 520px;
+    max-width: 560px;
     margin: 0 auto 0 0;
     user-select: none;
   }
@@ -118,75 +176,126 @@ import { PARISHES, PARISH_POLYGONS } from '../data/parishes';
     width: 100%;
     height: auto;
     display: block;
+    /* Reserva el hueco antes de pintar: sin salto de layout (CLS) */
+    aspect-ratio: var(--map-aspect);
+    overflow: visible;
   }
 
-  /* ── Capa de interacción ────────────────────────────────────────────────── */
-
-  /* Suprimir el rectángulo de foco nativo del navegador sobre <g tabindex> */
+  /* ── Parroquia ──────────────────────────────────────────────────────────── */
   .parish-zone {
-    outline: none;
-  }
-
-  /* Overlay: recibe todos los pointer events; fill invisible por defecto */
-  .parish-overlay {
-    fill: transparent;
     cursor: pointer;
-    transition: fill 0.2s ease;
-  }
-
-  /* Borde de parroquia: invisible por defecto */
-  .parish-stroke {
-    stroke: white;
-    stroke-width: 0;
-    stroke-linejoin: round;
-    opacity: 0;
-    pointer-events: none;
+    /* Suprime el rectángulo de foco nativo sobre <g tabindex> */
+    outline: none;
     transition:
-      stroke-width 0.22s ease,
-      opacity 0.22s ease;
+      opacity 0.22s ease,
+      filter 0.22s ease;
   }
 
-  /* ── Hover / Focus ── */
-  .parish-zone:hover .parish-overlay,
-  .parish-zone:focus-visible .parish-overlay {
-    fill: rgba(255, 255, 255, 0.18);
-  }
-  .parish-zone:hover .parish-stroke,
-  .parish-zone:focus-visible .parish-stroke {
-    stroke-width: 12;
-    opacity: 0.85;
+  .parish-fill {
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    transition: stroke-width 0.22s ease;
   }
 
-  /* ── Activo ── */
-  .parish-zone.active .parish-overlay {
-    fill: rgba(255, 255, 255, 0.26);
+  /* Foto del diseño: textura tenue bajo el degradado */
+  .parish-texture {
+    opacity: 0.24;
+    pointer-events: none;
   }
-  .parish-zone.active .parish-stroke {
-    stroke-width: 18;
+
+  .parish-label {
+    fill: #fff;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    pointer-events: none;
+  }
+
+  /* ── Hover / foco ── */
+  .parish-zone:hover,
+  .parish-zone:focus-visible {
+    filter: brightness(1.12) saturate(1.08) drop-shadow(0 0 9px var(--pc));
+  }
+  .parish-zone:hover .parish-fill {
+    stroke-width: 4;
+  }
+
+  /* Foco de teclado: borde verde oscuro en lugar del blanco. Se distingue del
+     hover y contrasta tanto con el relleno de la parroquia como con el fondo. */
+  .parish-zone:focus-visible .parish-fill {
+    stroke: var(--color-brand-dark);
+    stroke-width: 6;
+  }
+
+  /* ── Rosa de los vientos y escala ───────────────────────────────────────── */
+  .compass-disc {
+    fill: #fff;
+    fill-opacity: 0.88;
+    stroke: color-mix(in srgb, var(--color-brand-dark) 22%, transparent);
+    stroke-width: 1.2;
+  }
+  .compass-n {
+    fill: var(--color-brand-dark);
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .compass-needle {
+    fill: var(--color-brand-secondary);
+  }
+
+  .scale-tick {
+    fill: var(--color-brand-dark);
+    fill-opacity: 0.5;
+  }
+  .scale-tick--light {
+    fill-opacity: 0.18;
+  }
+  .scale-label {
+    fill: color-mix(in srgb, var(--color-brand-dark) 70%, transparent);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+  }
+
+  /* ── Seleccionada ── */
+  .parish-zone.active {
+    filter: brightness(1.06) drop-shadow(0 0 12px var(--pc));
+  }
+  .parish-zone.active .parish-fill {
+    stroke-width: 5;
+  }
+
+  /* Con una parroquia elegida, las demás ceden protagonismo — sin pasarse: el
+     rótulo va en blanco sobre el relleno, así que atenuar de más lo vuelve
+     ilegible. 0,7 basta para que la seleccionada destaque. */
+  .canton-svg:has(.parish-zone.active) .parish-zone:not(.active) {
+    opacity: 0.7;
+    filter: saturate(0.65);
+  }
+  .canton-svg:has(.parish-zone.active) .parish-zone:not(.active):hover,
+  .canton-svg:has(.parish-zone.active) .parish-zone:not(.active):focus-visible {
     opacity: 1;
-    /* Glow de color de identidad de la parroquia */
-    filter: drop-shadow(0 0 14px var(--pc)) drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
-  }
-
-  /* ── Accesibilidad (teclado) ── */
-  .parish-zone:focus-visible .parish-stroke {
-    stroke-width: 16;
-    opacity: 1;
+    filter: brightness(1.12) saturate(1.08) drop-shadow(0 0 9px var(--pc));
   }
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
     .map-root {
-      width: 100%;
       max-width: 100%;
       margin: 0 auto;
+    }
+    /* En pantallas pequeñas el rótulo del mapa compite con el trazo: se engorda */
+    .parish-label {
+      font-size: 19px;
     }
   }
 
   /* Reducir movimiento */
   @media (prefers-reduced-motion: reduce) {
-    .parish-overlay,
-    .parish-stroke {
+    .parish-zone,
+    .parish-fill {
       transition: none;
     }
   }

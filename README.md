@@ -88,6 +88,7 @@ Plataforma web institucional del Gobierno Autónomo Descentralizado Municipal de
 antonio-ante/
 ├── public/                    # Assets estáticos (favicon, robots.txt)
 ├── scripts/
+│   ├── build-canton-map.mjs   # Mapa del cantón: SVG del diseñador → geometría + WebP
 │   ├── validate-seo.ts        # Validación post-build de meta tags
 │   └── validate-bundle-size.ts # Enforcement de performance budget
 ├── src/
@@ -181,6 +182,23 @@ npm run dev
 | `npm run validate:bundle` | Verifica que el bundle no exceda el budget |
 | `npm run validate` | SEO + Bundle validation combinados |
 | `npm run ci` | Pipeline completo: typecheck + lint + build + validate |
+
+### Mapa interactivo del cantón
+
+El mapa del hero se genera a partir del SVG que entrega el diseñador (export de
+Illustrator, ~6 MB, con las fotos de cada parroquia incrustadas en base64). Ese
+archivo **no se versiona**: vive en la carpeta de entregables del cliente, junto
+al repo. Para regenerar los artefactos tras recibir una versión nueva:
+
+```bash
+node scripts/build-canton-map.mjs --src "../Mapa antonio ante.svg"
+```
+
+Produce `src/modules/canton/data/canton-map-geometry.ts` (contornos vectoriales y
+degradados; **generado, no editar a mano**) y `public/images/mapa/*.webp` (las
+texturas fotográficas, fuera del SVG). El script aborta si algún contorno deja de
+emparejarse con su rótulo o con su textura, así que un rediseño que rompa la
+correspondencia falla de forma ruidosa en vez de publicar un mapa mal etiquetado.
 
 ---
 
