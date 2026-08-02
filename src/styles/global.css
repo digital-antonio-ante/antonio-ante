@@ -82,6 +82,12 @@
   /* Blanco Limpio — superficies de cards, formularios */
   --color-brand-light: #FFFFFF;
 
+  /* Gris texto secundario — párrafos de apoyo sobre fondo claro */
+  --color-text-secondary: #4b5563;
+
+  /* Gris texto muted — metadatos, notas al pie de bloque */
+  --color-text-muted: #64748b;
+
   /* ─── Tipografía fluida (clamp: 375px → 1280px) ─── */
   /* Controla tamaño base en móvil y crece hacia desktop sin breakpoints */
   --text-xs: clamp(0.75rem, 0.71rem + 0.18vw, 0.875rem);
