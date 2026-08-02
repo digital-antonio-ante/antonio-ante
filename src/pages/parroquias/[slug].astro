@@ -7,6 +7,7 @@ import CantonGallery from '@modules/canton/ui/CantonGallery.astro';
 import { getParroquias, getParroquia } from '@api/endpoints/parroquias';
 import { getObrasByParroquia } from '@api/endpoints/obras';
 import { PARISHES } from '@modules/canton/data/parishes';
+import { OBRAS_HABILITADAS } from '@shared/config/features';
 
 export async function getStaticPaths() {
   const parroquias = await getParroquias();
@@ -43,7 +44,7 @@ const panelSrcset = parroquia.imageUrl
 // OG siempre 1200×630 (estándar)
 const ogSrc = parroquia.imageUrl ? cropUrl(parroquia.imageUrl, 1200, 630, hx, hy) : null;
 
-const obras = await getObrasByParroquia(parroquia.nombre);
+const obras = OBRAS_HABILITADAS ? await getObrasByParroquia(parroquia.nombre) : [];
 
 const color = staticData?.color ?? '#277816';
 

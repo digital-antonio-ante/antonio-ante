@@ -14,6 +14,7 @@ import EventoCard from '../modules/eventos/ui/EventoCard.astro';
 import { getObrasRecientes, getObraDestacada } from '@api/endpoints/obras';
 import { getEventoDestacado, getEventosProximos } from '@api/endpoints/eventos';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
+import { OBRAS_HABILITADAS } from '@shared/config/features';
 
 // La imagen del panel del cantón es el elemento LCP de la home. Como la página es
 // estática, conocemos su URL en build y podemos precargarla en el <head> con la
@@ -31,14 +32,18 @@ const heroPreloadSrcset = cantonImgBase
   : null;
 
 const [obras, obraDestacada, eventoDestacado, eventosProximos] = await Promise.all([
-  getObrasRecientes(6).catch((err) => {
-    console.error('[ObrasGrid]', err?.message ?? err);
-    return [];
-  }),
-  getObraDestacada().catch((err) => {
-    console.error('[ObraDestacada]', err?.message ?? err);
-    return null;
-  }),
+  OBRAS_HABILITADAS
+    ? getObrasRecientes(6).catch((err) => {
+        console.error('[ObrasGrid]', err?.message ?? err);
+        return [];
+      })
+    : Promise.resolve([]),
+  OBRAS_HABILITADAS
+    ? getObraDestacada().catch((err) => {
+        console.error('[ObraDestacada]', err?.message ?? err);
+        return null;
+      })
+    : Promise.resolve(null),
   getEventoDestacado().catch((err) => {
     console.error('[EventoDestacado]', err?.message ?? err);
     return null;
@@ -55,7 +60,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
 
 <BaseLayout
   title="Inicio"
-  description="Portal oficial del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador. Conoce las obras, proyectos y gestión municipal."
+  description="Portal oficial del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador. Conoce sus parroquias, eventos y gestión municipal."
 >
   {
     heroPreloadHref && (
@@ -74,16 +79,22 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
   <!-- ─── Hero — Mapa interactivo + Panel de parroquias ────────────────────── -->
   <CantonHero />
 
-  <!-- ─── Cifras de impacto (sección dark animada) ─────────────────────────── -->
-  <div style="margin-top: 2.5rem;">
-    <ImpactCounters />
-  </div>
+  {
+    OBRAS_HABILITADAS && (
+      <Fragment>
+        <!-- ─── Cifras de impacto (sección dark animada) ─────────────────────── -->
+        <div style="margin-top: 2.5rem;">
+          <ImpactCounters />
+        </div>
 
-  <!-- ─── Obra destacada del período ─────────────────────────────────────── -->
-  <ObraDestacada obra={obraDestacada} />
+        <!-- ─── Obra destacada del período ───────────────────────────────────── -->
+        <ObraDestacada obra={obraDestacada} />
 
-  <!-- ─── Obras en marcha ───────────────────────────────────────────────────── -->
-  <ObrasGrid obras={obras} />
+        <!-- ─── Obras en marcha ───────────────────────────────────────────────── -->
+        <ObrasGrid obras={obras} />
+      </Fragment>
+    )
+  }
 
   <!-- ─── Evento destacado ─────────────────────────────────────────────────── -->
   <EventoDestacado evento={eventoDestacado} />

@@ -2,6 +2,11 @@
 import BaseLayout from '@ui/BaseLayout.astro';
 import ObrasGrid from '../../modules/obras/ui/ObrasGrid.astro';
 import { getTodasLasObras } from '@api/endpoints/obras';
+import { OBRAS_HABILITADAS } from '@shared/config/features';
+
+if (!OBRAS_HABILITADAS) {
+  return new Response(null, { status: 404, statusText: 'Not Found' });
+}
 
 const todasLasObras = await getTodasLasObras().catch(() => []);
 
