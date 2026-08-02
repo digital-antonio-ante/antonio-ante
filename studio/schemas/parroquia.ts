@@ -130,6 +130,8 @@ export const parroquia = defineType({
     defineField({
       name: 'redesSociales',
       title: 'Redes sociales de la parroquia',
+      description:
+        'SOLO las cuentas propias de esta parroquia. Si todavía no tiene ninguna, deja el campo vacío: la ficha ofrecerá automáticamente las redes del Municipio, indicando que son de respaldo. Poner aquí la cuenta del Municipio la haría pasar por cuenta de la parroquia.',
       type: 'array',
       of: [
         {
@@ -154,7 +156,42 @@ export const parroquia = defineType({
               name: 'url',
               title: 'URL',
               type: 'url',
-              validation: (Rule) => Rule.required().uri({ scheme: ['http', 'https'] }),
+              validation: (Rule) =>
+                Rule.required()
+                  .uri({ scheme: ['http', 'https'] })
+                  // La URL debe apuntar a la red que se eligió arriba: una de
+                  // marcador de posición (google.com como "Facebook") manda al
+                  // visitante a otro sitio y quema la única vez que pulsó.
+                  .custom((url, context) => {
+                    if (!url) return true;
+                    const dominios: Record<string, string[]> = {
+                      facebook: ['facebook.com', 'fb.com', 'fb.me'],
+                      instagram: ['instagram.com'],
+                      twitter: ['twitter.com', 'x.com'],
+                      youtube: ['youtube.com', 'youtu.be'],
+                      tiktok: ['tiktok.com'],
+                    };
+                    const red = (context.parent as { red?: string } | undefined)?.red;
+                    const esperados = red ? dominios[red] : undefined;
+                    if (!esperados) return true;
+                    let host: string;
+                    try {
+                      host = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+                    } catch {
+                      return true; // el formato ya lo valida uri()
+                    }
+                    return (
+                      esperados.some((d) => host === d || host.endsWith(`.${d}`)) ||
+                      `La URL debe ser de ${red} (${esperados.join(' o ')}), no de ${host}.`
+                    );
+                  }),
+            }),
+            defineField({
+              name: 'handle',
+              title: 'Usuario (@)',
+              description:
+                'Opcional. Se muestra junto al icono: reconocer la cuenta antes de pulsar aumenta el clic. Con o sin arroba, da igual.',
+              type: 'string',
             }),
           ],
           preview: {

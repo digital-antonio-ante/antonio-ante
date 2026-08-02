@@ -57,7 +57,7 @@ const QUERY_BY_SLUG = `
     "hotspotX": imagenPrincipal.hotspot.x,
     "hotspotY": imagenPrincipal.hotspot.y,
     "galeria": galeria[]{ "url": asset->url, "alt": alt },
-    "redesSociales": redesSociales[]{ red, url }
+    "redesSociales": redesSociales[]{ red, url, handle }
   }
 `;
 

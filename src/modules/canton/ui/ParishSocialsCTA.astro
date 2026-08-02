@@ -1,0 +1,250 @@
+---
+/**
+ * ParishSocialsCTA.astro — Cierre de la ficha de parroquia: «¿quieres más?».
+ *
+ * Va al FINAL de la lectura, no en la barra lateral. El enlace saliente sólo
+ * gana cuando el visitante ya conoció la parroquia; puesto antes compite con el
+ * contenido y se lleva la sesión a Instagram sin que haya visto nada.
+ *
+ * Dos estados, resueltos en `parish-socials.ts`:
+ *   · la parroquia tiene cuentas propias  → se ofrecen esas y sólo esas;
+ *   · todavía no tiene ninguna            → se ofrecen las del Municipio,
+ *     diciendo que lo son. Nunca se hacen pasar por cuenta de la parroquia.
+ *
+ * Sin la animación `pp-reveal` del resto de la ficha: esa clase la define la
+ * página y Astro la aísla por componente, así que aquí no aplicaría — y, siendo
+ * el bloque de conversión, tampoco conviene que dependa de que un
+ * IntersectionObserver llegue a ejecutarse para hacerse visible.
+ */
+import SocialIcon from './SocialIcon.astro';
+import { resolveParishSocials, formatHandle } from '../data/parish-socials';
+import type { SocialLink } from '../data/parish-socials';
+
+interface Props {
+  nombreParroquia: string;
+  redesParroquia?: readonly SocialLink[] | null;
+  redesInstitucionales?: readonly SocialLink[] | null;
+  /** Color de identidad de la parroquia */
+  color: string;
+}
+
+const { nombreParroquia, redesParroquia, redesInstitucionales, color } = Astro.props;
+
+const { propias, respaldo } = resolveParishSocials(redesParroquia, redesInstitucionales);
+const enlaces = propias.length > 0 ? propias : respaldo;
+const esRespaldo = propias.length === 0;
+
+const NOMBRE_RED: Record<SocialLink['red'], string> = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  twitter: 'X (Twitter)',
+  youtube: 'YouTube',
+  tiktok: 'TikTok',
+};
+---
+
+{
+  enlaces.length > 0 && (
+    <section class="psc" style={`--psc-color: ${color};`} aria-labelledby="psc-title">
+      <h2 class="psc__title" id="psc-title">
+        ¿Quieres más de {nombreParroquia}?
+      </h2>
+
+      <p class="psc__lead">
+        {esRespaldo ? (
+          <>
+            {nombreParroquia} todavía no tiene cuenta propia. Mientras tanto, el Municipio de
+            Antonio Ante publica lo que pasa en la parroquia:
+          </>
+        ) : (
+          <>El día a día de la parroquia, en sus propias redes:</>
+        )}
+      </p>
+
+      <ul class="psc__list" role="list">
+        {enlaces.map((enlace) => {
+          const handle = formatHandle(enlace.handle);
+          const nombreRed = NOMBRE_RED[enlace.red];
+          return (
+            <li>
+              <a
+                href={enlace.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class={`psc__link psc__link--${enlace.red}`}
+                aria-label={`${nombreRed}${esRespaldo ? ' del Municipio de Antonio Ante' : ` de ${nombreParroquia}`}${handle ? ` (${handle})` : ''} — abre en una pestaña nueva`}
+              >
+                <span class="psc__icon" aria-hidden="true">
+                  <SocialIcon red={enlace.red} size={18} />
+                </span>
+                <span class="psc__text">
+                  <span class="psc__red">{nombreRed}</span>
+                  {handle && <span class="psc__handle">{handle}</span>}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+
+      {esRespaldo && (
+        <p class="psc__note">
+          ¿Eres de {nombreParroquia} y ya tienen cuenta? Escríbenos desde{' '}
+          <a href="/contacto">contacto</a> y la enlazamos aquí.
+        </p>
+      )}
+    </section>
+  )
+}
+
+<style>
+  .psc {
+    margin-top: 2.5rem;
+    padding: 1.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    background: #fff;
+    /* Filo de color de la parroquia: ata el bloque a la identidad de la ficha */
+    border-top: 4px solid var(--psc-color);
+  }
+
+  .psc__title {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-brand-dark);
+  }
+
+  .psc__lead {
+    margin: 0.5rem 0 1.15rem;
+    font-size: 0.94rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    max-width: 52ch;
+  }
+
+  .psc__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .psc__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--color-brand-dark);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.88rem;
+    transition:
+      border-color 0.18s ease,
+      background 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .psc__icon {
+    display: inline-flex;
+    color: var(--psc-color);
+    transition: color 0.18s ease;
+  }
+
+  .psc__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+
+  .psc__handle {
+    font-weight: 500;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    transition: color 0.18s ease;
+  }
+
+  /* Color propio de cada red en hover: el reconocimiento de marca es la señal
+     de que el enlace sale del sitio hacia esa plataforma. */
+  .psc__link:hover,
+  .psc__link:focus-visible {
+    transform: translateY(-2px);
+    color: #fff;
+  }
+  .psc__link:hover .psc__icon,
+  .psc__link:focus-visible .psc__icon,
+  .psc__link:hover .psc__handle,
+  .psc__link:focus-visible .psc__handle {
+    color: #fff;
+  }
+  .psc__link--facebook:hover,
+  .psc__link--facebook:focus-visible {
+    background: #1877f2;
+    border-color: #1877f2;
+  }
+  .psc__link--instagram:hover,
+  .psc__link--instagram:focus-visible {
+    background: linear-gradient(45deg, #f09433, #dc2743 45%, #bc1888);
+    border-color: #dc2743;
+  }
+  .psc__link--twitter:hover,
+  .psc__link--twitter:focus-visible {
+    background: #0f1419;
+    border-color: #0f1419;
+  }
+  .psc__link--youtube:hover,
+  .psc__link--youtube:focus-visible {
+    background: #c4302b;
+    border-color: #c4302b;
+  }
+  .psc__link--tiktok:hover,
+  .psc__link--tiktok:focus-visible {
+    background: #010101;
+    border-color: #010101;
+  }
+
+  .psc__link:focus-visible {
+    outline: 3px solid var(--psc-color);
+    outline-offset: 2px;
+  }
+
+  .psc__note {
+    margin: 1.15rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: var(--color-text-muted);
+  }
+  .psc__note a {
+    color: var(--color-brand-primary);
+    font-weight: 600;
+  }
+
+  @media (max-width: 640px) {
+    .psc {
+      padding: 1.35rem;
+    }
+    .psc__list {
+      flex-direction: column;
+    }
+    .psc__link {
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .psc__link {
+      transition: none;
+    }
+    .psc__link:hover,
+    .psc__link:focus-visible {
+      transform: none;
+    }
+  }
+</style>

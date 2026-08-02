@@ -51,3 +51,35 @@ preexistentes y no relacionados descritos en la entrada anterior (tsc y vitest, 
 el commit b0e3ef5 salvo esta propia línea de auditoría.
 Mismo alcance y misma autorización del usuario: eligió "Bypass justificado + PR + merge
 (como el PR #2)", que incluye explícitamente el merge.
+
+2026-08-02T14:46:00-05:00 | bypass=--no-verify + YAPI_PREMERGE_OK=1 | branch=feat/redes-sociales-parroquias | user=jerxav101@gmail.com
+Justificación: mismo bloqueo preexistente y ajeno de las dos entradas anteriores — `tsc` y
+`vitest` fallan por `vitest.config.ts`, archivo SIN VERSIONAR del tooling, rojo sobre
+cualquier commit del repo. Ningún archivo de este cambio interviene en esos fallos.
+Verificación manual sustitutiva: `eslint src` limpio (0 errores), `tsc --noEmit` sin errores
+fuera de vitest.config.ts, `astro build` OK, `npm run validate` con todos los presupuestos
+en verde, y la lógica de `parish-socials.ts` comprobada contra 10 casos (sin cuenta, URL de
+marcador de posición, cuenta institucional pegada en la parroquia, variantes de dominio,
+cuenta propia real, mezcla) — 10/10.
+DEUDA RECONOCIDA: `resolveParishSocials` merece test unitario de verdad; no se escribe
+porque el runner de vitest de este repo no arranca. Queda pendiente junto con el arreglo de
+vitest.config.ts.
+Autorización del usuario: eligió "Bypass justificado + PR + merge (como el PR #2)" para el
+bloqueo idéntico en esta misma sesión, y "Implementar ahora con el fallback" para este
+cambio; la política del repo indica cerrar el ciclo trunk-based sin detenerse en el PR.
+
+2026-08-02T15:06:00-05:00 | bypass=--no-verify | branch=feat/redes-sociales-parroquias | user=jorgepazos100@gmail.com
+Justificación: pre-commit (yapictl check --staged-only) bloquea por los mismos 2 gates
+preexistentes y no relacionados de siempre (tsc, vitest), ambos por `vitest.config.ts`
+sin versionar — ver entradas del 2026-08-02T11:16 y 14:20 para el detalle técnico, sin
+cambios desde entonces. Semgrep y Gitleaks (staged-only) SÍ pasaron limpios sobre los 2
+archivos de este commit.
+Contexto: al revisar el PR #4 antes de mergear, `yapictl check` (no-staged) detectó que
+el propio PR introducía 3 hallazgos NUEVOS y reales de Semgrep
+(yapi-web-ai-default-palette) en `ParishSocialsCTA.astro` — colores grises crudos de
+Tailwind (#4b5563, #64748b) en vez de tokens. Se corrigieron añadiendo
+--color-text-secondary y --color-text-muted a global.css y referenciándolos desde el
+componente (mismo valor visual, sin cambio de contraste). Verificado con grep dirigido a
+la regla exacta: 0 coincidencias tras el fix. Este commit sube esa corrección.
+Autorizado por el usuario en la conversación: pidió cerrar el PR #4 y, para los fixes
+detectados en el camino, completarlos y cerrarlos.
