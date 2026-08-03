@@ -812,7 +812,7 @@ const jsonLd = JSON.stringify({
      CONTENIDO
   ══════════════════════════════════════════════ */
   .pp-content {
-    background: #f1f5f9;
+    background: var(--color-neutral-100);
     padding: 3rem 0 4.5rem;
   }
 
@@ -837,13 +837,13 @@ const jsonLd = JSON.stringify({
   .pp-block {
     background: white;
     border-radius: 16px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-neutral-200);
     padding: 1.6rem 1.75rem;
   }
 
   .pp-block--empty {
     border-style: dashed;
-    color: #94a3b8;
+    color: var(--color-neutral-400);
     font-size: 0.9rem;
     text-align: center;
     padding: 2.5rem;
@@ -854,7 +854,7 @@ const jsonLd = JSON.stringify({
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1rem;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--color-neutral-900);
     letter-spacing: -0.01em;
     margin: 0 0 1.1rem;
     padding-bottom: 0.7rem;
@@ -864,12 +864,12 @@ const jsonLd = JSON.stringify({
   .pp-prose {
     font-size: 0.93rem;
     line-height: 1.75;
-    color: #334155;
+    color: var(--color-neutral-700);
   }
   .pp-desc-text {
     font-size: 0.93rem;
     line-height: 1.75;
-    color: #334155;
+    color: var(--color-neutral-700);
     margin: 0;
   }
 
@@ -884,13 +884,13 @@ const jsonLd = JSON.stringify({
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
     border-radius: 9999px;
     padding: 0.35rem 0.85rem;
     font-size: 0.83rem;
     font-weight: 600;
-    color: #334155;
+    color: var(--color-neutral-700);
   }
 
   .pp-act__emoji {
@@ -913,8 +913,8 @@ const jsonLd = JSON.stringify({
     display: flex;
     gap: 0.85rem;
     align-items: center;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
     border-radius: 10px;
     overflow: hidden;
   }
@@ -967,20 +967,20 @@ const jsonLd = JSON.stringify({
     color: #854d0e;
   }
   .pp-obra__badge--plan {
-    background: #f1f5f9;
-    color: #475569;
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-600);
   }
 
   .pp-obra__pct {
     font-size: 0.7rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--color-neutral-400);
   }
 
   .pp-obra__titulo {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--color-neutral-900);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -1050,7 +1050,7 @@ const jsonLd = JSON.stringify({
   /* Stats visuales — reemplaza la tabla dl */
   .pp-stats {
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-neutral-200);
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
@@ -1072,7 +1072,7 @@ const jsonLd = JSON.stringify({
     align-items: center;
     gap: 0.75rem;
     padding: 0.8rem 1.1rem;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-neutral-100);
   }
 
   .pp-stat-card__icon {
@@ -1091,14 +1091,14 @@ const jsonLd = JSON.stringify({
     font-family: 'Space Grotesk', sans-serif;
     font-size: 0.95rem;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--color-neutral-900);
     line-height: 1.1;
   }
 
   .pp-stat-card__label {
     font-size: 0.65rem;
     font-weight: 500;
-    color: #94a3b8;
+    color: var(--color-neutral-400);
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
@@ -1109,7 +1109,7 @@ const jsonLd = JSON.stringify({
     flex-direction: column;
     gap: 0;
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-neutral-200);
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
@@ -1124,13 +1124,13 @@ const jsonLd = JSON.stringify({
     font-size: 0.84rem;
     font-weight: 700;
     transition: background 0.15s ease;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-neutral-100);
   }
   .pp-action-btn:first-child {
     border-top: none;
   }
   .pp-action-btn:hover {
-    background: #f8fafc;
+    background: var(--color-neutral-50);
   }
   .pp-action-btn:focus-visible {
     outline: 3px solid var(--color);
@@ -1141,7 +1141,7 @@ const jsonLd = JSON.stringify({
     color: var(--color);
   }
   .pp-action-btn--turismo {
-    color: #0f172a;
+    color: var(--color-neutral-900);
   }
 
   .pp-action-btn__icon {
@@ -1154,11 +1154,11 @@ const jsonLd = JSON.stringify({
     flex: 1;
   }
   .pp-action-btn__chevron {
-    color: #cbd5e1;
+    color: var(--color-neutral-300);
     flex-shrink: 0;
   }
   .pp-action-btn--map .pp-action-btn__chevron {
-    color: color-mix(in srgb, var(--color) 45%, #e2e8f0);
+    color: color-mix(in srgb, var(--color) 45%, var(--color-neutral-200));
   }
 
   /* ── Animación scroll reveal ── */
@@ -1188,14 +1188,14 @@ const jsonLd = JSON.stringify({
     gap: 0.4rem;
     font-size: 0.82rem;
     font-weight: 600;
-    color: #64748b;
+    color: var(--color-neutral-500);
     text-decoration: none;
     padding: 0.4rem 0;
     border-radius: 6px;
     transition: color 0.15s ease;
   }
   .pp-back:hover {
-    color: #0f172a;
+    color: var(--color-neutral-900);
   }
   .pp-back:focus-visible {
     outline: 3px solid var(--color);
@@ -1210,14 +1210,14 @@ const jsonLd = JSON.stringify({
       width: 100%;
       padding: 0.75rem 1rem;
       background: white;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-neutral-200);
       border-radius: 12px;
-      color: #475569;
+      color: var(--color-neutral-600);
       font-size: 0.84rem;
     }
     .pp-back:hover {
-      background: #f8fafc;
-      color: #0f172a;
+      background: var(--color-neutral-50);
+      color: var(--color-neutral-900);
     }
   }
 
@@ -1424,9 +1424,9 @@ const jsonLd = JSON.stringify({
     height: 30px;
     border-radius: 50%;
     background: white;
-    border: 1.5px solid #e2e8f0;
+    border: 1.5px solid var(--color-neutral-200);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
-    color: #475569;
+    color: var(--color-neutral-600);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1491,7 +1491,7 @@ const jsonLd = JSON.stringify({
     scroll-snap-align: start;
     padding: 0;
     border: 2.5px solid transparent;
-    background: #e2e8f0;
+    background: var(--color-neutral-200);
     transition:
       border-color 0.2s ease,
       transform 0.22s ease;

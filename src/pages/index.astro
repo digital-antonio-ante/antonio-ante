@@ -198,14 +198,14 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.16em;
-    color: #7c3aed;
+    color: var(--color-brand-primary);
     margin: 0 0 0.35rem;
   }
   .eventos-strip-title {
     font-family: 'Space Grotesk', sans-serif;
     font-size: clamp(1.3rem, 2.5vw, 1.75rem);
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     letter-spacing: -0.02em;
     line-height: 1.1;
     margin: 0;
@@ -217,10 +217,10 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     gap: 0.4rem;
     font-size: 0.78rem;
     font-weight: 700;
-    color: #7c3aed;
+    color: var(--color-brand-primary);
     text-decoration: none;
     padding: 0.4rem 0.9rem;
-    border: 1.5px solid #7c3aed;
+    border: 1.5px solid var(--color-brand-primary);
     border-radius: 9999px;
     transition:
       background 0.18s ease,
@@ -228,7 +228,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     white-space: nowrap;
   }
   .eventos-strip-link:hover {
-    background: #7c3aed;
+    background: var(--color-brand-primary);
     color: #fff;
   }
   .eventos-strip-grid {
@@ -263,7 +263,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
   /* ── Canton callout ───────────────────────────────────────────────────────── */
   .canton-callout {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-neutral-200);
     border-radius: 16px;
     overflow: hidden;
     max-width: 80rem;
@@ -294,7 +294,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     margin: 0 0 0.5rem;
   }
 
@@ -302,7 +302,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     font-family: 'Space Grotesk', sans-serif;
     font-size: clamp(1.25rem, 2.5vw, 1.75rem);
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     letter-spacing: -0.03em;
     line-height: 1.15;
     margin: 0 0 0.5rem;
@@ -310,7 +310,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
 
   .callout-sub {
     font-size: 0.82rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     line-height: 1.6;
     margin: 0;
     max-width: 32rem;
@@ -328,8 +328,8 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
     border-radius: 12px;
     padding: 0.75rem 1rem;
     min-width: 100px;
@@ -363,13 +363,13 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     display: block;
   }
 
   .callout-metric-detail {
     font-size: 0.58rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     display: block;
     margin-top: 0.1rem;
   }

@@ -171,7 +171,7 @@ const highlightsCanton = config?.highlightsCanton ?? null;
     --primary-gold: #d97706; /* Amber Andino — barras decorativas                  */
     --bg-body: #f4fbf0; /* Tinte verde Heineken suavísimo */
     --text-main: #003109; /* Verde Noche — máximo contraste */
-    --text-muted: #4b5563;
+    --text-muted: var(--color-neutral-600);
     --surface: #ffffff;
     --surface-border: #d1fae5; /* Borde verde suave */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -450,9 +450,9 @@ const highlightsCanton = config?.highlightsCanton ?? null;
 
   /* ── Activity chip (generado por JS) ── */
   :global(.activity-chip) {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    color: #475569;
+    background: var(--color-neutral-100);
+    border: 1px solid var(--color-neutral-200);
+    color: var(--color-neutral-600);
     padding: 0.25rem 0.65rem;
     border-radius: 9999px;
     font-size: 0.75rem;

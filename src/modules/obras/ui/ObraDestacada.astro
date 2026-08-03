@@ -6,6 +6,7 @@
  * Si no hay obra destacada el componente no renderiza nada.
  */
 import type { Obra } from '@api/endpoints/obras';
+import { alfa, categoriaObra, estadoObra } from '@shared/config/categorias';
 
 interface Props {
   obra: Obra | null;
@@ -14,21 +15,6 @@ interface Props {
 const { obra } = Astro.props;
 if (!obra) return;
 
-const CATEGORIA: Record<string, { label: string; color: string; bg: string }> = {
-  vialidad: { label: 'Vialidad', color: '#1d4ed8', bg: '#dbeafe' },
-  agua: { label: 'Agua y saneamiento', color: '#0369a1', bg: '#e0f2fe' },
-  educacion: { label: 'Educación', color: '#6d28d9', bg: '#ede9fe' },
-  salud: { label: 'Salud', color: '#b91c1c', bg: '#fee2e2' },
-  espacios_publicos: { label: 'Espacios públicos', color: '#15803d', bg: '#dcfce7' },
-  productividad: { label: 'Productividad', color: '#b45309', bg: '#fef3c7' },
-  cultura: { label: 'Cultura y deporte', color: '#7c3aed', bg: '#f3e8ff' },
-};
-
-const ESTADO: Record<string, { label: string; dot: string }> = {
-  planificada: { label: 'Planificada', dot: '#9ca3af' },
-  en_progreso: { label: 'En progreso', dot: '#2563eb' },
-  completada: { label: 'Completada', dot: '#15803d' },
-};
 
 function formatUSD(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
@@ -36,8 +22,8 @@ function formatUSD(n: number): string {
   return `$${n.toLocaleString('es-EC')}`;
 }
 
-const cat = CATEGORIA[obra.categoria] ?? { label: obra.categoria, color: '#277816', bg: '#f0fdf4' };
-const est = ESTADO[obra.estado] ?? { label: obra.estado, dot: '#9ca3af' };
+const cat = categoriaObra(obra.categoria);
+const est = estadoObra(obra.estado);
 const pct = Math.max(0, Math.min(100, obra.porcentajeAvance));
 const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=format&q=85` : null;
 ---
@@ -100,7 +86,7 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
             >
               <div
                 class="dest-progress-fill"
-                style={`background: linear-gradient(90deg, ${cat.color}, #d97706);`}
+                style={`background: linear-gradient(90deg, ${cat.color}, var(--color-brand-gold-vivid));`}
                 data-width={pct}
               >
               </div>
@@ -168,7 +154,7 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
             ) : (
               <div
                 class="dest-img-fallback"
-                style={`background: linear-gradient(135deg, ${cat.color}22, ${cat.color}44);`}
+                style={`background: linear-gradient(135deg, ${alfa(cat.color, 13)}, ${alfa(cat.color, 27)});`}
                 aria-hidden="true"
               >
                 <span class="dest-img-fallback-icon">🏗️</span>
@@ -243,7 +229,7 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
   /* Card principal */
   .dest-card {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-neutral-200);
     border-radius: 20px;
     overflow: hidden;
     box-shadow:
@@ -293,9 +279,9 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
     gap: 0.35rem;
     font-size: 0.68rem;
     font-weight: 600;
-    color: #6b7280;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+    color: var(--color-neutral-500);
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
     padding: 0.22rem 0.7rem;
     border-radius: 9999px;
   }
@@ -314,7 +300,7 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     margin: 0;
   }
   .dest-parroquia svg {
@@ -326,14 +312,14 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
     font-family: 'Space Grotesk', sans-serif;
     font-size: clamp(1.3rem, 2.5vw, 1.9rem);
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     letter-spacing: -0.025em;
     line-height: 1.2;
     margin: 0;
   }
   .dest-resumen {
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     line-height: 1.65;
     margin: 0;
     max-width: 52ch;
@@ -348,7 +334,7 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
     justify-content: space-between;
     font-size: 0.7rem;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     margin-bottom: 0.45rem;
   }
   .dest-progress-meta strong {
@@ -356,7 +342,7 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
   }
   .dest-progress-track {
     height: 8px;
-    background: #f1f5f9;
+    background: var(--color-neutral-100);
     border-radius: 9999px;
     overflow: hidden;
   }
@@ -377,8 +363,8 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
     border-radius: 12px;
     padding: 0.5rem 0.85rem;
   }
@@ -406,7 +392,7 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #6b7280;
+    color: var(--color-neutral-500);
   }
 
   /* CTA */
@@ -437,7 +423,7 @@ const imgSrc = obra.imageUrl ? `${obra.imageUrl}?w=900&h=560&fit=crop&auto=forma
   .dest-img-wrap {
     position: relative;
     overflow: hidden;
-    background: #f1f5f9;
+    background: var(--color-neutral-100);
   }
   .dest-img {
     position: absolute;

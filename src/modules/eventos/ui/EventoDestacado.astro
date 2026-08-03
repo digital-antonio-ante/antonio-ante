@@ -6,6 +6,7 @@
  * Si no hay evento destacado el componente no renderiza nada.
  */
 import type { Evento } from '@api/endpoints/eventos';
+import { categoriaEvento } from '@shared/config/categorias';
 
 interface Props {
   evento: Evento | null;
@@ -14,21 +15,8 @@ interface Props {
 const { evento } = Astro.props;
 if (!evento) return;
 
-const CATEGORIA: Record<string, { label: string; emoji: string; color: string; bg: string }> = {
-  feria: { label: 'Ferias y exposiciones', emoji: '🎪', color: '#7c3aed', bg: '#f3e8ff' },
-  cultura: { label: 'Cultura y arte', emoji: '🎭', color: '#be185d', bg: '#fce7f3' },
-  deporte: { label: 'Deporte y recreación', emoji: '🏃', color: '#1d4ed8', bg: '#dbeafe' },
-  civico: { label: 'Cívico', emoji: '🏛️', color: '#15803d', bg: '#dcfce7' },
-  comunitario: { label: 'Comunitario', emoji: '🤝', color: '#b45309', bg: '#fef3c7' },
-  agropecuario: { label: 'Agropecuario', emoji: '🌾', color: '#0369a1', bg: '#e0f2fe' },
-};
 
-const cat = CATEGORIA[evento.categoria] ?? {
-  label: evento.categoria,
-  emoji: '📅',
-  color: '#277816',
-  bg: '#f0fdf4',
-};
+const cat = categoriaEvento(evento.categoria);
 
 const fechaInicio = new Date(evento.fechaInicio);
 const dia = fechaInicio.getDate().toString().padStart(2, '0');
@@ -72,7 +60,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
           <div class="evd-badges">
             <span class="evd-cat" style={`background:${cat.bg}; color:${cat.color};`}>
               {cat.emoji}
-              {cat.label}
+              {cat.labelLargo}
             </span>
             {
               esPasado ? (
@@ -301,7 +289,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
   /* Card */
   .evd-card {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-neutral-200);
     border-radius: 20px;
     overflow: hidden;
     box-shadow:
@@ -360,8 +348,8 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     color: #15803d;
   }
   .evd-status--past {
-    background: #f3f4f6;
-    color: #4b5563;
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-600);
   }
 
   /* Título */
@@ -369,7 +357,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     font-family: 'Space Grotesk', sans-serif;
     font-size: clamp(1.3rem, 2.5vw, 1.9rem);
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     letter-spacing: -0.025em;
     line-height: 1.2;
     margin: 0;
@@ -378,7 +366,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
   /* Resumen */
   .evd-resumen {
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     line-height: 1.65;
     margin: 0;
     max-width: 52ch;
@@ -389,8 +377,8 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
     border-radius: 14px;
     padding: 0.85rem 1rem;
   }
@@ -399,7 +387,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     flex-direction: column;
     align-items: center;
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-neutral-200);
     border-radius: 10px;
     padding: 0.35rem 0.65rem;
     min-width: 52px;
@@ -408,7 +396,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
   }
   .evd-date-sep {
     font-size: 0.6rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     font-weight: 700;
     line-height: 1;
   }
@@ -423,13 +411,13 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.6rem;
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     line-height: 1;
   }
   .evd-date-año {
     font-size: 0.62rem;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     line-height: 1;
   }
   .evd-date-info {
@@ -446,7 +434,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     gap: 0.35rem;
     font-size: 0.78rem;
     font-weight: 600;
-    color: #4b5563;
+    color: var(--color-neutral-600);
     margin: 0;
   }
   .evd-date-hora svg,
@@ -459,7 +447,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     padding-left: 1.15rem;
   }
 
@@ -503,7 +491,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     transition: background 0.2s ease;
   }
   .evd-cta-secondary:hover {
-    background: #f9fafb;
+    background: var(--color-neutral-50);
   }
 
   /* Chip entrada */
@@ -532,7 +520,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
   .evd-img-wrap {
     position: relative;
     overflow: hidden;
-    background: #f1f5f9;
+    background: var(--color-neutral-100);
   }
   .evd-img {
     position: absolute;

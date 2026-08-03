@@ -2,6 +2,7 @@
 import BaseLayout from '@ui/BaseLayout.astro';
 import EventoCard from '../../modules/eventos/ui/EventoCard.astro';
 import { getEventosProximos, getEventosPasados } from '@api/endpoints/eventos';
+import { CATEGORIAS_EVENTO } from '@shared/config/categorias';
 
 const [proximos, pasados] = await Promise.all([
   getEventosProximos(30).catch(() => []),
@@ -19,18 +20,10 @@ const proximosFiltrados = filtrar(proximos);
 const pasadosFiltrados = filtrar(pasados);
 const total = proximosFiltrados.length + pasadosFiltrados.length;
 
-const CATEGORIA: Record<string, { label: string; emoji: string }> = {
-  feria: { label: 'Ferias', emoji: '🎪' },
-  cultura: { label: 'Cultura', emoji: '🎭' },
-  deporte: { label: 'Deporte', emoji: '🏃' },
-  civico: { label: 'Cívico', emoji: '🏛️' },
-  comunitario: { label: 'Comunitario', emoji: '🤝' },
-  agropecuario: { label: 'Agropecuario', emoji: '🌾' },
-};
 
 const todasCategorias = [
   ...new Set([...proximosFiltrados, ...pasadosFiltrados].map((e) => e.categoria)),
-].filter((c) => c in CATEGORIA);
+].filter((c) => c in CATEGORIAS_EVENTO);
 
 const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos del cantón';
 ---
@@ -134,7 +127,7 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
               </button>
               {todasCategorias.map((cat) => (
                 <button class="ev-filter" data-filter={cat}>
-                  {CATEGORIA[cat]?.emoji} {CATEGORIA[cat]?.label ?? cat}
+                  {CATEGORIAS_EVENTO[cat]?.emoji} {CATEGORIAS_EVENTO[cat]?.label ?? cat}
                 </button>
               ))}
             </div>
@@ -231,8 +224,16 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
 
 <style>
   /* ── Hero ─────────────────────────────────────────────────────────────── */
+  /* Mismo lenguaje que el hero de /obras y el de /parroquias: el degradado de
+     sección sale del ancla verde de marca. Antes era índigo→violeta, la única
+     superficie del sitio que no pertenecía a la paleta. */
   .ev-hero {
-    background: linear-gradient(160deg, #1e1b4b 0%, #4c1d95 55%, #1e1b4b 100%);
+    background: linear-gradient(
+      160deg,
+      var(--color-brand-dark) 0%,
+      var(--color-brand-deep) 55%,
+      var(--color-brand-dark) 100%
+    );
     padding: 3.5rem 1.5rem 3rem;
     position: relative;
     overflow: hidden;
@@ -244,7 +245,12 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #7c3aed 0%, #d97706 55%, #dc2626 100%);
+    background: linear-gradient(
+      90deg,
+      var(--color-brand-primary) 0%,
+      var(--color-brand-gold-vivid) 55%,
+      var(--color-brand-secondary) 100%
+    );
   }
   .ev-hero-inner {
     max-width: 80rem;
@@ -257,7 +263,7 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.18em;
-    color: #c4b5fd;
+    color: var(--color-brand-gold-soft);
     margin: 0 0 0.5rem;
   }
   .ev-title {
@@ -293,9 +299,9 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
     border: 1px solid rgba(255, 255, 255, 0.18);
   }
   .pill--proximos {
-    background: rgba(124, 58, 237, 0.3);
-    color: #c4b5fd;
-    border: 1px solid rgba(124, 58, 237, 0.45);
+    background: rgba(60, 141, 43, 0.35);
+    color: var(--color-brand-gold-soft);
+    border: 1px solid rgba(60, 141, 43, 0.55);
   }
   .pill--pasados {
     background: rgba(255, 255, 255, 0.08);
@@ -344,7 +350,7 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
   }
   .ev-tabs {
     display: flex;
-    background: #f3f4f6;
+    background: var(--color-neutral-100);
     border-radius: 9999px;
     padding: 3px;
     gap: 2px;
@@ -358,7 +364,7 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
     border-radius: 9999px;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -369,26 +375,26 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
   }
   .ev-tab--active {
     background: #ffffff;
-    color: #111827;
+    color: var(--color-neutral-900);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   }
   .ev-tab:focus-visible {
-    outline: 2px solid #7c3aed;
+    outline: 2px solid var(--color-brand-primary);
     outline-offset: 2px;
   }
   .ev-tab-count {
     font-size: 0.65rem;
     font-weight: 800;
-    background: #e5e7eb;
-    color: #374151;
+    background: var(--color-neutral-200);
+    color: var(--color-neutral-700);
     padding: 0.1rem 0.45rem;
     border-radius: 9999px;
     min-width: 20px;
     text-align: center;
   }
   .ev-tab--active .ev-tab-count {
-    background: #f3e8ff;
-    color: #7c3aed;
+    background: var(--color-brand-accent);
+    color: var(--color-brand-primary);
   }
   .ev-filters {
     display: flex;
@@ -400,9 +406,9 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
     border-radius: 9999px;
     font-size: 0.72rem;
     font-weight: 700;
-    color: #6b7280;
-    background: #f9fafb;
-    border: 1.5px solid #e5e7eb;
+    color: var(--color-neutral-500);
+    background: var(--color-neutral-50);
+    border: 1.5px solid var(--color-neutral-200);
     cursor: pointer;
     transition:
       background 0.18s ease,
@@ -411,16 +417,16 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
     white-space: nowrap;
   }
   .ev-filter--active {
-    background: #f3e8ff;
-    color: #7c3aed;
-    border-color: #c4b5fd;
+    background: var(--color-brand-accent);
+    color: var(--color-brand-primary);
+    border-color: var(--color-brand-primary-soft);
   }
   .ev-filter:hover:not(.ev-filter--active) {
-    background: #f3f4f6;
-    color: #374151;
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-700);
   }
   .ev-filter:focus-visible {
-    outline: 2px solid #7c3aed;
+    outline: 2px solid var(--color-brand-primary);
     outline-offset: 2px;
   }
 
@@ -445,7 +451,7 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 2px dashed #e9d5ff;
+    border: 2px dashed var(--color-brand-primary-faint);
     border-radius: 20px;
   }
   .ev-empty-icon {
@@ -457,12 +463,12 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.15rem;
     font-weight: 800;
-    color: #374151;
+    color: var(--color-neutral-700);
     margin: 0 0 0.5rem;
   }
   .ev-empty-desc {
     font-size: 0.875rem;
-    color: #9ca3af;
+    color: var(--color-neutral-400);
     max-width: 360px;
     margin: 0 auto;
     line-height: 1.6;

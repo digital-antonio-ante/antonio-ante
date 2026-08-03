@@ -64,6 +64,9 @@
   /* Amber Andino — barras decorativas, hover cálido, rompe el binario */
   --color-brand-gold-vivid: #D97706;
 
+  /* Amber claro — eyebrow sobre los heroes oscuros de sección (8.72:1 ✓ AAA) */
+  --color-brand-gold-soft: #fbbf24;
+
   /* Verde Bosque — gradientes intermedios, secciones alternadas oscuras */
   --color-brand-deep: #005d1f;
 
@@ -72,6 +75,12 @@
 
   /* Verde Brillante — hover states, highlights, badges secundarios */
   --color-brand-vivid: #3c8d2b;
+
+  /* Tintes claros del primario — bordes y contornos sobre fondo claro. Derivados
+     al hue del verde de marca conservando la claridad de los violetas #c4b5fd /
+     #e9d5ff que sustituyen, para que el peso visual del borde no cambie. */
+  --color-brand-primary-soft: #a2d099;
+  --color-brand-primary-faint: #cae9c4;
 
   /* Verde Noche texto — máximo contraste sobre fondos claros */
   --color-brand-ink: #003109;
@@ -82,11 +91,106 @@
   /* Blanco Limpio — superficies de cards, formularios */
   --color-brand-light: #FFFFFF;
 
-  /* Gris texto secundario — párrafos de apoyo sobre fondo claro */
-  --color-text-secondary: #4b5563;
+  /* ─── Neutros "Piedra Andina" ────────────────────────────────────────────────
+   *
+   * Por qué existen: hasta ahora los grises se inyectaban crudos en cada
+   * componente, y mezclados de DOS familias distintas de Tailwind — `gray`
+   * (neutro) y `slate` (azulado). Eso es lo que hace que una interfaz se lea
+   * "genérica": son los mismos grises que produce cualquier generador, y encima
+   * discordando entre sí en la misma página.
+   *
+   * Cómo se derivaron: hue OKLCH del ancla de marca (#003109 → 145.9°) con croma
+   * MUY bajo (0.0035–0.008), de modo que los neutros armonizan con el verde en
+   * lugar de tirar al azul. No es un verde: a este croma el tinte es
+   * imperceptible en aislado y solo se nota como coherencia del conjunto.
+   *
+   * Restricción dura: la LUMINANCIA RELATIVA WCAG de cada paso está bloqueada al
+   * gris que sustituye (Δ < 0.004 en todos los pasos, < 0.0002 de 500 en
+   * adelante). Por eso NINGÚN ratio de contraste del sitio se mueve: los valores
+   * cambian de tinte, no de claridad. Verificado en tests/design-tokens.test.ts.
+   *
+   *   paso  sustituye a            contraste sobre blanco
+   *   50    gray-50  / slate-50     1.05:1   superficies
+   *   100   gray-100 / slate-100    1.10:1   fondos alternos
+   *   200   gray-200 / slate-200    1.23:1   bordes suaves
+   *   300   gray-300 / slate-300    1.47:1   bordes, divisores
+   *   400   gray-400 / slate-400    2.53:1   iconos deshabilitados (NO texto)
+   *   500   gray-500 / slate-500    4.82:1   texto secundario  ✓ AA
+   *   600   gray-600 / slate-600    7.59:1   texto de apoyo    ✓ AAA
+   *   700   gray-700 / slate-700   10.34:1   texto fuerte      ✓ AAA
+   *   800   gray-800               14.71:1   superficies oscuras
+   *   900   gray-900 / slate-900   17.71:1   charcoal (footer) ✓ AAA
+   * ─────────────────────────────────────────────────────────────────────────── */
+  --color-neutral-50: #f8faf8;
+  --color-neutral-100: #f2f5f2;
+  --color-neutral-200: #e5e8e5;
+  --color-neutral-300: #d2d6d2;
+  --color-neutral-400: #9fa4a0;
+  --color-neutral-500: #6f736f;
+  --color-neutral-600: #515551;
+  --color-neutral-700: #3e413e;
+  --color-neutral-800: #262926;
+  --color-neutral-900: #161917;
 
-  /* Gris texto muted — metadatos, notas al pie de bloque */
-  --color-text-muted: #64748b;
+  /* Gris texto secundario — párrafos de apoyo sobre fondo claro (AAA, 7.59:1) */
+  --color-text-secondary: var(--color-neutral-600);
+
+  /* Gris texto muted — metadatos, notas al pie de bloque (AA, 4.82:1) */
+  --color-text-muted: var(--color-neutral-500);
+
+  /* ─── Morado de marca ────────────────────────────────────────────────────────
+   *
+   * El sitio arrastraba el violeta #7c3aed / #6d28d9 — la paleta por defecto de
+   * Tailwind, y el tono que delata una interfaz generada. No pertenecía a
+   * ninguna paleta de este cantón. Se sustituye por el morado REAL del manual de
+   * marca (#903d8e, presente en el isotipo y en las submarcas de parroquia:
+   * public/marca/). Hue OKLCH 328.5°.
+   *
+   * Contraste: #903d8e 6.47:1 · #722b71 9.13:1 sobre blanco (ambos ✓ AA).
+   * Separación entre los dos tonos ΔL=0.082 — MAYOR que la de los violetas que
+   * sustituyen (0.051), así que las categorías se distinguen mejor que antes.
+   * ─────────────────────────────────────────────────────────────────────────── */
+  --color-brand-purple: #903d8e;
+  --color-brand-purple-deep: #722b71;
+  --color-brand-purple-soft: #f9e7f8;
+
+  /* ─── Paleta categórica (etiquetas de eventos y obras) ───────────────────────
+   *
+   * Es una paleta CUALITATIVA: su trabajo no es expresar jerarquía sino que dos
+   * categorías vecinas se distingan de un vistazo. Por eso se nombra por hue y
+   * no por categoría — la misma ranura la comparten "deporte" (eventos) y
+   * "vialidad" (obras).
+   *
+   * Antes vivía DUPLICADA como literales en 6 archivos (EventoCard,
+   * EventoDestacado, eventos/[slug], ObrasGrid, ObraDestacada, obras/[slug]);
+   * cualquier ajuste había que hacerlo seis veces y ya habían divergido. Ahora la
+   * fuente única es esta, y el mapa categoría→ranura vive en
+   * src/shared/config/categorias.ts.
+   *
+   * Todos los pares texto/fondo verificados ≥ 4.5:1 (AA) — el más justo es ámbar
+   * con 4.51:1. Cualquier cambio de estos valores debe re-verificarse con
+   * `npx tsx tests/design-tokens.test.ts`.
+   * ─────────────────────────────────────────────────────────────────────────── */
+  --color-tag-violeta: var(--color-brand-purple);
+  --color-tag-violeta-bg: var(--color-brand-purple-soft);
+  --color-tag-violeta-deep: var(--color-brand-purple-deep);
+  --color-tag-rosa: #be185d;
+  --color-tag-rosa-bg: #fce7f3;
+  --color-tag-azul: #1d4ed8;
+  --color-tag-azul-bg: #dbeafe;
+  --color-tag-cian: #0369a1;
+  --color-tag-cian-bg: #e0f2fe;
+  --color-tag-verde: #15803d;
+  --color-tag-verde-bg: #dcfce7;
+  --color-tag-ambar: #b45309;
+  --color-tag-ambar-bg: #fef3c7;
+  --color-tag-rojo: #b91c1c;
+  --color-tag-rojo-bg: #fee2e2;
+
+  /* Estados de obra — semánticos, no categóricos */
+  --color-estado-planificada: var(--color-neutral-500);
+  --color-estado-progreso: #2563eb;
+  --color-estado-completada: var(--color-tag-verde);
 
   /* ─── Tipografía fluida (clamp: 375px → 1280px) ─── */
   /* Controla tamaño base en móvil y crece hacia desktop sin breakpoints */

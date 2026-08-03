@@ -39,10 +39,10 @@ const parishesJson = JSON.stringify(PARISHES);
   /* CSS vars: se heredan del contexto padre o se definen aquí como fallback */
   .map-widget {
     --primary: #dc2626;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
+    --text-main: var(--color-neutral-900);
+    --text-muted: var(--color-neutral-500);
     --surface: #ffffff;
-    --surface-border: #e2e8f0;
+    --surface-border: var(--color-neutral-200);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     width: 100%;
   }
@@ -88,9 +88,9 @@ const parishesJson = JSON.stringify(PARISHES);
 
   /* Activity chip (creado dinámicamente por JS) */
   :global(.activity-chip) {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    color: #475569;
+    background: var(--color-neutral-100);
+    border: 1px solid var(--color-neutral-200);
+    color: var(--color-neutral-600);
     padding: 0.25rem 0.65rem;
     border-radius: 9999px;
     font-size: 0.75rem;

@@ -1,0 +1,31 @@
+# Configuración de Gitleaks — antonio-ante
+#
+# El gate de secretos de YAPI corre `gitleaks dir .`, que recorre el árbol de
+# trabajo COMPLETO. A diferencia de `gitleaks git`, no consulta .gitignore: entra
+# en dist/, .astro/ y .wrangler/ aunque ninguno de esos archivos pueda llegar a
+# un commit.
+#
+# El falso positivo concreto: el adaptador de Cloudflare emite en
+# dist/server/chunks/worker-entry_*.mjs un manifiesto de Astro con
+# `"key":"<base64>"` — la clave con la que Astro cifra props de islas. Se
+# regenera en cada build, nunca se versiona, y su entropía dispara la regla
+# genérica `generic-api-key`. Marcarla por huella no sirve: el nombre del chunk
+# lleva un hash que cambia en cada build.
+#
+# Se excluyen SOLO rutas de artefactos de build, todas en .gitignore. El código
+# fuente, la configuración y los assets se siguen escaneando con las reglas por
+# defecto completas.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Artefactos de build regenerables — nunca versionados (ver .gitignore)"
+paths = [
+  '''^dist/''',
+  '''^studio/dist/''',
+  '''^\.astro/''',
+  '''^\.wrangler/''',
+  '''^\.netlify/''',
+  '''^node_modules/''',
+]
