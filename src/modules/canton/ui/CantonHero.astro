@@ -19,6 +19,8 @@ import CantonGallery from './CantonGallery.astro';
 import { PARISHES } from '../data/parishes';
 import { getParroquiasImageUrls } from '@api/endpoints/parroquias';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
+// Mismo lockup oficial que usa el Header — logo, no tipografía libre.
+import lockupSvg from '../../../../public/marca/antonio-ante-horizontal.svg?raw';
 
 // Fetch en paralelo — ambos son estáticos (prerender = true)
 const [sanityParroquias, config] = await Promise.all([
@@ -102,16 +104,13 @@ const highlightsCanton = config?.highlightsCanton ?? null;
         Imbabura · Ecuador
       </div>
 
-      <h1 class="canton-title">
-        <span class="canton-title-top">Explora el Cantón</span>
-        <span class="canton-title-main">
-          Antonio Ante
-          <span class="title-underline" aria-hidden="true"></span>
-        </span>
-      </h1>
+      <span class="canton-title-top">Explora el Cantón</span>
+
+      <h1 class="canton-title--sr">Antonio Ante</h1>
+      <div class="canton-logo" set:html={lockupSvg} />
 
       <p class="canton-sub">
-        Conoce sus <strong>6 parroquias</strong>, su gente y los proyectos que impulsan la región
+        Conoce sus <strong>6 parroquias</strong>, su gente, su cultura y sus encantos turísticos
       </p>
 
       <div class="canton-pills" role="list" aria-label="Características del cantón">
@@ -233,14 +232,6 @@ const highlightsCanton = config?.highlightsCanton ?? null;
       transform: scale(0.6);
     }
   }
-  .canton-title {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.1rem;
-    line-height: 1;
-    margin: 0;
-  }
   .canton-title-top {
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
@@ -249,32 +240,27 @@ const highlightsCanton = config?.highlightsCanton ?? null;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
-  .canton-title-main {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(2.6rem, 8vw, 4.5rem);
-    font-weight: 800;
-    color: var(--text-main);
-    letter-spacing: -0.03em;
-    line-height: 0.95;
-    position: relative;
-    display: inline-block;
+  /* h1 real: fuera de pantalla pero disponible para SEO y lectores — el
+     nombre ya viaja dibujado en curvas dentro del logo (.canton-logo). */
+  .canton-title--sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
-  .title-underline {
+  .canton-logo {
+    height: clamp(3.4rem, 8vw, 5.4rem);
+    margin: 0.4rem 0 0.1rem;
+  }
+  .canton-logo :global(svg) {
+    height: 100%;
+    width: auto;
     display: block;
-    height: 5px;
-    /* Verde Bosque → Verde Heineken → Amber → Rojo Fuego: las 5 capas en una línea */
-    background: linear-gradient(
-      90deg,
-      var(--primary-deep),
-      var(--primary-green),
-      var(--primary-gold),
-      var(--primary)
-    );
-    border-radius: 9999px;
-    margin-top: 0.3rem;
-    width: 60%;
-    margin-left: auto;
-    margin-right: auto;
   }
   .canton-sub {
     font-size: 1rem;
