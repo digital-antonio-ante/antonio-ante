@@ -9,6 +9,7 @@
  * Estado vacío: placeholder que invita a cargar obras desde Sanity.
  */
 import type { Obra } from '@api/endpoints/obras';
+import { alfa, categoriaObra, estadoObra } from '@shared/config/categorias';
 
 interface Props {
   obras: Obra[];
@@ -17,21 +18,6 @@ interface Props {
 const { obras } = Astro.props;
 
 // Metadatos visuales por categoría
-const CATEGORIA: Record<string, { label: string; color: string; bg: string }> = {
-  vialidad: { label: 'Vialidad', color: '#1d4ed8', bg: '#dbeafe' },
-  agua: { label: 'Agua y saneamiento', color: '#0369a1', bg: '#e0f2fe' },
-  educacion: { label: 'Educación', color: '#6d28d9', bg: '#ede9fe' },
-  salud: { label: 'Salud', color: '#b91c1c', bg: '#fee2e2' },
-  espacios_publicos: { label: 'Espacios públicos', color: '#15803d', bg: '#dcfce7' },
-  productividad: { label: 'Productividad', color: '#b45309', bg: '#fef3c7' },
-  cultura: { label: 'Cultura y deporte', color: '#7c3aed', bg: '#f3e8ff' },
-};
-
-const ESTADO: Record<string, { label: string; color: string }> = {
-  planificada: { label: 'Planificada', color: '#6b7280' },
-  en_progreso: { label: 'En progreso', color: '#2563eb' },
-  completada: { label: 'Completada', color: '#15803d' },
-};
 
 function formatUSD(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
@@ -63,12 +49,8 @@ function formatUSD(n: number): string {
       obras.length > 0 ? (
         <ul class="obras-grid" role="list">
           {obras.map((obra) => {
-            const cat = CATEGORIA[obra.categoria] ?? {
-              label: obra.categoria,
-              color: '#6b7280',
-              bg: '#f3f4f6',
-            };
-            const est = ESTADO[obra.estado] ?? { label: obra.estado, color: '#6b7280' };
+            const cat = categoriaObra(obra.categoria);
+            const est = estadoObra(obra.estado);
             const avance = Math.max(0, Math.min(100, obra.porcentajeAvance));
 
             return (
@@ -86,7 +68,7 @@ function formatUSD(n: number): string {
                     ) : (
                       <div
                         class="obra-img-fallback"
-                        style={`background: linear-gradient(135deg, ${cat.color}22, ${cat.color}55);`}
+                        style={`background: linear-gradient(135deg, ${alfa(cat.color, 13)}, ${alfa(cat.color, 33)});`}
                         aria-hidden="true"
                       >
                         <span class="obra-img-fallback-icon">🏗️</span>
@@ -236,22 +218,22 @@ function formatUSD(n: number): string {
     font-family: 'Space Grotesk', sans-serif;
     font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     letter-spacing: -0.02em;
     margin: 0 0 0.4rem;
     line-height: 1.1;
   }
   .obras-sub {
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     margin: 0;
   }
   .obras-count {
     font-size: 0.75rem;
     font-weight: 700;
-    color: #6b7280;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+    color: var(--color-neutral-500);
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
     padding: 0.3rem 0.8rem;
     border-radius: 9999px;
     white-space: nowrap;
@@ -298,7 +280,7 @@ function formatUSD(n: number): string {
     width: 100%;
     height: 200px;
     flex-shrink: 0;
-    background: #f1f5f9;
+    background: var(--color-neutral-100);
     overflow: hidden;
   }
   .obra-img {
@@ -364,7 +346,7 @@ function formatUSD(n: number): string {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     margin: 0;
   }
   .obra-parroquia svg {
@@ -375,14 +357,14 @@ function formatUSD(n: number): string {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1rem;
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     line-height: 1.3;
     letter-spacing: -0.01em;
     margin: 0;
   }
   .obra-resumen {
     font-size: 0.82rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     line-height: 1.6;
     margin: 0;
     display: -webkit-box;
@@ -402,7 +384,7 @@ function formatUSD(n: number): string {
     align-items: center;
     font-size: 0.7rem;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     margin-bottom: 0.4rem;
   }
   .progress-meta strong {
@@ -410,7 +392,7 @@ function formatUSD(n: number): string {
   }
   .progress-track {
     height: 6px;
-    background: #f1f5f9;
+    background: var(--color-neutral-100);
     border-radius: 9999px;
     overflow: hidden;
   }
@@ -430,9 +412,9 @@ function formatUSD(n: number): string {
   .obra-chip {
     font-size: 0.68rem;
     font-weight: 600;
-    color: #6b7280;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+    color: var(--color-neutral-500);
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
     padding: 0.22rem 0.65rem;
     border-radius: 9999px;
   }
@@ -457,12 +439,12 @@ function formatUSD(n: number): string {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.2rem;
     font-weight: 800;
-    color: #374151;
+    color: var(--color-neutral-700);
     margin: 0 0 0.5rem;
   }
   .obras-empty-desc {
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     max-width: 360px;
     margin: 0 auto;
     line-height: 1.6;

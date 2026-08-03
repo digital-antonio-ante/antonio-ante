@@ -13,23 +13,12 @@ interface Props {
   loading?: 'lazy' | 'eager';
 }
 
+import { categoriaEvento } from '@shared/config/categorias';
+
 const { evento, loading = 'lazy' } = Astro.props;
 
-const CATEGORIA: Record<string, { label: string; emoji: string; color: string; bg: string }> = {
-  feria: { label: 'Ferias', emoji: '🎪', color: '#7c3aed', bg: '#f3e8ff' },
-  cultura: { label: 'Cultura', emoji: '🎭', color: '#be185d', bg: '#fce7f3' },
-  deporte: { label: 'Deporte', emoji: '🏃', color: '#1d4ed8', bg: '#dbeafe' },
-  civico: { label: 'Cívico', emoji: '🏛️', color: '#15803d', bg: '#dcfce7' },
-  comunitario: { label: 'Comunitario', emoji: '🤝', color: '#b45309', bg: '#fef3c7' },
-  agropecuario: { label: 'Agropecuario', emoji: '🌾', color: '#0369a1', bg: '#e0f2fe' },
-};
 
-const cat = CATEGORIA[evento.categoria] ?? {
-  label: evento.categoria,
-  emoji: '📅',
-  color: '#277816',
-  bg: '#f0fdf4',
-};
+const cat = categoriaEvento(evento.categoria);
 
 const fecha = new Date(evento.fechaInicio);
 const dia = fecha.getDate().toString().padStart(2, '0');
@@ -181,7 +170,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
     width: 100%;
     height: 196px;
     flex-shrink: 0;
-    background: #f1f5f9;
+    background: var(--color-neutral-100);
     overflow: hidden;
   }
   .ev-card__img {
@@ -259,7 +248,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
     align-items: center;
     flex-shrink: 0;
     background: #ffffff;
-    border: 1.5px solid #e2e8f0;
+    border: 1.5px solid var(--color-neutral-200);
     border-radius: 10px;
     padding: 0.3rem 0.55rem;
     min-width: 46px;
@@ -276,13 +265,13 @@ const esEntradaLibre = evento.entradaLibre !== false;
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.4rem;
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     line-height: 1.1;
   }
   .ev-card__date-año {
     font-size: 0.6rem;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     line-height: 1;
   }
   .ev-card__date-meta {
@@ -297,7 +286,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
     gap: 0.28rem;
     font-size: 0.72rem;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-neutral-500);
   }
   .ev-card__hora svg {
     flex-shrink: 0;
@@ -308,7 +297,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #6b7280;
+    color: var(--color-neutral-500);
   }
 
   /* Título */
@@ -316,7 +305,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1rem;
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     line-height: 1.3;
     letter-spacing: -0.01em;
     margin: 0;
@@ -325,7 +314,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
   /* Resumen */
   .ev-card__resumen {
     font-size: 0.82rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     line-height: 1.6;
     margin: 0;
     display: -webkit-box;
@@ -342,7 +331,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-neutral-100);
   }
   .ev-card__lugar {
     display: inline-flex;
@@ -350,7 +339,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
     gap: 0.3rem;
     font-size: 0.72rem;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;

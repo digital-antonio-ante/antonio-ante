@@ -9,6 +9,7 @@
  */
 import type { Evento } from '@api/endpoints/eventos';
 import EventoCard from './EventoCard.astro';
+import { CATEGORIAS_EVENTO } from '@shared/config/categorias';
 
 interface Props {
   proximos: Evento[];
@@ -17,18 +18,10 @@ interface Props {
 
 const { proximos, pasados } = Astro.props;
 
-const CATEGORIA: Record<string, { label: string; emoji: string }> = {
-  feria: { label: 'Ferias', emoji: '🎪' },
-  cultura: { label: 'Cultura', emoji: '🎭' },
-  deporte: { label: 'Deporte', emoji: '🏃' },
-  civico: { label: 'Cívico', emoji: '🏛️' },
-  comunitario: { label: 'Comunitario', emoji: '🤝' },
-  agropecuario: { label: 'Agropecuario', emoji: '🌾' },
-};
 
 // Categorías presentes en el dataset completo (para los chips de filtro)
 const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categoria))].filter(
-  (c) => c in CATEGORIA
+  (c) => c in CATEGORIAS_EVENTO
 );
 ---
 
@@ -94,7 +87,7 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
             </button>
             {todasCategorias.map((cat) => (
               <button class="evg-filter" data-filter={cat}>
-                {CATEGORIA[cat]?.emoji} {CATEGORIA[cat]?.label ?? cat}
+                {CATEGORIAS_EVENTO[cat]?.emoji} {CATEGORIAS_EVENTO[cat]?.label ?? cat}
               </button>
             ))}
           </div>
@@ -229,21 +222,21 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.16em;
-    color: #7c3aed;
+    color: var(--color-brand-primary);
     margin: 0 0 0.4rem;
   }
   .evg-title {
     font-family: 'Space Grotesk', sans-serif;
     font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     letter-spacing: -0.02em;
     margin: 0 0 0.4rem;
     line-height: 1.1;
   }
   .evg-sub {
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     margin: 0;
   }
   .evg-ver-todos {
@@ -280,7 +273,7 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
   /* Tabs */
   .evg-tabs {
     display: flex;
-    background: #f3f4f6;
+    background: var(--color-neutral-100);
     border-radius: 9999px;
     padding: 3px;
     gap: 2px;
@@ -294,7 +287,7 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
     border-radius: 9999px;
     font-size: 0.78rem;
     font-weight: 700;
-    color: #6b7280;
+    color: var(--color-neutral-500);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -305,7 +298,7 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
   }
   .evg-tab--active {
     background: #ffffff;
-    color: #111827;
+    color: var(--color-neutral-900);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   }
   .evg-tab:focus-visible {
@@ -315,8 +308,8 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
   .evg-tab-count {
     font-size: 0.65rem;
     font-weight: 800;
-    background: #e5e7eb;
-    color: #374151;
+    background: var(--color-neutral-200);
+    color: var(--color-neutral-700);
     padding: 0.1rem 0.45rem;
     border-radius: 9999px;
     min-width: 20px;
@@ -338,9 +331,9 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
     border-radius: 9999px;
     font-size: 0.72rem;
     font-weight: 700;
-    color: #6b7280;
-    background: #f9fafb;
-    border: 1.5px solid #e5e7eb;
+    color: var(--color-neutral-500);
+    background: var(--color-neutral-50);
+    border: 1.5px solid var(--color-neutral-200);
     cursor: pointer;
     transition:
       background 0.18s ease,
@@ -349,13 +342,13 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
     white-space: nowrap;
   }
   .evg-filter--active {
-    background: #f3e8ff;
-    color: #7c3aed;
-    border-color: #c4b5fd;
+    background: var(--color-brand-accent);
+    color: var(--color-brand-primary);
+    border-color: var(--color-brand-primary-soft);
   }
   .evg-filter:hover:not(.evg-filter--active) {
-    background: #f3f4f6;
-    color: #374151;
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-700);
   }
   .evg-filter:focus-visible {
     outline: 2px solid #277816;
@@ -385,7 +378,7 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 2px dashed #e9d5ff;
+    border: 2px dashed var(--color-brand-primary-faint);
     border-radius: 20px;
   }
   .evg-empty-icon {
@@ -397,12 +390,12 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.15rem;
     font-weight: 800;
-    color: #374151;
+    color: var(--color-neutral-700);
     margin: 0 0 0.5rem;
   }
   .evg-empty-desc {
     font-size: 0.875rem;
-    color: #9ca3af;
+    color: var(--color-neutral-400);
     max-width: 360px;
     margin: 0 auto;
     line-height: 1.6;

@@ -62,8 +62,14 @@ function buildThumbs(): void {
     btn.className = 'g-thumb' + (i === 0 ? ' active' : '');
     btn.style.borderColor = i === 0 ? accentColor : 'transparent';
     btn.setAttribute('aria-label', `Ver foto ${i + 1}`);
-    // src comes from Sanity CDN — controlled, not user input
-    btn.innerHTML = `<img src="${src}" alt="Miniatura ${i + 1}" loading="lazy">`;
+    // Se construye el nodo en vez de interpolar HTML: `src` viene del CDN de
+    // Sanity, pero es contenido editable y una comilla en la URL bastaría para
+    // salir del atributo. setAttribute no interpreta markup.
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = `Miniatura ${i + 1}`;
+    img.loading = 'lazy';
+    btn.appendChild(img);
     btn.addEventListener('click', () => show(i));
     thumbsEl.appendChild(btn);
   });

@@ -3,6 +3,7 @@ import BaseLayout from '@ui/BaseLayout.astro';
 import PortableText from '@ui/PortableText.astro';
 import CantonGallery from '../../modules/canton/ui/CantonGallery.astro';
 import { getEventoBySlug, getEventosProximos } from '@api/endpoints/eventos';
+import { CATEGORIAS_EVENTO, alfa, categoriaEvento } from '@shared/config/categorias';
 
 const { slug } = Astro.params;
 if (!slug) return Astro.redirect('/eventos');
@@ -11,21 +12,8 @@ const evento = await getEventoBySlug(slug).catch(() => null);
 if (!evento) return new Response(null, { status: 404 });
 
 // ── Metadatos visuales ─────────────────────────────────────────────────────
-const CATEGORIA: Record<string, { label: string; emoji: string; color: string; bg: string }> = {
-  feria: { label: 'Ferias y exposiciones', emoji: '🎪', color: '#7c3aed', bg: '#f3e8ff' },
-  cultura: { label: 'Cultura y arte', emoji: '🎭', color: '#be185d', bg: '#fce7f3' },
-  deporte: { label: 'Deporte y recreación', emoji: '🏃', color: '#1d4ed8', bg: '#dbeafe' },
-  civico: { label: 'Cívico', emoji: '🏛️', color: '#15803d', bg: '#dcfce7' },
-  comunitario: { label: 'Comunitario', emoji: '🤝', color: '#b45309', bg: '#fef3c7' },
-  agropecuario: { label: 'Agropecuario', emoji: '🌾', color: '#0369a1', bg: '#e0f2fe' },
-};
 
-const cat = CATEGORIA[evento.categoria] ?? {
-  label: evento.categoria,
-  emoji: '📅',
-  color: '#277816',
-  bg: '#f0fdf4',
-};
+const cat = categoriaEvento(evento.categoria);
 
 const fechaInicio = new Date(evento.fechaInicio);
 const dia = fechaInicio.getDate().toString().padStart(2, '0');
@@ -105,7 +93,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
         <div class="evd-hero-badges">
           <span class="evd-hero-cat" style={`background:${cat.bg}; color:${cat.color};`}>
             {cat.emoji}
-            {cat.label}
+            {cat.labelLargo}
           </span>
           {
             esPasado ? (
@@ -193,15 +181,15 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
                     .toLocaleDateString('es-EC', { month: 'short' })
                     .replace('.', '')
                     .toUpperCase();
-                  const relCat = CATEGORIA[rel.categoria];
+                  const relCat = categoriaEvento(rel.categoria);
                   return (
                     <li>
                       <a href={`/eventos/${rel.slug.current}`} class="evd-rel-card">
                         <div
                           class="evd-rel-date"
-                          style={`border-color: ${relCat?.color ?? '#7c3aed'}33;`}
+                          style={`border-color: ${alfa(relCat.color, 20)};`}
                         >
-                          <span class="evd-rel-mes" style={`color: ${relCat?.color ?? '#7c3aed'};`}>
+                          <span class="evd-rel-mes" style={`color: ${relCat.color};`}>
                             {relMes}
                           </span>
                           <span class="evd-rel-dia">{relDia}</span>
@@ -345,7 +333,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
             <dd>
               <span class="evd-info-badge" style={`background:${cat.bg}; color:${cat.color};`}>
                 {cat.emoji}
-                {cat.label}
+                {cat.labelLargo}
               </span>
             </dd>
             <dt>Parroquia</dt>
@@ -354,7 +342,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
             <dd>
               <span
                 class="evd-info-estado"
-                style={`color: ${esPasado ? '#6b7280' : '#15803d'}; background: ${esPasado ? '#f3f4f6' : '#dcfce7'};`}
+                style={`color: ${esPasado ? 'var(--color-neutral-500)' : 'var(--color-tag-verde)'}; background: ${esPasado ? 'var(--color-neutral-100)' : 'var(--color-tag-verde-bg)'};`}
               >
                 {esPasado ? 'Realizado' : 'Próximamente'}
               </span>
@@ -393,8 +381,8 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
 <style>
   /* ── Breadcrumb ─────────────────────────────────────────────────────── */
   .evd-breadcrumb {
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
+    background: var(--color-neutral-50);
+    border-bottom: 1px solid var(--color-neutral-200);
   }
   .evd-bc-inner {
     max-width: 80rem;
@@ -412,17 +400,17 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   }
   .evd-breadcrumb li {
     font-size: 0.78rem;
-    color: #9ca3af;
+    color: var(--color-neutral-400);
   }
   .evd-breadcrumb a {
-    color: #6b7280;
+    color: var(--color-neutral-500);
     text-decoration: none;
   }
   .evd-breadcrumb a:hover {
-    color: #7c3aed;
+    color: var(--color-brand-primary);
   }
   .evd-breadcrumb [aria-current='page'] {
-    color: #374151;
+    color: var(--color-neutral-700);
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -465,7 +453,12 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     padding-top: 5rem;
   }
   .evd-hero-content--no-img {
-    background: linear-gradient(160deg, #1e1b4b 0%, #4c1d95 55%, #1e1b4b 100%);
+    background: linear-gradient(
+      160deg,
+      var(--color-brand-dark) 0%,
+      var(--color-brand-deep) 55%,
+      var(--color-brand-dark) 100%
+    );
   }
   .evd-hero-content--no-img::before {
     content: '';
@@ -474,7 +467,12 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #7c3aed 0%, #d97706 55%, #dc2626 100%);
+    background: linear-gradient(
+      90deg,
+      var(--color-brand-primary) 0%,
+      var(--color-brand-gold-vivid) 55%,
+      var(--color-brand-secondary) 100%
+    );
   }
   .evd-hero-inner {
     max-width: 80rem;
@@ -549,7 +547,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
 
   /* ── Body layout ────────────────────────────────────────────────────── */
   .evd-body-wrap {
-    background: #f9fafb;
+    background: var(--color-neutral-50);
     padding: 2.5rem 1.5rem 4rem;
     min-height: 40vh;
   }
@@ -565,7 +563,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   /* ── Cards ──────────────────────────────────────────────────────────── */
   .evd-card {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-neutral-200);
     border-radius: 16px;
     padding: 1.5rem;
     margin-bottom: 1.25rem;
@@ -579,12 +577,12 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #9ca3af;
+    color: var(--color-neutral-400);
     margin: 0 0 1rem;
   }
   .evd-card-text {
     font-size: 0.95rem;
-    color: #374151;
+    color: var(--color-neutral-700);
     line-height: 1.75;
     margin: 0;
   }
@@ -602,17 +600,17 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     cursor: pointer;
     border: 2px solid transparent;
     padding: 0;
-    background: #f1f5f9;
+    background: var(--color-neutral-100);
     transition:
       border-color 0.2s ease,
       transform 0.2s ease;
   }
   .evd-galeria-thumb:hover {
     transform: translateY(-2px);
-    border-color: #c4b5fd;
+    border-color: #a2d099;
   }
   .evd-galeria-thumb:focus-visible {
-    outline: 2px solid #7c3aed;
+    outline: 2px solid var(--color-brand-primary);
     outline-offset: 2px;
   }
   .evd-galeria-thumb img {
@@ -638,14 +636,14 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     padding: 0.85rem 0;
     text-decoration: none;
     color: inherit;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-neutral-100);
     transition: background 0.15s ease;
   }
   .evd-relacionados li:first-child .evd-rel-card {
     border-top: none;
   }
   .evd-rel-card:hover {
-    background: #f8fafc;
+    background: var(--color-neutral-50);
     margin: 0 -1.5rem;
     padding-left: 1.5rem;
     padding-right: 1.5rem;
@@ -656,7 +654,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     flex-direction: column;
     align-items: center;
     background: #fff;
-    border: 1.5px solid #e2e8f0;
+    border: 1.5px solid var(--color-neutral-200);
     border-radius: 8px;
     padding: 0.25rem 0.5rem;
     min-width: 40px;
@@ -672,7 +670,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.15rem;
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     line-height: 1;
   }
   .evd-rel-info {
@@ -685,21 +683,21 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   .evd-rel-titulo {
     font-size: 0.84rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--color-neutral-900);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .evd-rel-lugar {
     font-size: 0.72rem;
-    color: #9ca3af;
+    color: var(--color-neutral-400);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .evd-rel-chevron {
     flex-shrink: 0;
-    color: #cbd5e1;
+    color: var(--color-neutral-300);
   }
 
   /* ── Back link ──────────────────────────────────────────────────────── */
@@ -709,7 +707,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     gap: 0.45rem;
     font-size: 0.82rem;
     font-weight: 600;
-    color: #7c3aed;
+    color: var(--color-brand-primary);
     text-decoration: none;
     margin-top: 0.5rem;
     padding: 0.5rem 0;
@@ -727,8 +725,8 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
     border-radius: 12px;
     padding: 0.65rem 1rem;
     margin-bottom: 1.2rem;
@@ -745,13 +743,13 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     font-family: 'Space Grotesk', sans-serif;
     font-size: 2.8rem;
     font-weight: 800;
-    color: #111827;
+    color: var(--color-neutral-900);
     line-height: 1;
   }
   .evd-date-año {
     font-size: 0.72rem;
     font-weight: 600;
-    color: #9ca3af;
+    color: var(--color-neutral-400);
     line-height: 1;
   }
   .evd-date-list {
@@ -764,12 +762,12 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   .evd-date-list dt {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #9ca3af;
+    color: var(--color-neutral-400);
     align-self: center;
   }
   .evd-date-list dd {
     font-size: 0.85rem;
-    color: #374151;
+    color: var(--color-neutral-700);
     font-weight: 500;
     margin: 0;
   }
@@ -779,7 +777,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   .evd-date-footer {
     margin-top: 1rem;
     padding-top: 0.85rem;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-neutral-100);
     display: flex;
     justify-content: center;
   }
@@ -828,13 +826,13 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     color: #fff;
   }
   .evd-cta-btn--secondary {
-    color: #6b7280;
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
+    color: var(--color-neutral-500);
+    background: var(--color-neutral-100);
+    border: 1px solid var(--color-neutral-200);
   }
   .evd-cta-btn--secondary:hover {
-    background: #e5e7eb;
-    color: #374151;
+    background: var(--color-neutral-200);
+    color: var(--color-neutral-700);
     opacity: 1;
   }
 
@@ -849,12 +847,12 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   .evd-info-list dt {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #9ca3af;
+    color: var(--color-neutral-400);
   }
   .evd-info-list dd {
     margin: 0;
     font-size: 0.875rem;
-    color: #374151;
+    color: var(--color-neutral-700);
     font-weight: 500;
   }
   .evd-info-badge {

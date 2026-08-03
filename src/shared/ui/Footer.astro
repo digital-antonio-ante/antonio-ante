@@ -2,17 +2,29 @@
 /**
  * Footer.astro — 2026 minimal dark. 100% dinámico desde Sanity configSitio.
  *
- * Diseño: charcoal #111827 + línea acento tricolor 3px.
+ * Diseño: charcoal var(--color-neutral-900) + línea acento tricolor 3px.
  * Fallbacks: contacto vacío, sin redes sociales.
  *
  * La marca NO es contenido editable: el isotipo oficial viaja en el repo
  * (public/marca/isotipo.svg, extraído del manual de marca del cantón). Antes se
  * leía de Sanity, que servía un JPEG 900×900 escalado a 36 px.
  *
- * WCAG 2.1 AA — texto sobre #111827:
- *   #ffffff              → 16.1:1 ✓ AAA
- *   rgba(255,255,255,.70) → 11.3:1 ✓ AAA
- *   rgba(255,255,255,.45) → ~7.2:1 ✓ AA
+ * WCAG 2.1 — blanco translúcido sobre el charcoal --color-neutral-900 (#161917).
+ * Los ratios de abajo son los MEDIDOS sobre los alfas que el componente usa de
+ * verdad; la tabla anterior documentaba dos valores (.70 y .45) que no aparecían
+ * en ninguna regla, y cifraba el más bajo en "~7.2:1 AA" cuando compone 4.45:1 —
+ * por debajo del umbral AA. Verificado en tests/design-tokens.test.ts.
+ *
+ *   #ffffff                → 17.7:1 ✓ AAA   títulos
+ *   rgba(255,255,255,.75)  → 10.3:1 ✓ AAA   nombre del GAD
+ *   rgba(255,255,255,.65)  →  8.0:1 ✓ AAA   enlaces de contacto
+ *   rgba(255,255,255,.60)  →  7.0:1 ✓ AAA   texto corrido, copyright
+ *   rgba(255,255,255,.55)  →  6.1:1 ✓ AA    enlaces institucionales
+ *   rgba(255,255,255,.50)  →  5.2:1 ✓ AA    encabezados de columna
+ *   rgba(255,255,255,.40)  →  3.7:1 ✓ AA no-textual (iconos, WCAG 1.4.11)
+ *
+ * Los alfas ≤ .18 son decorativos (bordes, fondos de pastilla) y no transportan
+ * información: no les aplica umbral de contraste.
  */
 import { NAV_ITEMS } from '@shared/config/nav';
 import type { SocialRed, EnlaceInstitucional } from '@api/endpoints/config-sitio';
@@ -255,7 +267,7 @@ const SOCIAL_LABELS: Record<SocialRed['red'], string> = {
 
 <style>
   .footer-root {
-    background: #111827;
+    background: var(--color-neutral-900);
     color: rgba(255, 255, 255, 0.75);
     font-size: 0.875rem;
   }
@@ -451,7 +463,9 @@ const SOCIAL_LABELS: Record<SocialRed['red'], string> = {
     height: 0.875rem;
     flex-shrink: 0;
     margin-top: 0.15rem;
-    color: rgba(255, 255, 255, 0.3);
+    /* .30 componía 2.7:1 — por debajo del 3:1 que WCAG 1.4.11 exige a un
+       elemento gráfico portador de significado. .40 lo deja en 3.7:1. */
+    color: rgba(255, 255, 255, 0.4);
   }
   .footer-contact-link {
     color: rgba(255, 255, 255, 0.6);
