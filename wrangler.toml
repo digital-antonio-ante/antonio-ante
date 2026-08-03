@@ -31,5 +31,20 @@ id = "a47314771dd245ca86e2f30c0a9f25b9"
 #      Name: "Cloudflare rebuild"
 #      URL: pegar la URL del paso 1
 #      Trigger on: "Create", "Update", "Delete"  Dataset: production
-#      Filter: _type == "configSitio" || _type == "noticia" || _type == "parroquia" || _type == "documentoOficial"
+#      HTTP method: POST
+#      Filter:
+#        !(_id in path("drafts.**")) && _type in ["configSitio", "parroquia", "evento"]
+#
+#   La cláusula de drafts NO es opcional: el Studio autoguarda el borrador en cada
+#   tecla y cada autoguardado es una mutación. Sin excluirla tendrías una tormenta
+#   de builds mientras se escribe, y ninguno con el contenido publicado.
+#
+#   Los tipos son los que alimentan HTML congelado en build (`prerender = true`):
+#   configSitio y parroquia en varias páginas, y evento porque la home muestra el
+#   destacado y los próximos. `obra` queda fuera mientras OBRAS_HABILITADAS sea
+#   false — al reactivar la sección, añadirlo aquí.
+#
+# VERIFICACIÓN: el sitemap lleva la fecha del build (`lastmod: new Date()`).
+#   curl -s https://portal.digital-antonioante.workers.dev/sitemap-0.xml | grep lastmod
+#   Publica, espera 1-2 min, repite: si `lastmod` avanzó, el hook funciona.
 # ──────────────────────────────────────────────────────────────────────────────

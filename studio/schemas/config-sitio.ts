@@ -10,22 +10,15 @@ export const configSitio = defineType({
   title: 'Configuración del Sitio',
   type: 'document',
   icon: () => '⚙️',
+  // Aquí solo van campos que el sitio LEE. Un campo que el editor rellena y que
+  // no aparece en ninguna página es peor que no tenerlo: promete un control que
+  // no existe. Antes de añadir uno, añádelo también a la query de
+  // `src/api/endpoints/config-sitio.ts` — si no está ahí, no llega al sitio.
+  //
+  // Así se fueron `nombreSitio` y `descripcionSitio`: obligatorios en el Studio
+  // y nunca consultados. El nombre del sitio vive en `src/shared/ui/SEOHead.astro`
+  // y la descripción la pone cada página.
   fields: [
-    defineField({
-      name: 'nombreSitio',
-      title: 'Nombre del sitio',
-      type: 'string',
-      initialValue: 'GAD Municipal de Antonio Ante',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'descripcionSitio',
-      title: 'Descripción del sitio (meta description)',
-      type: 'text',
-      rows: 2,
-      description: 'Máximo 160 caracteres. Aparece en resultados de búsqueda.',
-      validation: (Rule) => Rule.required().max(160),
-    }),
     defineField({
       name: 'imagenCanton',
       title: 'Foto del cantón (panel de bienvenida)',

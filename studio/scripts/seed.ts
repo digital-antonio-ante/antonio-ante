@@ -251,9 +251,6 @@ const documentos = [
 const configSitio = {
   _id: 'configSitio',
   _type: 'configSitio',
-  nombreSitio: 'GAD Municipal de Antonio Ante',
-  descripcionSitio:
-    'Portal oficial del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador.',
   emailContacto: 'comunicacion@antonioante.gob.ec',
   telefonoContacto: '+593 6 2908-200',
   direccion: 'Amazonas 11-19 y Av. Julio M. Aguinaga, Atuntaqui, Imbabura, Ecuador',
