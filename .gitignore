@@ -37,3 +37,44 @@ DISEÑO\ ANTIGUO/
 
 # Netlify (migrado a Cloudflare Pages)
 .netlify/
+
+# >>> yapi-platform >>>
+# Volatile yapictl artifacts. Do NOT edit this block manually;
+# 'yapictl init' regenerates it idempotently (marker-delimited).
+# (skip-audit.log and approvals.log are NOT here on purpose: they are
+# permanent audit trails and must be committed.)
+.yapi/handoff.md
+.yapi/handoff-archive/
+.yapi/task_seq_*.txt
+.yapi/ai-review.md
+.yapi/logs/
+# <<< yapi-platform <<<
+
+# ─────────────────────────────────────────────────────────────────────────
+# Gobernanza interna — FUERA del repo entregable.
+#
+# Este sitio es un producto que se vende: el comprador no debe recibir (ni
+# necesita) el andamiaje interno de YAPI. Concretamente, .github/workflows/
+# clona el repo PRIVADO yapi-sas/devkit con el secret YAPI_PLATFORM_TOKEN:
+# en manos de un tercero es CI rota y una fuga de detalle interno.
+#
+# Todo esto sigue funcionando en local aunque no se versione — los hooks van
+# por `git config core.hooksPath` (config local, no versionada) y `yapictl
+# init` regenera los archivos de forma idempotente si se pierden.
+#
+# EXCEPCIÓN: approvals.log se queda versionado. Es el rastro de auditoría de
+# cada bypass de gate; sacarlo del repo sería borrar el historial de por qué
+# se saltó un control. No contiene secretos. Se usa `.yapi/*` en vez de
+# `.yapi/` porque git no desciende a un directorio ignorado y la negación no
+# tendría efecto.
+# Bloque propio del proyecto — fuera de los marcadores de yapictl, que se
+# regeneran y borrarían cualquier cosa escrita dentro.
+# ─────────────────────────────────────────────────────────────────────────
+.yapi/*
+!.yapi/approvals.log
+.githooks/
+.github/
+.claude/
+AGENTS.md
+AGENTS.yapi.md
+CLAUDE.md
