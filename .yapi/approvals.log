@@ -92,3 +92,22 @@ mismos preexistentes de siempre (tsc/vitest por vitest.config.ts sin versionar, 
 entradas anteriores del 2026-08-02). staged-only sobre este commit dio 0 archivos y PASSED
 7/7 antes de crear la rama.
 Autorizado por el usuario en la conversación: pidió disparar el rebuild manual.
+
+2026-08-02T17:20:00-05:00 | bypass=--no-verify | branch=feat/marca-oficial-inline | user=jorgepazos100@gmail.com
+Justificación: pre-commit (yapictl check --staged-only, 31 archivos) — Semgrep y Gitleaks
+pasaron LIMPIOS sobre este commit (confirmando que la marca inline no introduce hex crudo
+ni gradiente prohibido). Siguen en rojo los mismos 2 gates preexistentes de siempre
+(tsc/vitest por vitest.config.ts sin versionar, ajeno a este cambio).
+Contexto: este commit termina un trabajo dejado a medias por otra sesión de Claude Code en
+este mismo working directory (Header/Footer/BaseLayout con isotipo/lockup inline desde
+public/marca/). El usuario confirmó que no había nada en curso y autorizó finalizarlo y
+dejarlo limpio. Se completó: (1) corrección de un bug real detectado — faltaba
+`.footer-logo-img svg { width/height:100% }`, sin eso el isotipo se habría renderizado a su
+tamaño intrínseco en vez de 2.25rem; (2) limpieza de campos muertos —
+`logoInstitucional` (schema Sanity) y `logoUrl`/`logoAlt` (config-sitio.ts, API+GROQ)
+quedaban sin consumidor tras el cambio de Header/Footer/BaseLayout.
+Verificado: `astro build` OK, `tsc --noEmit` sin errores fuera de vitest.config.ts,
+`npm run validate` con presupuestos en verde, lockup presente en las 6 fichas de parroquia
+(grep sobre el HTML generado) y en header/footer del home.
+Autorizado por el usuario en la conversación: "te doy permisos para que finalices quiero
+que todo sea limpio".

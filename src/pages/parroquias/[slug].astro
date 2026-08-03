@@ -26,6 +26,17 @@ if (!parroquia) {
 const parishKey = slug.replaceAll('-', '_');
 const staticData = PARISHES[parishKey] ?? null;
 
+// Lockup de submarca del manual de marca, inlineado para no pedir un archivo en
+// el bloque LCP. Se usa la variante en NEGATIVO porque el hero va sobre el color
+// de la parroquia en oscuro; y la variante VERTICAL porque es la única que el
+// manual trae para las seis (Atuntaqui no tiene lockup horizontal).
+const LOCKUPS = import.meta.glob<string>(
+  '../../../public/marca/parroquias/*-vertical-negativo.svg',
+  { query: '?raw', import: 'default', eager: true }
+);
+const lockupSvg =
+  LOCKUPS[`../../../public/marca/parroquias/${parishKey}-vertical-negativo.svg`] ?? null;
+
 function cropUrl(base: string, w: number, h: number, fx: number, fy: number): string {
   return `${base}?w=${w}&h=${h}&fit=crop&fp-x=${fx.toFixed(3)}&fp-y=${fy.toFixed(3)}&auto=format&q=80`;
 }
@@ -180,12 +191,26 @@ const jsonLd = JSON.stringify({
 
           <span class="pp-tipo">{tipoDisplay}</span>
 
-          <div class="pp-hero__title-row">
-            <span class="pp-hero__icon" aria-hidden="true">{mapIcon}</span>
-            <h1 class="pp-hero__title">{parroquia.nombre}</h1>
-          </div>
-
-          {shortDesc && <p class="pp-hero__slogan">{shortDesc}</p>}
+          {
+            lockupSvg ? (
+              <Fragment>
+                {/* El lockup ya trae el nombre dibujado en curvas: el h1 real se
+                    mantiene para SEO y lectores de pantalla. */}
+                <h1 class="pp-hero__title--sr">{parroquia.nombre}</h1>
+                <div class="pp-hero__lockup" aria-hidden="true" set:html={lockupSvg} />
+              </Fragment>
+            ) : (
+              <Fragment>
+                <div class="pp-hero__title-row">
+                  <span class="pp-hero__icon" aria-hidden="true">
+                    {mapIcon}
+                  </span>
+                  <h1 class="pp-hero__title">{parroquia.nombre}</h1>
+                </div>
+                {shortDesc && <p class="pp-hero__slogan">{shortDesc}</p>}
+              </Fragment>
+            )
+          }
 
           <div class="pp-hero__stats" role="list" aria-label="Datos de la parroquia">
             {
@@ -697,6 +722,35 @@ const jsonLd = JSON.stringify({
     align-items: center;
     gap: 0.55rem;
     flex-wrap: nowrap;
+  }
+
+  /* Lockup de submarca: reemplaza visualmente al título. El alto fijo por
+     breakpoint evita CLS — el SVG inline no tiene dimensiones intrínsecas. */
+  .pp-hero__lockup {
+    /* El nombre ocupa ~1/3 del alto del lockup, así que para igualar la
+       presencia del título que reemplaza (clamp(2rem,4.5vw,3.4rem)) el
+       conjunto necesita ~3× ese valor. */
+    height: clamp(7.5rem, 14vw, 11.5rem);
+    align-self: flex-start;
+    margin: 0.1rem 0 0.15rem;
+  }
+  .pp-hero__lockup :global(svg) {
+    height: 100%;
+    width: auto;
+    display: block;
+  }
+
+  /* h1 real: fuera de pantalla pero disponible para SEO y lectores. */
+  .pp-hero__title--sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .pp-hero__icon {

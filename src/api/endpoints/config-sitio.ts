@@ -22,8 +22,6 @@ const HighlightCantonSchema = z.object({
  * asset->url resuelve el CDN URL directamente en GROQ, sin @sanity/image-url.
  */
 const ConfigSitioSchema = z.object({
-  logoUrl: z.string().url().nullish(),
-  logoAlt: z.string().nullish(),
   cantonImageUrl: z.string().url().nullish(),
   cantonImageAlt: z.string().nullish(),
   sloganCanton: z.string().nullish(),
@@ -45,8 +43,6 @@ export type HighlightCanton = z.infer<typeof HighlightCantonSchema>;
 
 const QUERY = `
   *[_type == "configSitio"][0] {
-    "logoUrl": logoInstitucional.asset->url,
-    "logoAlt": logoInstitucional.alt,
     "cantonImageUrl": imagenCanton.asset->url,
     "cantonImageAlt": imagenCanton.alt,
     sloganCanton,

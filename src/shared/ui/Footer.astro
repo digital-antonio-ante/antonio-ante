@@ -3,7 +3,11 @@
  * Footer.astro — 2026 minimal dark. 100% dinámico desde Sanity configSitio.
  *
  * Diseño: charcoal #111827 + línea acento tricolor 3px.
- * Fallbacks: monograma AA, contacto vacío, sin redes sociales.
+ * Fallbacks: contacto vacío, sin redes sociales.
+ *
+ * La marca NO es contenido editable: el isotipo oficial viaja en el repo
+ * (public/marca/isotipo.svg, extraído del manual de marca del cantón). Antes se
+ * leía de Sanity, que servía un JPEG 900×900 escalado a 36 px.
  *
  * WCAG 2.1 AA — texto sobre #111827:
  *   #ffffff              → 16.1:1 ✓ AAA
@@ -12,10 +16,9 @@
  */
 import { NAV_ITEMS } from '@shared/config/nav';
 import type { SocialRed, EnlaceInstitucional } from '@api/endpoints/config-sitio';
+import isotipoSvg from '../../../public/marca/isotipo.svg?raw';
 
 interface Props {
-  logoUrl?: string | null;
-  logoAlt?: string | null;
   emailContacto?: string | null;
   telefonoContacto?: string | null;
   direccion?: string | null;
@@ -25,8 +28,6 @@ interface Props {
 }
 
 const {
-  logoUrl,
-  logoAlt = 'Logo del GAD Municipal de Antonio Ante',
   emailContacto,
   telefonoContacto,
   direccion,
@@ -59,21 +60,7 @@ const SOCIAL_LABELS: Record<SocialRed['red'], string> = {
       <!-- Col 1 — Identidad + redes -->
       <div class="footer-col footer-col--brand">
         <a href="/" class="footer-brand-link">
-          {
-            logoUrl ? (
-              <img
-                src={logoUrl}
-                alt={logoAlt ?? 'Logo del GAD Municipal de Antonio Ante'}
-                class="footer-logo-img"
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <div class="footer-logo" aria-hidden="true">
-                <span>AA</span>
-              </div>
-            )
-          }
+          <span class="footer-logo-img" aria-hidden="true" set:html={isotipoSvg} />
           <div>
             <p class="footer-brand-name">GAD Municipal</p>
             <p class="footer-brand-sub">Antonio Ante · Imbabura</p>
@@ -342,27 +329,13 @@ const SOCIAL_LABELS: Record<SocialRed['red'], string> = {
   .footer-logo-img {
     width: 2.25rem;
     height: 2.25rem;
-    object-fit: contain;
     border-radius: 8px;
     flex-shrink: 0;
   }
-
-  .footer-logo {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 6px;
-    background: #277816;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .footer-logo span {
-    color: white;
-    font-weight: 800;
-    font-size: 0.75rem;
-    letter-spacing: 0.02em;
-    font-family: 'Space Grotesk', sans-serif;
+  .footer-logo-img svg {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
   .footer-brand-name {
