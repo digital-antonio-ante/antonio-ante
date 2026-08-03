@@ -109,15 +109,13 @@ const ga4 =
       Saltar al contenido principal
     </a>
 
-    <Header logoUrl={config?.logoUrl} logoAlt={config?.logoAlt} />
+    <Header />
 
     <main id="main-content" class="flex-1" tabindex="-1">
       <slot />
     </main>
 
     <Footer
-      logoUrl={config?.logoUrl}
-      logoAlt={config?.logoAlt}
       emailContacto={config?.emailContacto}
       telefonoContacto={config?.telefonoContacto}
       direccion={config?.direccion}

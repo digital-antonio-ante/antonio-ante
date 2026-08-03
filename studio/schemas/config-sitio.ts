@@ -27,21 +27,6 @@ export const configSitio = defineType({
       validation: (Rule) => Rule.required().max(160),
     }),
     defineField({
-      name: 'logoInstitucional',
-      title: 'Logo institucional',
-      type: 'image',
-      options: { hotspot: false },
-      fields: [
-        defineField({
-          name: 'alt',
-          title: 'Texto alternativo',
-          type: 'string',
-          initialValue: 'Logo del GAD Municipal de Antonio Ante',
-          validation: (Rule) => Rule.required(),
-        }),
-      ],
-    }),
-    defineField({
       name: 'imagenCanton',
       title: 'Foto del cantón (panel de bienvenida)',
       type: 'image',
