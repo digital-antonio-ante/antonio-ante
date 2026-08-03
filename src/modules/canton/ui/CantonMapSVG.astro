@@ -5,12 +5,25 @@
  * El SVG del diseñador ("Mapa antonio ante.svg") trae las 6 parroquias como
  * paths vectoriales reales, así que aquí NO hay capa de polígonos aproximados:
  * **el contorno que se pinta es el mismo que recibe el clic**. Un solo path por
- * parroquia hace de relleno, de borde, de zona clicable y de recorte de su foto.
+ * parroquia hace de relleno, de borde y de zona clicable.
  *
  * La geometría y los degradados vienen de `canton-map-geometry.ts` (generado por
- * `scripts/build-canton-map.mjs`); las fotos de fondo, de /images/mapa/*.webp —
- * fuera del SVG, porque incrustadas en base64 pesaban 5,7 MB en el elemento LCP
- * de la home.
+ * `scripts/build-canton-map.mjs`); las fotos de fondo y las viñetas ilustradas,
+ * de /images/mapa/*.webp — fuera del SVG, porque incrustadas en base64 pesaban
+ * 28 MB en el elemento LCP de la home.
+ *
+ * ── Por qué hay máscaras ────────────────────────────────────────────────────
+ * Los contornos del diseño NO teselan el cantón: se solapan en bandas de hasta
+ * ~15 unidades a lo largo de cada frontera (Atuntaqui pisa un 9,6 % de Chaltura).
+ * En el archivo del diseñador eso no se nota porque el relleno opaco de quien va
+ * después tapa a quien va antes, borde incluido — pero en cuanto una parroquia se
+ * resalta, su trazo grueso vive dentro del territorio del vecino y aparece medio
+ * comido: dos líneas paralelas donde debería haber una.
+ *
+ * `coveredBy` trae, por parroquia, quiénes se pintan después. Con eso cada una se
+ * recorta a su región REALMENTE visible, y entonces las seis teselan: ninguna
+ * pinta dentro de otra, ningún trazo queda huérfano y el resalte de la
+ * seleccionada no puede ensuciarse.
  *
  * El JS de canton-hero.ts / canton-map-widget.ts detecta `data-select-parish`
  * — mismo contrato que antes, sin cambios.
@@ -29,13 +42,30 @@ const UID = 'aa-map';
 
 const [vbX, vbY, vbW, vbH] = MAP_VIEWBOX.split(' ').map(Number);
 
+const shapeId = (id: string) => `${UID}-shape-${id}`;
 /**
- * NO reordenar `PARISH_GEOMETRY`. Los contornos del diseño se solapan en varias
- * zonas (comprobado: reordenarlos mueve ~0,3 % de los píxeles del mapa, en
- * manchas macizas, no en los bordes). El orden del archivo del diseñador decide
- * qué parroquia queda encima en cada solape y, como el path pintado es el mismo
- * que recibe el clic, también decide cuál se lleva la pulsación. Respetarlo es lo
- * que mantiene alineado lo que se ve con lo que se selecciona.
+ * La máscara DEFINE la región visible, no solo le resta vecinos: es también lo que
+ * confina la fotografía de fondo, que es un rectángulo mucho mayor que la
+ * parroquia. Por eso la llevan las seis, incluida la última del orden de pintado,
+ * a la que no le tapa nadie.
+ */
+const maskFor = (p: (typeof PARISH_GEOMETRY)[number]) => `url(#${UID}-visible-${p.id})`;
+
+/**
+ * Contornos que hay que trazar para dibujar el borde de la región VISIBLE de una
+ * parroquia. No basta con el suyo: donde un vecino posterior le come territorio, la
+ * frontera que se ve es el contorno DEL VECINO. Trazando ambos y recortando el
+ * resultado con la máscara sale el perímetro completo y ni un milímetro de más —
+ * lo que caiga fuera de la región visible lo borra la propia máscara.
+ */
+const boundaryOf = (p: (typeof PARISH_GEOMETRY)[number]) => [p.id, ...p.coveredBy];
+
+/**
+ * NO reordenar `PARISH_GEOMETRY`: viene en el orden de pintado del diseñador, y
+ * ese orden es el que resuelve cada banda de solape. Como el path pintado es el
+ * mismo que recibe el clic, y el navegador entrega la pulsación al elemento de
+ * encima, respetarlo es lo que mantiene alineado lo que se ve con lo que se
+ * selecciona.
  *
  * Efecto colateral asumido: el orden de tabulación es el del diseño, no el de la
  * tira de tarjetas. Cada zona lleva su aria-label, así que sigue siendo navegable.
@@ -57,6 +87,9 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
     aria-label="Mapa del Cantón Antonio Ante — sus seis parroquias son seleccionables"
   >
     <defs>
+      <!-- Geometría declarada una sola vez; todo lo demás la referencia con <use> -->
+      {PARISH_GEOMETRY.map((p) => <path id={shapeId(p.id)} d={p.d} />)}
+
       <!-- Degradados de relleno del diseño original -->
       {
         MAP_GRADIENTS.map((g) => (
@@ -78,10 +111,20 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
       {
         PARISH_GEOMETRY.map((p) => (
           <>
-            {/* La foto se recorta contra el propio contorno de la parroquia */}
-            <clipPath id={`${UID}-clip-${p.id}`}>
-              <path d={p.d} />
-            </clipPath>
+            {/* Región visible = contorno propio MENOS quienes se pintan después */}
+            <mask
+              id={`${UID}-visible-${p.id}`}
+              maskUnits="userSpaceOnUse"
+              x={vbX}
+              y={vbY}
+              width={vbW}
+              height={vbH}
+            >
+              <use href={`#${shapeId(p.id)}`} fill="#fff" />
+              {p.coveredBy.map((other) => (
+                <use href={`#${shapeId(other)}`} fill="#000" />
+              ))}
+            </mask>
             {/* Sombra proyectada del rótulo — color propio de cada parroquia */}
             <filter id={`${UID}-shadow-${p.id}`} x="-25%" y="-25%" width="150%" height="150%">
               <feOffset dx="2" dy="4" />
@@ -95,6 +138,15 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
       }
     </defs>
 
+    <!-- ── Sombra del cantón ──────────────────────────────────────────────────
+         La silueta del diseño, reconstruida gratis: la unión de las 6 parroquias
+         ES el contorno del cantón, así que basta con re-referenciarlas y dejar
+         que el filtro las use como alfa. Queda entera bajo los rellenos; lo único
+         que se ve de esta capa es el desenfoque que asoma por fuera. -->
+    <g class="map-shadow" aria-hidden="true">
+      {PARISH_GEOMETRY.map((p) => <use href={`#${shapeId(p.id)}`} />)}
+    </g>
+
     <!-- ── Una parroquia = un grupo clicable ─────────────────────────────── -->
     {
       PARISH_GEOMETRY.map((p) => {
@@ -103,24 +155,49 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
           <g
             class="parish-zone"
             data-select-parish={p.id}
-            style={`--pc: ${parish.color};`}
+            style={`--pc: ${parish.color}; --label-size: ${p.label.fontSize}px;`}
             role="button"
             tabindex="0"
             aria-label={`Seleccionar parroquia ${parish.name}`}
           >
-            <path class="parish-fill" d={p.d} fill={`url(#${UID}-grad-${p.gradientId})`} />
-            {/* El recorte va en el <g>, NO en el <image>: clipPathUnits es
-                userSpaceOnUse y aplicarlo al <image> lo sometería al transform
-                de éste, con lo que la foto se saldría del contorno. */}
-            <g clip-path={`url(#${UID}-clip-${p.id})`} aria-hidden="true">
+            {/* Todo lo geométrico va recortado a la región visible. El rótulo y la
+                viñeta se quedan fuera: son marcas, no territorio, y recortarlas
+                las decapitaría contra la frontera. */}
+            <g class="parish-body" mask={maskFor(p)}>
+              <use class="parish-fill" href={`#${shapeId(p.id)}`} fill={`url(#${UID}-grad-${p.gradientId})`} />
+              {/* La foto no necesita clip propio: la máscara del grupo ya la
+                  confina, y `pointer-events: none` impide que su rectángulo
+                  se coma los clics dirigidos al contorno. */}
               <image
                 class="parish-texture"
                 href={p.texture.src}
                 width={p.texture.width}
                 height={p.texture.height}
                 transform={p.texture.transform}
+                aria-hidden="true"
               />
+              {/* Realce de hover/foco: al vivir dentro de la máscara, no puede
+                  desbordar hacia el vecino por mucho que se engorde. */}
+              <g class="parish-ring-glow">
+                {boundaryOf(p).map((id) => (
+                  <use href={`#${shapeId(id)}`} />
+                ))}
+              </g>
+              <g class="parish-ring">
+                {boundaryOf(p).map((id) => (
+                  <use href={`#${shapeId(id)}`} />
+                ))}
+              </g>
             </g>
+            <image
+              class="parish-icon"
+              href={p.icon.src}
+              x={p.icon.x}
+              y={p.icon.y}
+              width={p.icon.width}
+              height={p.icon.height}
+              aria-hidden="true"
+            />
             <text
               class="parish-label"
               x={p.label.x}
@@ -130,7 +207,7 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
               aria-hidden="true"
             >
               {p.label.lines.map((line, i) => (
-                <tspan x={p.label.x} dy={i === 0 ? 0 : 20.44}>
+                <tspan x={p.label.x} dy={i === 0 ? 0 : p.label.lineHeight}>
                   {line}
                 </tspan>
               ))}
@@ -139,6 +216,40 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
         );
       })
     }
+
+    <!-- ── Halo de la parroquia seleccionada ──────────────────────────────────
+         Va en su propia capa, la última del documento, para que el brillo salga
+         entero: emitido desde dentro de una zona, el relleno de las parroquias
+         posteriores se comería justo la mitad que da a tierra adentro.
+
+         El anillo va enmascarado (nunca invade al vecino) y el resplandor lo pone
+         un filtro en el grupo de FUERA, que se aplica al resultado ya recortado y
+         por eso sí puede desbordar. Lleva `data-select-parish`, así que el mismo
+         JS que marca las zonas lo enciende sin tocar una línea. -->
+    <g class="halo-layer" aria-hidden="true">
+      {
+        PARISH_GEOMETRY.map((p) => (
+          <g
+            class="parish-halo"
+            data-select-parish={p.id}
+            style={`--pc: ${PARISHES[p.id].color};`}
+          >
+            <g mask={maskFor(p)}>
+              <g class="halo-glow">
+                {boundaryOf(p).map((id) => (
+                  <use href={`#${shapeId(id)}`} />
+                ))}
+              </g>
+              <g class="halo-ring">
+                {boundaryOf(p).map((id) => (
+                  <use href={`#${shapeId(id)}`} />
+                ))}
+              </g>
+            </g>
+          </g>
+        ))
+      }
+    </g>
 
     <!-- ── Rosa de los vientos ───────────────────────────────────────────── -->
     <g class="compass" transform={`translate(${compass.x}, ${compass.y})`} aria-hidden="true">
@@ -181,6 +292,13 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
     overflow: visible;
   }
 
+  /* ── Sombra del cantón ──────────────────────────────────────────────────── */
+  .map-shadow {
+    fill: #063;
+    pointer-events: none;
+    filter: drop-shadow(2px 4px 16px rgb(7 73 35 / 0.61));
+  }
+
   /* ── Parroquia ──────────────────────────────────────────────────────────── */
   .parish-zone {
     cursor: pointer;
@@ -191,11 +309,12 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
       filter 0.22s ease;
   }
 
+  /* El trazo va al doble del ancho del diseño (2) porque la máscara se queda con
+     la mitad de tierra adentro: lo que se ve son las 2 unidades del original. */
   .parish-fill {
     stroke: #fff;
-    stroke-width: 2;
+    stroke-width: 4;
     stroke-miterlimit: 10;
-    transition: stroke-width 0.22s ease;
   }
 
   /* Foto del diseño: textura tenue bajo el degradado */
@@ -204,29 +323,91 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
     pointer-events: none;
   }
 
+  /* Viñeta ilustrada del diseño, sobre el rótulo */
+  .parish-icon {
+    pointer-events: none;
+  }
+
   .parish-label {
     fill: #fff;
     font-family: 'Space Grotesk', 'Inter', sans-serif;
-    font-size: 17px;
+    font-size: var(--label-size);
     font-weight: 700;
     letter-spacing: 0.01em;
     pointer-events: none;
   }
 
-  /* ── Hover / foco ── */
-  .parish-zone:hover,
-  .parish-zone:focus-visible {
-    filter: brightness(1.12) saturate(1.08) drop-shadow(0 0 9px var(--pc));
+  /* ── Anillo de realce (hover / foco) ────────────────────────────────────── */
+  /* Enmascarado con el resto del cuerpo: se dibuja centrado en el contorno pero
+     solo sobrevive la mitad de tierra adentro, así que engordarlo nunca invade al
+     vecino. Por eso los grosores van al doble del ancho que se quiere ver. */
+  .parish-ring,
+  .parish-ring-glow {
+    fill: none;
+    stroke-width: 0;
+    pointer-events: none;
+    transition: stroke-width 0.22s ease;
   }
-  .parish-zone:hover .parish-fill {
-    stroke-width: 4;
+  .parish-ring {
+    stroke: #fff;
+  }
+  .parish-ring-glow {
+    stroke: var(--pc);
+    filter: blur(4px);
   }
 
-  /* Foco de teclado: borde verde oscuro en lugar del blanco. Se distingue del
-     hover y contrasta tanto con el relleno de la parroquia como con el fondo. */
-  .parish-zone:focus-visible .parish-fill {
+  .parish-zone:hover .parish-ring,
+  .parish-zone:focus-visible .parish-ring {
+    stroke-width: 7;
+  }
+  .parish-zone:hover .parish-ring-glow,
+  .parish-zone:focus-visible .parish-ring-glow {
+    stroke-width: 18;
+  }
+
+  /* Foco de teclado: se distingue del hover con el trazo en verde de marca. */
+  .parish-zone:focus-visible .parish-ring {
     stroke: var(--color-brand-dark);
-    stroke-width: 6;
+    stroke-width: 10;
+  }
+
+  .parish-zone:hover,
+  .parish-zone:focus-visible {
+    filter: brightness(1.1) saturate(1.08);
+  }
+
+  /* ── Halo de la seleccionada ────────────────────────────────────────────── */
+  .halo-layer {
+    pointer-events: none;
+  }
+
+  .parish-halo {
+    opacity: 0;
+    transition: opacity 0.24s ease;
+  }
+  .parish-halo.active {
+    opacity: 1;
+    /* Doble resplandor: uno corto que perfila y otro largo que tiñe el aire
+       alrededor. Va en el grupo de fuera, sobre el anillo ya enmascarado, así que
+       el brillo puede desbordar hacia el vecino aunque el anillo no. */
+    filter: drop-shadow(0 0 4px var(--pc)) drop-shadow(0 0 14px var(--pc));
+  }
+
+  .halo-ring,
+  .halo-glow {
+    fill: none;
+    stroke-miterlimit: 10;
+  }
+  /* Filo nítido: 10 de trazo ⇒ 5 unidades vistas tras la máscara. */
+  .halo-ring {
+    stroke: #fff;
+    stroke-width: 10;
+  }
+  /* Y por dentro, el color de la parroquia encendido contra el filo. */
+  .halo-glow {
+    stroke: var(--pc);
+    stroke-width: 34;
+    filter: blur(7px);
   }
 
   /* ── Rosa de los vientos y escala ───────────────────────────────────────── */
@@ -261,23 +442,21 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
 
   /* ── Seleccionada ── */
   .parish-zone.active {
-    filter: brightness(1.06) drop-shadow(0 0 12px var(--pc));
-  }
-  .parish-zone.active .parish-fill {
-    stroke-width: 5;
+    filter: brightness(1.06);
   }
 
-  /* Con una parroquia elegida, las demás ceden protagonismo — sin pasarse: el
-     rótulo va en blanco sobre el relleno, así que atenuar de más lo vuelve
-     ilegible. 0,7 basta para que la seleccionada destaque. */
+  /* Con una parroquia elegida, las demás ceden protagonismo — y muy poco basta:
+     ahora quien destaca es el halo, no el contraste contra las vecinas. Atenuar
+     más las volvía pardas (el degradado del diseño se apaga rápido) y dejaba el
+     rótulo blanco sin fondo contra el que leerse. */
   .canton-svg:has(.parish-zone.active) .parish-zone:not(.active) {
-    opacity: 0.7;
-    filter: saturate(0.65);
+    opacity: 0.88;
+    filter: saturate(0.82);
   }
   .canton-svg:has(.parish-zone.active) .parish-zone:not(.active):hover,
   .canton-svg:has(.parish-zone.active) .parish-zone:not(.active):focus-visible {
     opacity: 1;
-    filter: brightness(1.12) saturate(1.08) drop-shadow(0 0 9px var(--pc));
+    filter: brightness(1.1) saturate(1.08);
   }
 
   /* ── Responsive ── */
@@ -288,14 +467,16 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
     }
     /* En pantallas pequeñas el rótulo del mapa compite con el trazo: se engorda */
     .parish-label {
-      font-size: 19px;
+      font-size: calc(var(--label-size) * 1.12);
     }
   }
 
   /* Reducir movimiento */
   @media (prefers-reduced-motion: reduce) {
     .parish-zone,
-    .parish-fill {
+    .parish-ring,
+    .parish-ring-glow,
+    .parish-halo {
       transition: none;
     }
   }
