@@ -2,13 +2,15 @@
  * build-canton-map.mjs — Convierte el SVG de diseño del cantón en los artefactos
  * que consume el sitio.
  *
- * El archivo que entrega el diseñador (export de Illustrator, ~6 MB) trae las 6
+ * El archivo que entrega el diseñador (export de Illustrator, ~28 MB) trae las 6
  * parroquias como paths vectoriales reales y, dentro de cada una, una fotografía
- * PNG incrustada en base64 al 24 % de opacidad. Ese archivo NO es publicable tal
- * cual: sería el elemento LCP de la home pesando 6 MB.
+ * PNG incrustada en base64 al 24 % de opacidad, más una viñeta ilustrada sobre
+ * cada rótulo. Ese archivo NO es publicable tal cual: sería el elemento LCP de la
+ * home pesando 28 MB.
  *
  * Este script lo descompone en:
- *   • public/images/mapa/<parroquia>.webp     — las 6 texturas, fuera del SVG
+ *   • public/images/mapa/<parroquia>.webp      — las 6 texturas, fuera del SVG
+ *   • public/images/mapa/<parroquia>-icono.webp — las 6 viñetas, fuera del SVG
  *   • src/modules/canton/data/canton-map-geometry.ts — geometría + degradados
  *
  * El componente CantonMapSVG.astro incrusta esa geometría en el HTML, de modo que
@@ -44,6 +46,16 @@ const OUT_TS = resolve(ROOT, 'src/modules/canton/data/canton-map-geometry.ts');
 const WEBP_QUALITY = 50;
 /** Ancho máximo: 2× el tamaño al que se muestra la textura más grande. */
 const MAX_TEXTURE_WIDTH = 1200;
+/**
+ * La viñeta más grande mide ~95 unidades de viewBox. El mapa se pinta como mucho a
+ * 560 px CSS sobre 721 unidades, así que son ~74 px CSS en escritorio (148 a 2×) y
+ * ~57 en un móvil de 430 px (171 a 3×). 192 cubre el peor caso: subir de ahí solo
+ * engorda el elemento LCP de la home.
+ */
+const MAX_ICON_WIDTH = 192;
+/** Calidad WebP de las viñetas: son ilustraciones opacas al 100 %, sin degradado
+ *  que las disimule, así que piden bastante más calidad que las texturas. */
+const ICON_WEBP_QUALITY = 82;
 /** Margen (en unidades del viewBox) alrededor del contorno del cantón. */
 const VIEWBOX_PADDING = 6;
 /** Superficie oficial del cantón (km²) — de ella se deriva la escala gráfica. */
@@ -66,6 +78,18 @@ for (const m of styleBlock.matchAll(/\.(cls-\d+)\s*\{\s*filter:\s*url\(#([^)]+)\
 const clipByClass = new Map(); // cls-38 → clippath
 for (const m of styleBlock.matchAll(/\.(cls-\d+)\s*\{\s*clip-path:\s*url\(#([^)]+)\)/g)) {
   clipByClass.set(m[1], m[2]);
+}
+
+// Cuerpo de letra por clase. Illustrator agrupa selectores (".cls-3, .cls-4 {…}")
+// y luego los pisa uno a uno, así que gana la última regla que toque la clase.
+const fontSizeByClass = new Map(); // cls-6 → 13.9918
+for (const m of styleBlock.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+  const size = /font-size:\s*([\d.]+)px/.exec(m[2]);
+  if (!size) continue;
+  for (const sel of m[1].split(',')) {
+    const cls = /\.(cls-\d+)/.exec(sel);
+    if (cls) fontSizeByClass.set(cls[1], +size[1]);
+  }
 }
 
 // ── 2. Definiciones: degradados, clipPaths y sombras ─────────────────────────
@@ -94,11 +118,20 @@ for (const m of defs.matchAll(
   shadowColors.set(m[1], m[2]);
 }
 
-// ── 3. Cuerpo: contornos, texturas y rótulos ─────────────────────────────────
-const shapes = [...body.matchAll(/<path class="(cls-\d+)" d="([^"]+)"\/>/g)].map((m) => ({
-  cls: m[1],
-  d: m[2],
-}));
+// ── 3. Cuerpo: contornos, texturas, viñetas y rótulos ────────────────────────
+/**
+ * Contornos de parroquia = los únicos paths con relleno de degradado. El resto de
+ * los `<path>` del documento son decoración del diseño (la silueta verde con
+ * sombra que va detrás, la veladura que va encima) y no representan territorio:
+ * si se colaran aquí, un rótulo caería dentro de dos contornos a la vez.
+ *
+ * El ORDEN de este array es el orden de pintado del diseñador, y es información,
+ * no casualidad: los contornos se solapan en bandas a lo largo de las fronteras y
+ * quien se pinta después decide dónde cae el límite visible.
+ */
+const shapes = [...body.matchAll(/<path class="(cls-\d+)" d="([^"]+)"\/>/g)]
+  .filter((m) => fillByClass.has(m[1]))
+  .map((m) => ({ cls: m[1], d: m[2] }));
 
 const textures = [...body.matchAll(
   /<g class="cls-9">\s*<g class="(cls-\d+)">\s*<image width="(\d+)" height="(\d+)" transform="([^"]+)" xlink:href="data:image\/png;base64,([^"]+)"\/>/g
@@ -109,6 +142,31 @@ const textures = [...body.matchAll(
   transform: m[4],
   base64: m[5],
 }));
+
+/** `translate(tx[ ty]) scale(s)` → rectángulo ya resuelto en unidades del viewBox. */
+function placedRect(transform, width, height) {
+  const t = /translate\(([-\d.]+)(?:[,\s]+([-\d.]+))?\)/.exec(transform);
+  const s = /scale\(([-\d.]+)\)/.exec(transform);
+  const scale = s ? +s[1] : 1;
+  return {
+    x: t ? +t[1] : 0,
+    y: t && t[2] !== undefined ? +t[2] : 0,
+    width: width * scale,
+    height: height * scale,
+  };
+}
+
+/**
+ * Viñetas ilustradas: el export las suelta como `<image>` sueltos al final, con
+ * la misma forma de atributos que las texturas. Se distinguen porque las texturas
+ * ya quedaron reclamadas dentro de un `<g class="cls-9">`.
+ */
+const textureData = new Set(textures.map((t) => t.base64));
+const icons = [...body.matchAll(
+  /<image width="(\d+)" height="(\d+)" transform="([^"]+)" xlink:href="data:image\/png;base64,([^"]+)"\/>/g
+)]
+  .filter((m) => !textureData.has(m[4]))
+  .map((m) => ({ ...placedRect(m[3], +m[1], +m[2]), base64: m[4] }));
 
 const labels = [...body.matchAll(
   /<text class="(cls-\d+)" transform="translate\(([-\d.]+)[,\s]+([-\d.]+)\)">([\s\S]*?)<\/text>/g
@@ -135,12 +193,19 @@ const labels = [...body.matchAll(
     const last = line[line.length - 1];
     width = Math.max(width, last.x + last.text.length * perChar);
   }
+  // Interlineado: el salto de y entre la primera y la segunda línea del diseño.
+  const ys = [...byLine.keys()].sort((a, b) => a - b);
   return {
     cls: m[1],
     x: +m[2],
     y: +m[3],
     width,
-    lines: [...byLine.entries()].sort((a, b) => a[0] - b[0]).map(([, l]) => l.map((c) => c.text).join('')),
+    fontSize: fontSizeByClass.get(m[1]),
+    lineHeight: ys.length > 1 ? +(ys[1] - ys[0]).toFixed(2) : 0,
+    // Se recorta el blanco de los extremos: el salto de línea de Illustrator deja
+    // un espacio colgando ("ANDRADE ") que, con text-anchor="middle", descentra
+    // media pulsación esa línea respecto de la siguiente.
+    lines: ys.map((y) => byLine.get(y).map((c) => c.text).join('').trim()),
   };
 });
 
@@ -319,10 +384,12 @@ for (const label of labels) {
   const cx = label.x + label.width / 2;
   const cy = label.y - 6;
   const hits = geom.filter((g) => containsPoint(g.rings, cx, cy));
-  if (hits.length !== 1) {
-    throw new Error(`El rótulo "${text}" cae en ${hits.length} contornos, se esperaba 1`);
+  if (hits.length === 0) {
+    throw new Error(`El rótulo "${text}" no cae dentro de ningún contorno`);
   }
-  const shape = hits[0];
+  // Los contornos se solapan en bandas; si el rótulo cae en varias, manda la que
+  // se pinta última, que es la que de verdad se ve bajo el texto.
+  const shape = hits[hits.length - 1];
   const gradientId = fillByClass.get(shape.cls);
   if (!gradientId) throw new Error(`El contorno ${shape.cls} no tiene degradado`);
 
@@ -342,6 +409,21 @@ for (const label of labels) {
     throw new Error(`Sin textura fiable para ${id} (mejor solape ${best.toFixed(2)})`);
   }
 
+  // Viñeta: el diseño la centra justo encima de su rótulo, así que la más cercana
+  // al rótulo es la suya. La bijección se comprueba después.
+  const labelCx = label.x + label.width / 2;
+  const icon = icons
+    .map((ic) => ({
+      ic,
+      dist: Math.hypot(ic.x + ic.width / 2 - labelCx, ic.y + ic.height / 2 - label.y),
+    }))
+    .sort((a, b) => a.dist - b.dist)[0];
+  if (!icon || icon.dist > 120) {
+    throw new Error(
+      `Sin viñeta para ${id} (la más cercana está a ${icon ? icon.dist.toFixed(0) : '∞'} unidades)`
+    );
+  }
+
   parishes.push({
     id,
     label: text,
@@ -349,32 +431,70 @@ for (const label of labels) {
     gradientId,
     shadowColor: shadowColors.get(filterByClass.get(label.cls)) ?? '#000',
     texture,
+    icon: icon.ic,
     labelBox: label,
   });
 }
 
-// Cada textura debe usarse una sola vez.
+/**
+ * Orden de pintado del diseñador. El bucle de arriba recorre los RÓTULOS, cuyo
+ * orden en el archivo no tiene por qué coincidir con el de los contornos — y es el
+ * de los contornos el que decide qué parroquia tapa a cuál en cada banda de
+ * solape. Ordenar por contorno es lo que hace que el sitio pinte el mismo mapa que
+ * el diseñador ve en Illustrator.
+ */
+parishes.sort((a, b) => geom.indexOf(a.shape) - geom.indexOf(b.shape));
+
+/**
+ * Para cada parroquia, las que se pintan DESPUÉS y le pisan territorio. El
+ * componente las usa para recortar cada parroquia a su región realmente visible,
+ * de modo que las seis teselen el cantón sin bordes dobles ni trazos huérfanos.
+ * Se filtran por bbox: dos parroquias en extremos opuestos no se estorban.
+ */
+const bboxOverlap = (a, b) =>
+  a.minX < b.maxX && b.minX < a.maxX && a.minY < b.maxY && b.minY < a.maxY;
+for (const [i, p] of parishes.entries()) {
+  p.coveredBy = parishes
+    .slice(i + 1)
+    .filter((q) => bboxOverlap(p.shape.bbox, q.shape.bbox))
+    .map((q) => q.id);
+}
+
+// Cada textura y cada viñeta deben usarse una sola vez.
 const usedClips = new Set(parishes.map((p) => p.texture.clipId));
 if (usedClips.size !== parishes.length) {
   throw new Error('Dos parroquias comparten la misma textura — revisar el emparejamiento');
 }
+const usedIcons = new Set(parishes.map((p) => p.icon));
+if (usedIcons.size !== parishes.length) {
+  throw new Error('Dos parroquias comparten la misma viñeta — revisar el emparejamiento');
+}
+if (icons.length !== parishes.length) {
+  throw new Error(`El SVG trae ${icons.length} viñetas para ${parishes.length} parroquias`);
+}
 
-// ── 6. Texturas → WebP ───────────────────────────────────────────────────────
+// ── 6. Texturas y viñetas → WebP ─────────────────────────────────────────────
 mkdirSync(OUT_IMG_DIR, { recursive: true });
 let totalWebp = 0;
-for (const p of parishes) {
-  const png = Buffer.from(p.texture.base64, 'base64');
+
+/** PNG en base64 → WebP en disco, encogido si excede `maxWidth`. */
+async function emitWebp(base64, name, maxWidth, quality) {
+  const png = Buffer.from(base64, 'base64');
   const pipeline = sharp(png);
   const meta = await pipeline.metadata();
-  const scale = meta.width > MAX_TEXTURE_WIDTH ? MAX_TEXTURE_WIDTH / meta.width : 1;
-  const out = await (scale < 1 ? pipeline.resize({ width: MAX_TEXTURE_WIDTH }) : pipeline)
-    .webp({ quality: WEBP_QUALITY, effort: 6 })
+  const out = await (meta.width > maxWidth ? pipeline.resize({ width: maxWidth }) : pipeline)
+    .webp({ quality, effort: 6 })
     .toBuffer();
-  writeFileSync(resolve(OUT_IMG_DIR, `${p.id}.webp`), out);
+  writeFileSync(resolve(OUT_IMG_DIR, `${name}.webp`), out);
   totalWebp += out.length;
   console.log(
-    `  ${p.id.padEnd(14)} ${meta.width}×${meta.height} png ${(png.length / 1024).toFixed(0)} KB → webp ${(out.length / 1024).toFixed(0)} KB`
+    `  ${name.padEnd(20)} ${meta.width}×${meta.height} png ${(png.length / 1024).toFixed(0)} KB → webp ${(out.length / 1024).toFixed(0)} KB`
   );
+}
+
+for (const p of parishes) {
+  await emitWebp(p.texture.base64, p.id, MAX_TEXTURE_WIDTH, WEBP_QUALITY);
+  await emitWebp(p.icon.base64, `${p.id}-icono`, MAX_ICON_WIDTH, ICON_WEBP_QUALITY);
 }
 
 // ── 7. viewBox recortado al contorno real del cantón ─────────────────────────
@@ -404,8 +524,11 @@ const ts = `/**
  *
  * Contiene la geometría vectorial del cantón: un contorno exacto por parroquia
  * (el mismo path que se pinta es el que recibe el clic) más los degradados de
- * relleno del diseño original. Las texturas fotográficas viven fuera, en
- * /images/mapa/<parroquia>.webp.
+ * relleno del diseño original. Las imágenes viven fuera, en /images/mapa/.
+ *
+ * El array PARISH_GEOMETRY va en el ORDEN DE PINTADO del diseñador: los contornos
+ * se solapan en bandas a lo largo de las fronteras y quien va después decide dónde
+ * cae el límite visible. No reordenar.
  */
 
 /** viewBox recortado al contorno real del cantón (sin el margen vacío del lienzo 1080×1080). */
@@ -439,10 +562,27 @@ export interface ParishGeometry {
   gradientId: string;
   /** Color de la sombra proyectada del rótulo */
   shadowColor: string;
+  /**
+   * Parroquias que se pintan DESPUÉS y le comen territorio. El componente las usa
+   * para recortar esta parroquia a su región realmente visible: así las seis
+   * teselan el cantón y ningún trazo se queda a medias bajo el vecino.
+   */
+  coveredBy: readonly string[];
   /** Fotografía de fondo, recortada contra el propio contorno */
   texture: { src: string; width: number; height: number; transform: string };
+  /** Viñeta ilustrada sobre el rótulo, ya resuelta en unidades del viewBox */
+  icon: { src: string; x: number; y: number; width: number; height: number };
   /** Rótulo: x es el centro del texto (text-anchor="middle") */
-  label: { text: string; x: number; y: number; lines: readonly string[] };
+  label: {
+    text: string;
+    x: number;
+    y: number;
+    /** Cuerpo de letra del diseño — "ANDRADE MARÍN" va más pequeño que el resto */
+    fontSize: number;
+    /** Salto entre líneas; 0 en los rótulos de una sola línea */
+    lineHeight: number;
+    lines: readonly string[];
+  };
 }
 
 export const MAP_GRADIENTS: readonly MapGradient[] = [
@@ -468,16 +608,26 @@ ${parishes
     id: ${json(p.id)},
     gradientId: ${json(p.gradientId)},
     shadowColor: ${json(p.shadowColor)},
+    coveredBy: [${p.coveredBy.map(json).join(', ')}],
     texture: {
       src: ${json(`/images/mapa/${p.id}.webp`)},
       width: ${p.texture.width},
       height: ${p.texture.height},
       transform: ${json(p.texture.transform)},
     },
+    icon: {
+      src: ${json(`/images/mapa/${p.id}-icono.webp`)},
+      x: ${p.icon.x.toFixed(2)},
+      y: ${p.icon.y.toFixed(2)},
+      width: ${p.icon.width.toFixed(2)},
+      height: ${p.icon.height.toFixed(2)},
+    },
     label: {
       text: ${json(p.label)},
       x: ${(p.labelBox.x + p.labelBox.width / 2).toFixed(2)},
       y: ${p.labelBox.y},
+      fontSize: ${p.labelBox.fontSize},
+      lineHeight: ${p.labelBox.lineHeight},
       lines: [${p.labelBox.lines.map(json).join(', ')}],
     },
     d: ${json(p.shape.d)},
@@ -496,6 +646,6 @@ const formatted = await prettier.format(ts, {
 writeFileSync(OUT_TS, formatted);
 
 console.log(`\n  viewBox   ${vb.x} ${vb.y} ${vb.w} ${vb.h}  (aspecto ${(vb.w / vb.h).toFixed(3)})`);
-console.log(`  texturas  ${(totalWebp / 1024).toFixed(0)} KB en total (antes ${(svg.length / 1024 / 1024).toFixed(1)} MB incrustados)`);
+console.log(`  imágenes  ${(totalWebp / 1024).toFixed(0)} KB en total (antes ${(svg.length / 1024 / 1024).toFixed(1)} MB incrustados)`);
 console.log(`  geometría ${(formatted.length / 1024).toFixed(0)} KB → ${OUT_TS.replace(ROOT + '/', '')}`);
 for (const p of parishes) console.log(`  · ${p.id.padEnd(14)} ${p.label}`);
