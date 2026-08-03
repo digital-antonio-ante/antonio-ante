@@ -111,3 +111,27 @@ Verificado: `astro build` OK, `tsc --noEmit` sin errores fuera de vitest.config.
 (grep sobre el HTML generado) y en header/footer del home.
 Autorizado por el usuario en la conversación: "te doy permisos para que finalices quiero
 que todo sea limpio".
+
+2026-08-02T19:45:00-05:00 | bypass=YAPI_PREMERGE_OK=1 (pre-merge gate) | branch=fix/gate-tests-vitest | user=jorgepazos100@gmail.com
+Justificación: el hook de pre-merge exige `yapictl check` 7/7 global. Falla ÚNICAMENTE por
+Semgrep con ~239 violaciones PREEXISTENTES de colores crudos (25 clases Tailwind en 6
+archivos + 214 hex en CSS), todas en archivos ajenos a este diff. Es un bloqueo circular:
+este PR es precisamente el que REPARA un gate roto, y queda bloqueado por deuda que no
+introduce. `yapictl check --staged-only` sobre los 4 archivos de este commit dio PASSED 5/5
+(Semgrep, Gitleaks, biome, vitest, tsc) — verificado antes del commit y de nuevo en el
+propio pre-commit hook, que pasó SIN bypass.
+Contexto: el gate `vitest` estaba declarado BLOCKER en .yapi/flavor.yml pero NUNCA pudo
+ejecutarse — vitest no estaba en package.json y vitest.config.ts usaba getViteConfig() de
+astro/config, que arrastra el plugin de Cloudflare; ese plugin rechaza el `resolve.external`
+que Astro inyecta para SSR y vitest moría en el arranque. El gate reportaba fallo sin mirar
+un solo test. Este commit lo deja funcionando y añade tests/marca.test.ts (21 casos) sobre
+la integridad de los assets de marca incorporados en #6.
+Verificado: `tsc --noEmit` sin errores (0, antes 2), `npx vitest run` 21/21 en verde, y el
+test comprobado por MUTACIÓN — devolver un gris al descriptor de un negativo o blanquear un
+color de marca del isotipo hace fallar la suite; restaurado vuelve a verde.
+Deuda anotada: la migración a tokens de las ~239 violaciones de Semgrep es tarea propia —
+con solo 11 tokens definidos exige AÑADIR una escala de neutros, y decidir si la paleta se
+alinea al manual de marca real (#0047bb, #f28b00, #81bc00, #00c4b4...) o se queda con la
+institucional vieja documentada en tailwind.config.mjs (#003366, #C5A059).
+Autorizado por el usuario en la conversación: eligió "Override con justificación" ante la
+alternativa de migrar los tokens primero.
