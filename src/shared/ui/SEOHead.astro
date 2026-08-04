@@ -11,6 +11,8 @@
  *   />
  */
 
+import { SITE_URL } from '@shared/config/site';
+
 interface Props {
   title: string;
   description: string;
@@ -38,7 +40,7 @@ const {
 
 const siteName = 'GAD Municipal de Antonio Ante';
 const fullTitle = `${pageTitle} | ${siteName}`;
-const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? 'https://antonio-ante.gob.ec';
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? SITE_URL;
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteUrl).toString();
 const ogImage = image
   ? image.startsWith('http')

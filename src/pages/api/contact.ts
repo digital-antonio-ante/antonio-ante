@@ -3,6 +3,7 @@ import { createClient } from '@sanity/client';
 import { env as cfEnv } from 'cloudflare:workers';
 import { ContactFormSchema } from '../../lib/validations/contact';
 import { sanitizeFormField } from '../../shared/utils/sanitize';
+import { ORIGENES_PERMITIDOS } from '../../shared/config/site';
 
 // Token de escritura de Sanity: en Cloudflare llega como secret en el runtime
 // del Worker (cloudflare:workers → env); en dev/build se toma de import.meta.env.
@@ -11,7 +12,7 @@ function getSanityWriteToken(): string | undefined {
   return runtimeEnv?.SANITY_API_TOKEN ?? import.meta.env.SANITY_API_TOKEN;
 }
 
-const ALLOWED_ORIGINS = [import.meta.env.SITE ?? '', 'https://antonio-ante.gob.ec'].filter(Boolean);
+const ALLOWED_ORIGINS: readonly string[] = ORIGENES_PERMITIDOS;
 
 const RATE_LIMIT_MAP = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 5;
