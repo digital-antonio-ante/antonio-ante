@@ -10,6 +10,7 @@ import { getObrasByParroquia } from '@api/endpoints/obras';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 import { PARISHES } from '@modules/canton/data/parishes';
 import { OBRAS_HABILITADAS } from '@shared/config/features';
+import { SITE_URL } from '@shared/config/site';
 
 export async function getStaticPaths() {
   const parroquias = await getParroquias();
@@ -106,7 +107,7 @@ const jsonLd = JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'AdministrativeArea',
   name: parroquia.nombre,
-  url: `https://antonio-ante.gob.ec/parroquias/${parroquia.slug.current}`,
+  url: `${SITE_URL}/parroquias/${parroquia.slug.current}`,
   ...(staticData?.description ? { description: staticData.description } : {}),
   ...(ogSrc ? { image: ogSrc } : {}),
   containedInPlace: {
@@ -143,7 +144,7 @@ const jsonLd = JSON.stringify({
   title={seoTitle}
   description={seoDesc}
   image={ogSrc ?? undefined}
-  canonical={`https://antonio-ante.gob.ec/parroquias/${parroquia.slug.current}`}
+  canonical={`${SITE_URL}/parroquias/${parroquia.slug.current}`}
 >
   <script slot="head" type="application/ld+json" set:html={jsonLd} />
 

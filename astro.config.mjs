@@ -4,9 +4,10 @@ import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { OBRAS_HABILITADAS } from './src/shared/config/features.ts';
+import { SITE_URL } from './src/shared/config/site.ts';
 
 export default defineConfig({
-  site: 'https://antonio-ante.gob.ec',
+  site: SITE_URL,
   output: 'server',
   adapter: cloudflare(),
   // 'always': inyecta todo el CSS como <style> en el <head>. Medido contra este

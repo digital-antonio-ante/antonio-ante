@@ -5,6 +5,7 @@ import BaseLayout from '@ui/BaseLayout.astro';
 import { getParroquiasImageUrls } from '@api/endpoints/parroquias';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 import { PARISHES } from '@modules/canton/data/parishes';
+import { SITE_URL } from '@shared/config/site';
 
 const [sanityParroquias, config] = await Promise.all([
   getParroquiasImageUrls().catch(() => []),
@@ -69,7 +70,7 @@ const parishList = Object.values(PARISHES).map((p) => ({
 <BaseLayout
   title="Parroquias"
   description="Directorio de las seis parroquias del Cantón Antonio Ante: Atuntaqui, Andrade Marín, Chaltura, Imbaya, Natabuela y San Roque. Conoce su gente, cultura y proyectos."
-  canonical="https://antonio-ante.gob.ec/parroquias"
+  canonical={`${SITE_URL}/parroquias`}
 >
   <!-- ── Hero ── -->
   <section class="ph-hero" aria-label="Parroquias del Cantón Antonio Ante">

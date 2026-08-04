@@ -13,6 +13,7 @@ export interface NavItem {
 
 const ALL_NAV_ITEMS: readonly NavItem[] = [
   { href: '/', label: 'Inicio' },
+  { href: '/turismo', label: 'Turismo' },
   { href: '/obras', label: 'Obras' },
   { href: '/eventos', label: 'Eventos' },
   { href: '/parroquias', label: 'Parroquias' },
