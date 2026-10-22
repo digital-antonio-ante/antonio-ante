@@ -49,7 +49,9 @@ describe('assets de marca', () => {
     const orig = read(`parroquias/${slug}-vertical.svg`);
     const neg = read(`parroquias/${slug}-vertical-negativo.svg`);
     const marca = (svg: string) =>
-      [...new Set(fills(svg).filter((c) => !isNeutralGray(c) && c.toLowerCase() !== '#fff'))].sort();
+      [
+        ...new Set(fills(svg).filter((c) => !isNeutralGray(c) && c.toLowerCase() !== '#fff')),
+      ].sort();
 
     // El negativo solo reescribe TEXTO: ni un color de marca puede haberse perdido.
     expect(marca(neg)).toEqual(marca(orig));

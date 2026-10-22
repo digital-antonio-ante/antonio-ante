@@ -55,10 +55,13 @@ describe('haTerminado', () => {
     expect(haTerminado(feria, ahora)).toBe(false);
   });
 
-  it('sin fecha de fin, termina cuando empieza', () => {
-    expect(
-      haTerminado({ fechaInicio: '2026-09-12T10:00:00.000-05:00', fechaFin: null }, ahora)
-    ).toBe(true);
-    expect(haTerminado({ fechaInicio: '2026-11-15T07:00:00.000-05:00' }, ahora)).toBe(false);
+  it('sin fecha de fin, sigue vigente hasta el final de su día en Ecuador', () => {
+    // La Carrera 10K (07:00, sin fechaFin) no puede pasar a "realizado" en el
+    // instante en que empieza, con la gente corriendo.
+    const carrera = { fechaInicio: '2026-11-15T07:00:00.000-05:00', fechaFin: null };
+    expect(haTerminado(carrera, new Date('2026-11-15T07:30:00.000-05:00'))).toBe(false);
+    expect(haTerminado(carrera, new Date('2026-11-15T23:30:00.000-05:00'))).toBe(false);
+    expect(haTerminado(carrera, new Date('2026-11-16T00:00:01.000-05:00'))).toBe(true);
+    expect(haTerminado({ fechaInicio: '2026-09-12T10:00:00.000-05:00' }, ahora)).toBe(true);
   });
 });

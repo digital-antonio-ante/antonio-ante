@@ -4,6 +4,7 @@ import { env as cfEnv } from 'cloudflare:workers';
 import { ContactFormSchema } from '../../lib/validations/contact';
 import { sanitizeFormField } from '../../shared/utils/sanitize';
 import { ORIGENES_PERMITIDOS } from '../../shared/config/site';
+import { PREFIJO_ID_MENSAJE } from '../../shared/config/mensajes';
 
 // Token de escritura de Sanity: en Cloudflare llega como secret en el runtime
 // del Worker (cloudflare:workers → env); en dev/build se toma de import.meta.env.
@@ -131,6 +132,11 @@ export const POST: APIRoute = async ({ request }) => {
       useCdn: false,
     });
     await writeClient.create({
+      // El dataset `production` es de lectura pública (el sitio lo lee sin
+      // token). Sanity solo oculta a lectores anónimos los documentos cuyo _id
+      // está en una "ruta" (contiene un punto): sin este prefijo, cualquiera
+      // podía consultar nombre, correo y teléfono de quien escribió (LOPDP).
+      _id: `${PREFIJO_ID_MENSAJE}${crypto.randomUUID()}`,
       _type: 'mensajeContacto',
       nombre: safe.nombre,
       email: safe.email,

@@ -43,7 +43,7 @@ const TAILWIND_DEFAULT_HEXES = new Set(
    eef2ff e0e7ff c7d2fe a5b4fc 818cf8 6366f1 4f46e5 4338ca 3730a3 312e81 1e1b4b
    fdf4ff fae8ff f5d0fe f0abfc e879f9 d946ef c026d3 a21caf 86198f 701a75 4a044e`
     .split(/\s+/)
-    .filter(Boolean),
+    .filter(Boolean)
 );
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -142,7 +142,7 @@ describe('metadatos de categoría', () => {
         const token = tokenName(meta[field]);
         expect(token, `${name}.${field} no es un var()`).not.toBeNull();
         expect(resolveToken(token!), `${name}.${field} → --${token} no resuelve`).toMatch(
-          /^#[0-9a-f]{6}$/,
+          /^#[0-9a-f]{6}$/
         );
       }
     }
@@ -154,7 +154,7 @@ describe('metadatos de categoría', () => {
       const bg = resolveToken(tokenName(meta.bg)!)!;
       const ratio = contrastRatio(fg, bg);
       expect(ratio, `${name}: ${fg} sobre ${bg} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(
-        4.5,
+        4.5
       );
     }
   });
@@ -164,7 +164,7 @@ describe('metadatos de categoría', () => {
       const fg = resolveToken(tokenName(meta.color)!)!;
       const ratio = contrastRatio(fg, '#ffffff');
       expect(ratio, `${name}: ${fg} sobre blanco = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(
-        4.5,
+        4.5
       );
     }
   });
@@ -183,7 +183,7 @@ describe('escala de neutros', () => {
   it('define los diez pasos', () => {
     for (const paso of PASOS) {
       expect(resolveToken(`color-neutral-${paso}`), `falta --color-neutral-${paso}`).toMatch(
-        /^#[0-9a-f]{6}$/,
+        /^#[0-9a-f]{6}$/
       );
     }
   });
@@ -192,7 +192,7 @@ describe('escala de neutros', () => {
     const lums = PASOS.map((p) => relativeLuminance(resolveToken(`color-neutral-${p}`)!));
     for (let i = 1; i < lums.length; i++) {
       expect(lums[i], `paso ${PASOS[i]} no es más oscuro que ${PASOS[i - 1]}`).toBeLessThan(
-        lums[i - 1],
+        lums[i - 1]
       );
     }
   });
@@ -213,7 +213,7 @@ describe('escala de neutros', () => {
     };
     for (const [paso, ref] of Object.entries(REFERENCIAS)) {
       const delta = Math.abs(
-        relativeLuminance(resolveToken(`color-neutral-${paso}`)!) - relativeLuminance(ref),
+        relativeLuminance(resolveToken(`color-neutral-${paso}`)!) - relativeLuminance(ref)
       );
       expect(delta, `paso ${paso} se desvía ${delta.toFixed(5)} de ${ref}`).toBeLessThan(0.005);
     }

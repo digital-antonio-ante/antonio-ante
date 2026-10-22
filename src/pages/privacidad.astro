@@ -14,6 +14,7 @@ export const prerender = true;
 
 import BaseLayout from '@ui/BaseLayout.astro';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
+import { GA4_ID } from '@shared/config/analitica';
 
 const config = await getConfigSitio().catch(() => null);
 const email = config?.emailContacto ?? 'municipio@antonioante.gob.ec';
@@ -108,10 +109,22 @@ const VIGENTE_DESDE = '23 de octubre de 2026';
     </p>
 
     <h2>6. Cookies y analítica</h2>
+    {
+      GA4_ID ? (
+        <p>
+          Usamos <strong>Google Analytics 4</strong> (Google LLC, EE. UU.) para contar visitas y
+          páginas vistas de forma agregada. Instala las cookies <code>_ga</code> y<code>_ga_*</code>
+          , con una duración de hasta 2 años. No usamos herramientas de publicidad.
+        </p>
+      ) : (
+        <p>
+          Este sitio <strong>no usa cookies</strong> ni herramientas de analítica o publicidad.
+        </p>
+      )
+    }
     <p>
-      Este sitio <strong>no usa cookies</strong> ni herramientas de analítica o publicidad. Las tipografías
-      se sirven desde nuestro propio dominio. Los enlaces a Google Maps, Facebook o Instagram te llevan
-      a sitios de terceros que tienen sus propias políticas.
+      Las tipografías se sirven desde nuestro propio dominio. Los enlaces a Google Maps, Facebook o
+      Instagram te llevan a sitios de terceros que tienen sus propias políticas.
     </p>
 
     <h2>7. Tus derechos</h2>
@@ -137,8 +150,8 @@ const VIGENTE_DESDE = '23 de octubre de 2026';
 
     <h2>9. Seguridad</h2>
     <p>
-      Los datos viajan cifrados (HTTPS) y solo el personal municipal autorizado puede consultar los
-      mensajes recibidos.
+      Los datos viajan cifrados (HTTPS), los mensajes se guardan fuera del acceso público y solo las
+      personas autorizadas por el GAD pueden consultarlos.
     </p>
 
     <h2>10. Cambios a esta política</h2>

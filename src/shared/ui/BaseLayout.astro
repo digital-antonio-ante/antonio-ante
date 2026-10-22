@@ -4,6 +4,7 @@ import Header from './Header.astro';
 import Footer from './Footer.astro';
 import '@styles/global.css';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
+import { GA4_ID } from '@shared/config/analitica';
 
 interface Props {
   title: string;
@@ -25,12 +26,11 @@ const ogImage = props.image ?? config?.ogImageUrl ?? undefined;
 // en la variable de entorno PUBLIC_GA4_ID (ej. G-XXXXXXXXXX). La configuración
 // vive en /js/analytics.js (externo, script-src 'self'); el ID viaja como
 // atributo data-ga-id, por lo que cambiarlo no requiere tocar la CSP.
-const ga4Id = import.meta.env.PUBLIC_GA4_ID;
-const ga4 =
-  import.meta.env.PROD && ga4Id
-    ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${ga4Id}"></script>` +
-      `<script src="/js/analytics.js" data-ga-id="${ga4Id}"></script>`
-    : '';
+const ga4Id = GA4_ID;
+const ga4 = ga4Id
+  ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${ga4Id}"></script>` +
+    `<script src="/js/analytics.js" data-ga-id="${ga4Id}"></script>`
+  : '';
 ---
 
 <html lang="es">

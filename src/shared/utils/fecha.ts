@@ -61,9 +61,19 @@ interface ConFechas {
   fechaFin?: string | null;
 }
 
-/** Instante en que el evento deja de estar vigente: su fin o, si no tiene, su inicio. */
+/**
+ * Instante en que el evento deja de estar vigente: su fecha de fin o, si no
+ * tiene, el final de su día en Ecuador (una carrera a las 07:00 sigue "en
+ * curso" esa mañana). Ecuador no tiene horario de verano: el desfase es fijo.
+ */
 export function finDelEvento(evento: ConFechas): Date {
-  return new Date(evento.fechaFin ?? evento.fechaInicio);
+  if (evento.fechaFin) return new Date(evento.fechaFin);
+  return new Date(`${partesFecha(evento.fechaInicio).claveDia}T23:59:59.999-05:00`);
+}
+
+/** Inicio (00:00) del día en curso en Ecuador, en ISO — parámetro de las consultas GROQ. */
+export function inicioDelDiaEcuador(ahora: Date = new Date()): string {
+  return `${F_CLAVE.format(ahora)}T00:00:00.000-05:00`;
 }
 
 export function haTerminado(evento: ConFechas, ahora: Date = new Date()): boolean {

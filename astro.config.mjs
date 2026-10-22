@@ -22,10 +22,13 @@ async function urlsDeEventos() {
   if (!projectId) return [];
   const query = encodeURIComponent('*[_type == "evento" && defined(slug.current)].slug.current');
   try {
+    // API en vivo, nunca apicdn: el build que dispara el webhook debe ver el
+    // evento recién publicado (mismo criterio que src/api/clients/sanity.ts).
     const res = await fetch(
-      `https://${projectId}.apicdn.sanity.io/v2025-01-01/data/query/${dataset}?query=${query}`,
+      `https://${projectId}.api.sanity.io/v2025-01-01/data/query/${dataset}?query=${query}`,
       { signal: AbortSignal.timeout(10_000) }
     );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     /** @type {{ result?: string[] }} */
     const { result } = await res.json();
     return (result ?? []).map((slug) => `${SITE_URL}/eventos/${slug}/`);
