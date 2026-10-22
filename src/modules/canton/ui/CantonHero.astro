@@ -120,11 +120,6 @@ const highlightsCanton = config?.highlightsCanton ?? null;
         <span class="canton-pill" role="listitem">🍽️ Gastronomía</span>
         <span class="canton-pill" role="listitem">🚗 A 2 h de Quito</span>
       </div>
-
-      <div class="canton-ctas">
-        <a href="/turismo/" class="canton-cta canton-cta--primario">Planifica tu visita</a>
-        <a href="/eventos/" class="canton-cta canton-cta--secundario">Ver la agenda</a>
-      </div>
     </div>
   </header>
 
@@ -192,9 +187,11 @@ const highlightsCanton = config?.highlightsCanton ?? null;
   }
 
   /* ── Header ── */
+  /* Compacto a propósito: el mapa es la presentación y debe asomar en la
+     primera pantalla. Los accesos a turismo y agenda van en la franja de abajo. */
   .canton-header {
     width: 100%;
-    padding: 4rem 0 3.5rem;
+    padding: 2.5rem 0 2.25rem;
     text-align: center;
   }
   .canton-header-inner {
@@ -203,7 +200,7 @@ const highlightsCanton = config?.highlightsCanton ?? null;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.2rem;
+    gap: 1rem;
   }
   .location-pill {
     display: inline-flex;
@@ -228,46 +225,6 @@ const highlightsCanton = config?.highlightsCanton ?? null;
     border-radius: 50%;
     background: var(--primary);
     flex-shrink: 0;
-  }
-  .canton-ctas {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
-    margin-top: 0.4rem;
-  }
-  .canton-cta {
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.92rem;
-    font-weight: 700;
-    padding: 0.75rem 1.5rem;
-    border-radius: 9999px;
-    text-decoration: none;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease,
-      background 0.2s ease;
-  }
-  .canton-cta:hover {
-    transform: translateY(-2px);
-  }
-  .canton-cta--primario {
-    background: var(--primary-green);
-    color: #fff;
-    box-shadow: 0 6px 18px rgba(39, 120, 22, 0.3);
-  }
-  .canton-cta--primario:hover {
-    background: var(--primary-deep);
-    box-shadow: 0 10px 24px rgba(39, 120, 22, 0.35);
-  }
-  .canton-cta--secundario {
-    background: #fff;
-    color: var(--primary-dark);
-    border: 1.5px solid var(--surface-border);
-  }
-  .canton-cta--secundario:hover {
-    border-color: var(--primary-green);
   }
   .canton-title-top {
     font-family: 'Inter', sans-serif;
