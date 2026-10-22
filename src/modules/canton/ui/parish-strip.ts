@@ -5,6 +5,8 @@
  *   cuando la tira entra en pantalla.
  * - Flechas y puntos: mucha gente no sabe que un carrusel se desliza; las
  *   flechas pasan de tarjeta en tarjeta y los puntos marcan cuáles se ven.
+ * - Empujoncito: al aparecer, el contenido se desliza un poco y vuelve, para
+ *   que asome la tarjeta siguiente y se vea que la tira se mueve.
  *
  * Se importa desde canton-hero.ts para salir en el mismo bundle externo
  * (la CSP no admite scripts en línea).
@@ -14,11 +16,29 @@ const strip = document.querySelector<HTMLElement>('.parish-strip-section');
 const track = strip?.querySelector<HTMLElement>('.strip-track');
 
 if (strip && track) {
+  const reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Una vez, tras la entrada escalonada, y solo si nadie ha tocado la tira.
+  const empujoncito = () => {
+    if (reducido || track.scrollLeft > 0 || track.scrollWidth <= track.clientWidth) return;
+    const timers: number[] = [];
+    const restaurar = () => {
+      timers.forEach(clearTimeout);
+      track.style.scrollSnapType = '';
+    };
+    track.addEventListener('pointerdown', restaurar, { once: true });
+    track.style.scrollSnapType = 'none';
+    track.scrollTo({ left: 56, behavior: 'smooth' });
+    timers.push(window.setTimeout(() => track.scrollTo({ left: 0, behavior: 'smooth' }), 650));
+    timers.push(window.setTimeout(restaurar, 1300));
+  };
+
   const io = new IntersectionObserver(
     (entries) => {
       if (!entries.some((e) => e.isIntersecting)) return;
       strip.classList.add('is-visible');
       io.disconnect();
+      window.setTimeout(empujoncito, 1300);
     },
     { threshold: 0.2 }
   );
@@ -28,9 +48,7 @@ if (strip && track) {
   const prev = strip.querySelector<HTMLButtonElement>('[data-strip-nav="-1"]');
   const next = strip.querySelector<HTMLButtonElement>('[data-strip-nav="1"]');
   const dots = [...strip.querySelectorAll<HTMLButtonElement>('[data-strip-dot]')];
-  const suave = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ? 'auto'
-    : 'smooth';
+  const suave = reducido ? 'auto' : 'smooth';
 
   const visibles = () => {
     const vista = track.getBoundingClientRect();

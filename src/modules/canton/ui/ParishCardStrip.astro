@@ -127,6 +127,8 @@ const parishList = Object.values(parishes);
 
   .strip-header {
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
     align-items: flex-end;
     justify-content: space-between;
     margin-bottom: 1.5rem;
@@ -154,10 +156,11 @@ const parishList = Object.values(parishes);
     line-height: 1;
     margin: 0;
   }
+  /* Legible para gente mayor: es la instrucción de cómo usar el carrusel */
   .strip-hint {
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 0.4rem;
@@ -253,7 +256,8 @@ const parishList = Object.values(parishes);
     width: 8px;
     height: 8px;
     border-radius: 9999px;
-    background: color-mix(in srgb, var(--text-main) 22%, transparent);
+    /* 60 %: contraste ≥ 3:1 sobre el fondo claro (WCAG 1.4.11) */
+    background: color-mix(in srgb, var(--text-main) 60%, transparent);
     transition:
       width 0.3s ease,
       background 0.3s ease;
@@ -519,11 +523,6 @@ const parishList = Object.values(parishes);
     /* Profundidad en vez de velo: las tarjetas que entran o salen por el borde
        se ven algo más pequeñas y crecen al llegar. Solo donde el navegador
        soporta animaciones ligadas al scroll; en el resto, quietas. */
-    /* Empujoncito al terminar la entrada: la tira se asoma a la izquierda y
-       vuelve, para que se vea que se mueve. */
-    .parish-strip-section.is-visible .strip-track {
-      animation: empujoncito 1.1s cubic-bezier(0.45, 0, 0.25, 1) 1.3s;
-    }
     @supports (animation-timeline: view()) {
       .pcard {
         /* `forwards` en la segunda: con `both` su relleno hacia atrás (scale 1)
@@ -534,16 +533,6 @@ const parishList = Object.values(parishes);
         animation-timeline: view(inline), view(inline);
         animation-range: entry, exit;
       }
-    }
-  }
-  @keyframes empujoncito {
-    0%,
-    100% {
-      translate: 0;
-    }
-    40%,
-    55% {
-      translate: -56px;
     }
   }
   @keyframes asomar {
@@ -626,8 +615,7 @@ const parishList = Object.values(parishes);
     .pcard-accent-bar {
       transition: none;
     }
-    .pcard,
-    .parish-strip-section.is-visible .strip-track {
+    .pcard {
       animation: none;
     }
     .strip-nav,
