@@ -47,14 +47,13 @@ const NOMBRE_RED: Record<SocialLink['red'], string> = {
   enlaces.length > 0 && (
     <section class="psc" style={`--psc-color: ${color};`} aria-labelledby="psc-title">
       <h2 class="psc__title" id="psc-title">
-        ¿Quieres más de {nombreParroquia}?
+        Sigue lo que pasa en {nombreParroquia}
       </h2>
 
       <p class="psc__lead">
         {esRespaldo ? (
           <>
-            {nombreParroquia} todavía no tiene cuenta propia. Mientras tanto, el Municipio de
-            Antonio Ante publica lo que pasa en la parroquia:
+            Fiestas, ferias y novedades de la parroquia, en las redes del Municipio de Antonio Ante:
           </>
         ) : (
           <>El día a día de la parroquia, en sus propias redes:</>
@@ -86,13 +85,6 @@ const NOMBRE_RED: Record<SocialLink['red'], string> = {
           );
         })}
       </ul>
-
-      {esRespaldo && (
-        <p class="psc__note">
-          ¿{nombreParroquia} ya tiene cuenta propia en redes? Escríbenos desde{' '}
-          <a href="/contacto/">contacto</a> y la enlazamos aquí.
-        </p>
-      )}
     </section>
   )
 }
@@ -213,17 +205,6 @@ const NOMBRE_RED: Record<SocialLink['red'], string> = {
   .psc__link:focus-visible {
     outline: 3px solid var(--psc-color);
     outline-offset: 2px;
-  }
-
-  .psc__note {
-    margin: 1.15rem 0 0;
-    font-size: 0.8rem;
-    line-height: 1.55;
-    color: var(--color-text-muted);
-  }
-  .psc__note a {
-    color: var(--color-brand-primary);
-    font-weight: 600;
   }
 
   @media (max-width: 640px) {

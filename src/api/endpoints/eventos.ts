@@ -25,6 +25,9 @@ export const EventoSchema = z.object({
   enlaceRegistro: z.string().url().nullish(),
   imageUrl: z.string().url().nullish(),
   imageAlt: z.string().nullish(),
+  imageDims: z.object({ width: z.number(), height: z.number() }).nullish(),
+  /** Punto focal elegido en el Studio (hotspot), de 0 a 1 */
+  imageFoco: z.object({ x: z.number(), y: z.number() }).nullish(),
   destacado: z.boolean().nullish(),
   galeria: z.array(GaleriaItemSchema).nullish(),
 });
@@ -38,6 +41,8 @@ const FIELDS = `
   fechaInicio, fechaFin, lugar, entradaLibre, enlaceRegistro, destacado,
   "imageUrl": imagenPrincipal.asset->url,
   "imageAlt": imagenPrincipal.alt,
+  "imageDims": imagenPrincipal.asset->metadata.dimensions{width, height},
+  "imageFoco": imagenPrincipal.hotspot{x, y},
   "galeria": galeria[]{
     "url": asset->url,
     "alt": alt

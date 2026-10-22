@@ -3,6 +3,7 @@ import BaseLayout from '@ui/BaseLayout.astro';
 import EventoCard from '../../modules/eventos/ui/EventoCard.astro';
 import { getEventosProximos, getEventosPasados } from '@api/endpoints/eventos';
 import { CATEGORIAS_EVENTO } from '@shared/config/categorias';
+import { partesFecha } from '@shared/utils/fecha';
 
 const [proximos, pasados] = await Promise.all([
   getEventosProximos(30).catch(() => []),
@@ -18,8 +19,13 @@ const filtrar = (arr: typeof proximos) =>
 
 const proximosFiltrados = filtrar(proximos);
 const pasadosFiltrados = filtrar(pasados);
-const total = proximosFiltrados.length + pasadosFiltrados.length;
-
+// La cabecera anuncia lo que viene, no cuántos eventos ya pasaron.
+const siguiente = proximosFiltrados[0] ?? null;
+const siguienteFecha = siguiente
+  ? (({ dia, mesCorto }) => `${Number(dia)} ${mesCorto.toLowerCase()}`)(
+      partesFecha(siguiente.fechaInicio)
+    )
+  : null;
 
 const todasCategorias = [
   ...new Set([...proximosFiltrados, ...pasadosFiltrados].map((e) => e.categoria)),
@@ -35,34 +41,24 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
   <!-- ─── Hero ──────────────────────────────────────────────────────────────── -->
   <section class="ev-hero">
     <div class="ev-hero-inner">
-      <p class="ev-eyebrow">Cantón Antonio Ante</p>
-      <h1 class="ev-title">
-        {parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos y actividades'}
+      <p class="ev-eyebrow animate-entrada">Agenda de Antonio Ante</p>
+      <h1 class="ev-title animate-entrada retardo-1">
+        {parroquiaFiltro ? `Qué hay en ${parroquiaFiltro}` : 'Ferias, fiestas y deporte'}
       </h1>
-      <p class="ev-sub">
+      <p class="ev-sub animate-entrada retardo-2">
         {
           parroquiaFiltro
-            ? `Ferias, cultura, deporte y vida comunitaria en ${parroquiaFiltro}.`
-            : 'Ferias, cultura, deporte y vida comunitaria en todo el cantón.'
+            ? `Elige una fecha y ven a ${parroquiaFiltro}.`
+            : 'Elige una fecha y ven: siempre hay algo que celebrar en el cantón.'
         }
       </p>
 
       {
-        total > 0 && (
-          <div class="ev-pills">
-            <span class="pill pill--total">
-              {total} {total === 1 ? 'evento' : 'eventos'}
-            </span>
-            {proximosFiltrados.length > 0 && (
-              <span class="pill pill--proximos">
-                📅 {proximosFiltrados.length} {proximosFiltrados.length === 1 ? 'próximo' : 'próximos'}
-              </span>
-            )}
-            {pasadosFiltrados.length > 0 && (
-              <span class="pill pill--pasados">
-                ✓ {pasadosFiltrados.length} {pasadosFiltrados.length === 1 ? 'realizado' : 'realizados'}
-              </span>
-            )}
+        siguiente && (
+          <div class="ev-pills animate-entrada retardo-3">
+            <a href={`/eventos/${siguiente.slug.current}/`} class="pill pill--proximos">
+              📅 Próximo: {siguienteFecha} · {siguiente.titulo}
+            </a>
           </div>
         )
       }
@@ -297,20 +293,15 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
     padding: 0.3rem 0.85rem;
     border-radius: 9999px;
   }
-  .pill--total {
-    background: rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-  }
   .pill--proximos {
     background: rgba(60, 141, 43, 0.35);
     color: var(--color-brand-gold-soft);
     border: 1px solid rgba(60, 141, 43, 0.55);
+    text-decoration: none;
+    transition: background 0.2s ease;
   }
-  .pill--pasados {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+  .pill--proximos:hover {
+    background: rgba(60, 141, 43, 0.55);
   }
   .ev-clear-filter {
     display: inline-flex;

@@ -38,14 +38,14 @@ const {
 const slogan = sloganCanton ?? 'Capital Textil del Ecuador';
 const descripcion =
   descripcionCanton ??
-  'El cantón más dinámico de Imbabura. Referente nacional de la industria textil y cuna de experiencias culturales únicas.';
+  'Compra en los más de 150 almacenes de ropa de Atuntaqui, come cuy en Chaltura y recorre gratis la antigua Fábrica Imbabura, hoy museo.';
 const highlights: HighlightItem[] =
   highlightsCanton && highlightsCanton.length > 0
     ? highlightsCanton
     : [
-        { icono: '🧵', titulo: 'Expo Atuntaqui', subtitulo: 'Feria textil internacional' },
-        { icono: '🍽️', titulo: 'Capital del Cuy', subtitulo: 'Gastronomía reconocida' },
-        { icono: '🏭', titulo: 'Fábrica Imbabura', subtitulo: 'Patrimonio histórico nacional' },
+        { icono: '🧵', titulo: 'Expo Atuntaqui', subtitulo: 'La gran feria de Carnaval' },
+        { icono: '🍽️', titulo: 'Cuy de Chaltura', subtitulo: 'Frito en paila' },
+        { icono: '🏭', titulo: 'Fábrica Imbabura', subtitulo: 'Museo con entrada libre' },
       ];
 
 // La foto del cantón es el elemento LCP (Largest Contentful Paint) de la home.
@@ -176,12 +176,12 @@ const cantonImgSrcset = cantonImgBase
       </div>
 
       <div>
-        <h3 class="section-label">Actividades Principales</h3>
+        <h3 class="section-label">Ideal para</h3>
         <div id="panel-activities" class="activities-chips"></div>
       </div>
 
       <div class="projects-box">
-        <h3 class="section-label">Proyectos destacados</h3>
+        <h3 class="section-label">Qué hacer</h3>
         <ul id="panel-projects" class="projects-list"></ul>
       </div>
 

@@ -8,6 +8,7 @@
 import type { Evento } from '@api/endpoints/eventos';
 import { categoriaEvento, etiquetaParroquia } from '@shared/config/categorias';
 import { partesFecha, haTerminado, finDelEvento } from '@shared/utils/fecha';
+import EventoImagen from './EventoImagen.astro';
 
 interface Props {
   evento: Evento | null;
@@ -15,7 +16,6 @@ interface Props {
 
 const { evento } = Astro.props;
 if (!evento) return;
-
 
 const cat = categoriaEvento(evento.categoria);
 
@@ -28,7 +28,6 @@ const mesFin = fin?.mesCorto ?? null;
 const esMultidia = fin !== null && fin.claveDia !== inicio.claveDia;
 
 const esEntradaLibre = evento.entradaLibre !== false;
-const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=format&q=85` : null;
 ---
 
 <section
@@ -217,13 +216,15 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
         <!-- ── Columna de imagen ── -->
         <div class="evd-img-wrap">
           {
-            imgSrc ? (
-              <img
-                src={imgSrc}
+            evento.imageUrl ? (
+              <EventoImagen
+                url={evento.imageUrl}
+                dims={evento.imageDims}
+                foco={evento.imageFoco}
                 alt={evento.imageAlt ?? evento.titulo}
+                proporcion={1.4}
+                sizes="(min-width: 900px) 42vw, 100vw"
                 class="evd-img"
-                loading="lazy"
-                decoding="async"
               />
             ) : (
               <div
@@ -516,15 +517,12 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     overflow: hidden;
     background: var(--color-neutral-100);
   }
-  .evd-img {
+  .evd-img-wrap :global(.evd-img) {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
     transition: transform 0.5s ease;
   }
-  .evd-card:hover .evd-img {
+  .evd-card:hover :global(.evd-img) {
     transform: scale(1.03);
   }
   .evd-img-fallback {
@@ -578,11 +576,6 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
     .evd-img-wrap {
       height: 240px;
       order: -1;
-    }
-    .evd-img {
-      position: relative;
-      width: 100%;
-      height: 100%;
     }
     .evd-content {
       padding: 1.5rem;

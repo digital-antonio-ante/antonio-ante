@@ -16,7 +16,6 @@ import CantonMapSVG from './CantonMapSVG.astro';
 import CantonInfoPanel from './CantonInfoPanel.astro';
 import ParishCardStrip from './ParishCardStrip.astro';
 import CantonGallery from './CantonGallery.astro';
-import { ALTITUD_CANTON_M, fmt } from '@shared/config/canton';
 import { PARISHES } from '../data/parishes';
 import { getParroquiasImageUrls } from '@api/endpoints/parroquias';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
@@ -111,13 +110,20 @@ const highlightsCanton = config?.highlightsCanton ?? null;
       <div class="canton-logo" set:html={lockupSvg} />
 
       <p class="canton-sub">
-        Conoce sus <strong>6 parroquias</strong>, su gente, su cultura y sus encantos turísticos
+        Ropa hecha aquí, cuy en Chaltura, un museo en una fábrica de 1924 y el volcán Imbabura de
+        fondo.
+        <strong>A dos horas de Quito.</strong>
       </p>
 
       <div class="canton-pills" role="list" aria-label="Características del cantón">
-        <span class="canton-pill" role="listitem">🧵 Capital Textil</span>
+        <span class="canton-pill" role="listitem">🧵 Capital de la Moda</span>
         <span class="canton-pill" role="listitem">🍽️ Gastronomía</span>
-        <span class="canton-pill" role="listitem">🏔️ {fmt(ALTITUD_CANTON_M)} m s. n. m.</span>
+        <span class="canton-pill" role="listitem">🚗 A 2 h de Quito</span>
+      </div>
+
+      <div class="canton-ctas">
+        <a href="/turismo/" class="canton-cta canton-cta--primario">Planifica tu visita</a>
+        <a href="/eventos/" class="canton-cta canton-cta--secundario">Ver la agenda</a>
       </div>
     </div>
   </header>
@@ -214,24 +220,54 @@ const highlightsCanton = config?.highlightsCanton ?? null;
     border-radius: 9999px;
     box-shadow: var(--shadow-sm);
   }
+  /* Punto fijo: latía sin parar sin señalar nada y distraía del mapa, que es
+     lo que sí invita a interactuar. */
   .location-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: var(--primary);
     flex-shrink: 0;
-    animation: pulse-dot 2s ease-in-out infinite;
   }
-  @keyframes pulse-dot {
-    0%,
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.4;
-      transform: scale(0.6);
-    }
+  .canton-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 0.4rem;
+  }
+  .canton-cta {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.92rem;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease;
+  }
+  .canton-cta:hover {
+    transform: translateY(-2px);
+  }
+  .canton-cta--primario {
+    background: var(--primary-green);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(39, 120, 22, 0.3);
+  }
+  .canton-cta--primario:hover {
+    background: var(--primary-deep);
+    box-shadow: 0 10px 24px rgba(39, 120, 22, 0.35);
+  }
+  .canton-cta--secundario {
+    background: #fff;
+    color: var(--primary-dark);
+    border: 1.5px solid var(--surface-border);
+  }
+  .canton-cta--secundario:hover {
+    border-color: var(--primary-green);
   }
   .canton-title-top {
     font-family: 'Inter', sans-serif;

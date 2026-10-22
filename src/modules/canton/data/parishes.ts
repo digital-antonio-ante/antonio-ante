@@ -1,13 +1,26 @@
+/** Un plan concreto para el visitante: qué hacer, no a qué se dedica la parroquia. */
+export interface PlanParroquia {
+  emoji: string;
+  titulo: string;
+  detalle: string;
+}
+
 export interface ParishData {
   id: string;
   name: string;
   type: 'Urbana' | 'Rural';
+  /**
+   * Una o dos frases para quien piensa venir. Es también la meta description
+   * de la ficha y el texto del panel del mapa en la portada.
+   */
   description: string;
   shortDesc: string;
   population?: string;
   altitude?: string;
-  activities: string[];
-  projects: string[];
+  /** Temas cortos: «Compras», «Historia»… */
+  idealPara: string[];
+  /** ¿Qué hacer aquí? */
+  planes: PlanParroquia[];
   /** CSS hex color — unique per parish */
   color: string;
   /** URL con crop portrait (440×640) centrado en el hotspot de Sanity — para las tarjetas verticales */
@@ -31,22 +44,46 @@ export interface ParishData {
  * Imbaya es la excepción: su amarillo (#fdc800) es inutilizable bajo texto blanco,
  * así que toma el ámbar oscuro equivalente en lugar del rojo del final de su
  * degradado, que se confundiría con Atuntaqui.
+ *
+ * Textos (oct-2026): solo lo que respaldan fuentes públicas — páginas de
+ * parroquias del Municipio, PDOT de Imbaya 2024-2027, Ministerio de Cultura y
+ * prensa. Nada de superlativos sin fuente (ver tests/textos-verificados.test.ts).
  */
 export const PARISHES: Record<string, ParishData> = {
   atuntaqui: {
     id: 'atuntaqui',
     name: 'Atuntaqui',
     type: 'Urbana',
-    shortDesc: 'Capital textil del Ecuador',
+    // «Siempre de moda» ya va dibujado en su lockup: aquí no se repite.
+    shortDesc: 'Centro de la moda',
     description:
-      'Capital del cantón. Reconocida como el motor industrial y textil de la región, atrayendo a miles con su "Expo Atuntaqui" anual.',
+      'Más de 150 almacenes de ropa hecha en el cantón, la Expo de Carnaval y la fritada con helado de crema del centro.',
     population: '23.851 hab.',
     altitude: '2.406 m s. n. m.',
-    activities: ['Industria Textil', 'Comercio', 'Gastronomía'],
-    projects: [
-      'Expo Atuntaqui Internacional',
-      'Plan de Desarrollo Industrial',
-      'Modernización Vial',
+    idealPara: ['Compras', 'Gastronomía', 'Fiestas'],
+    planes: [
+      {
+        emoji: '🛍️',
+        titulo: 'Compra ropa en el centro textil',
+        detalle:
+          'Más de 150 almacenes con ropa confeccionada en el cantón. En Carnaval llega la Expo, con desfiles y más de 160 expositores.',
+      },
+      {
+        emoji: '🍦',
+        titulo: 'Prueba la fritada y los helados de crema',
+        detalle: 'Con los dulces de siempre: suspiros, mojicones, panuchas y rosquetes.',
+      },
+      {
+        emoji: '⛪',
+        titulo: 'Visita el Santuario del Señor del Santo Sepulcro',
+        detalle: 'El templo principal de Atuntaqui, levantado desde finales del siglo XIX.',
+      },
+      {
+        emoji: '🎭',
+        titulo: 'Vive el Fin de Año',
+        detalle:
+          'Del 27 de diciembre al 7 de enero, la fiesta de Inocentes y Fin de Año —Patrimonio Cultural Inmaterial— llena las calles de comparsas.',
+      },
     ],
     color: '#c60000',
     gallery: [],
@@ -56,13 +93,37 @@ export const PARISHES: Record<string, ParishData> = {
     id: 'andrade_marin',
     name: 'Andrade Marín',
     type: 'Urbana',
-    shortDesc: 'Patrimonio histórico-industrial',
+    shortDesc: 'Cuna de la Fábrica Imbabura',
     description:
-      'La cuna del desarrollo industrial primigenio. Hoy es un polo residencial que alberga el Complejo Histórico Fábrica Imbabura.',
+      'Recorre gratis la antigua Fábrica Imbabura, hoy complejo cultural y museo, y llega a ella en el Tren Tayta Imbabura desde Ibarra.',
     population: '3.891 hab.',
     altitude: '2.410 m s. n. m.',
-    activities: ['Turismo Histórico', 'Educación', 'Servicios'],
-    projects: ['Complejo Cultural Fábrica Imbabura', 'Mejoras en Vías Residenciales'],
+    idealPara: ['Historia', 'Museos', 'Tren'],
+    planes: [
+      {
+        emoji: '🏭',
+        titulo: 'Recorre la Fábrica Imbabura',
+        detalle:
+          'Construida en 1924, es el único Patrimonio Cultural Industrial del Ecuador. Hoy es museo: maquinaria textil de principios del siglo XX, salas de historia y el Teatro LIA. Entrada gratuita.',
+      },
+      {
+        emoji: '🚂',
+        titulo: 'Llega en el Tren Tayta Imbabura',
+        detalle:
+          'Sale de Ibarra y termina en la antigua fábrica. Consulta los horarios antes de viajar.',
+      },
+      {
+        emoji: '⛪',
+        titulo: 'Santuario de la Virgen de Lourdes',
+        detalle: 'El santuario mariano de la parroquia.',
+      },
+      {
+        emoji: '⛰️',
+        titulo: 'Tolas Orozcotola y Pupotola',
+        detalle:
+          'Montículos prehispánicos que, según la tradición local, guardan al rey Cacha y a su hija Pacha.',
+      },
+    ],
     color: '#bd3770',
     gallery: [],
     mapIcon: '🏛️',
@@ -71,13 +132,32 @@ export const PARISHES: Record<string, ParishData> = {
     id: 'chaltura',
     name: 'Chaltura',
     type: 'Rural',
-    shortDesc: 'Capital mundial del cuy',
+    shortDesc: 'Capital del cuy',
     description:
-      'Conocida como "El Pueblo de la Gente Feliz". Destaca por su turismo gastronómico y hermosos paisajes agrícolas.',
+      'El pueblo de la gente feliz: cuy frito en paila, con papas, mote y choclo, en la ruta del cuy y el Complejo La Hornilla.',
     population: '3.068 hab.',
     altitude: '2.340 m s. n. m.',
-    activities: ['Gastronomía', 'Agricultura', 'Turismo'],
-    projects: ['Festival Gastronómico del Cuy', 'Rutas de Arándanos'],
+    idealPara: ['Gastronomía', 'Fin de semana'],
+    planes: [
+      {
+        emoji: '🍽️',
+        titulo: 'Come cuy en la ruta del cuy',
+        detalle:
+          'Cuy frito en paila con papas, tostado, mote y choclo. En el Complejo La Hornilla, junto al Parque de la Familia, atienden más de una decena de emprendimientos.',
+      },
+      {
+        emoji: '🎪',
+        titulo: 'Ven a una feria gastronómica',
+        detalle:
+          'Productores y cocineros de la zona llenan el parque central. Mira la próxima en la agenda.',
+      },
+      {
+        emoji: '🍨',
+        titulo: 'Pasea por el parque y sus heladerías',
+        detalle:
+          'El parque central con su iglesia y el Parque de la Familia, para bajar el almuerzo.',
+      },
+    ],
     color: '#00873a',
     gallery: [],
     mapIcon: '🍽️',
@@ -86,13 +166,36 @@ export const PARISHES: Record<string, ParishData> = {
     id: 'natabuela',
     name: 'Natabuela',
     type: 'Rural',
-    shortDesc: 'Tierra de los abuelos',
+    shortDesc: 'Pueblo de los antepasados',
     description:
-      'Famosa por su cultura, tradiciones y el Centro Gerontológico más grande del Ecuador.',
+      'Su nombre une «antepasados» y «comunidad». Vive su Inti Raymi en junio, las fiestas de San Francisco en octubre y el Camino Real en las faldas del Imbabura.',
     population: '5.651 hab.',
     altitude: '2.400 m s. n. m.',
-    activities: ['Cultura', 'Turismo', 'Agricultura'],
-    projects: ['Centro Gerontológico Municipal', 'Festival de la Confraternidad', 'Mirador'],
+    idealPara: ['Cultura viva', 'Fiestas', 'Caminatas'],
+    planes: [
+      {
+        emoji: '☀️',
+        titulo: 'Inti Raymi del pueblo Natabuela',
+        detalle: 'En junio, danzas circulares y chicha de jora para celebrar la cosecha.',
+      },
+      {
+        emoji: '🎆',
+        titulo: 'Fiestas de San Francisco',
+        detalle:
+          'A inicios de octubre: pregón, quema de chamiza, paseo del chagra y toros populares.',
+      },
+      {
+        emoji: '🥾',
+        titulo: 'Camina el Camino Real',
+        detalle:
+          'En las faldas del Imbabura, la ruta por la que pasaron las tropas de Bolívar y Sucre.',
+      },
+      {
+        emoji: '🌽',
+        titulo: 'Prueba la cocina del maíz',
+        detalle: 'Cuy con papas, mote, aguacate y queso, fritada y chicha de jora.',
+      },
+    ],
     color: '#1b5d80',
     gallery: [],
     mapIcon: '🏺',
@@ -101,28 +204,72 @@ export const PARISHES: Record<string, ParishData> = {
     id: 'san_roque',
     name: 'San Roque',
     type: 'Rural',
-    shortDesc: 'Tradición y música',
+    shortDesc: 'Tejidos y tradición',
     description:
-      'Destacada por su arraigada tradición musical. Representa la alegría de su gente a través de sus bandas y festividades.',
+      'Tapices de cabuya, ponchos de lana y el Inti Raymi de sus comunidades, en las faldas del volcán Imbabura.',
     population: '10.142 hab.',
     altitude: '2.450 m s. n. m.',
-    activities: ['Música', 'Artesanía', 'Comercio'],
-    projects: ['Renovación del Parque Central', 'Escuela de Artes Populares', 'Centro de Eventos'],
+    idealPara: ['Artesanía', 'Cultura viva', 'Montaña'],
+    planes: [
+      {
+        emoji: '🧶',
+        titulo: 'Conoce los tejidos de cabuya',
+        detalle: 'Tapices, alfombras y hamacas tejidos en telares de madera.',
+      },
+      {
+        emoji: '🧣',
+        titulo: 'Lleva artesanía de lana',
+        detalle: 'Ponchos, chalinas y tapices de los talleres de la parroquia.',
+      },
+      {
+        emoji: '☀️',
+        titulo: 'Inti Raymi en las comunidades',
+        detalle:
+          'La Esperanza lo celebra en junio, Pucará en julio y Agualongo de Paredes en agosto.',
+      },
+      {
+        emoji: '🌋',
+        titulo: 'Mira el Imbabura de cerca',
+        detalle: 'La parroquia sube por las faldas del volcán hasta más de 4.600 metros.',
+      },
+    ],
     color: '#0b5c2e',
     gallery: [],
-    mapIcon: '🎺',
+    mapIcon: '🧶',
   },
   imbaya: {
     id: 'imbaya',
     name: 'Imbaya',
     type: 'Rural',
-    shortDesc: 'Ecoturismo y naturaleza',
+    shortDesc: 'Valle de tierra fértil',
     description:
-      'El rincón ecológico del cantón. Destaca por sus paisajes naturales, cuerpos de agua y vocación hacia la preservación ambiental.',
+      'Un valle de clima cálido entre los ríos Ambi, Chorlaví y Tahuando: papas asadas, tripa mishky y la vida tranquila del campo.',
     population: '1.279 hab.',
     altitude: '2.300 m s. n. m.',
-    activities: ['Ecoturismo', 'Agricultura', 'Pesca Deportiva'],
-    projects: ['Protección de Humedales', 'Rutas Ecológicas y Senderismo'],
+    idealPara: ['Campo', 'Gastronomía', 'Tranquilidad'],
+    planes: [
+      {
+        emoji: '🥔',
+        titulo: 'Papas asadas y tripa mishky',
+        detalle: 'Los platos del centro parroquial, junto a la fritada y el cuy.',
+      },
+      {
+        emoji: '🌳',
+        titulo: 'Parque central e iglesia',
+        detalle: 'El corazón de la parroquia y el escenario de sus fiestas.',
+      },
+      {
+        emoji: '🎉',
+        titulo: 'Fiestas de San Luis Gonzaga',
+        detalle:
+          'Las patronales, en junio. Hasta 1945 Imbaya se llamó San Luis de Cobuendo: es la parroquia más joven del cantón.',
+      },
+      {
+        emoji: '🍊',
+        titulo: 'Caña de azúcar y cítricos',
+        detalle: 'Un valle cálido y agrícola, rodeado por los ríos Ambi, Chorlaví y Tahuando.',
+      },
+    ],
     color: '#b45309',
     gallery: [],
     mapIcon: '🌿',

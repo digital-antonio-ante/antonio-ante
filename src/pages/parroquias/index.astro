@@ -5,12 +5,16 @@ import BaseLayout from '@ui/BaseLayout.astro';
 import { getParroquiasImageUrls } from '@api/endpoints/parroquias';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 import { PARISHES } from '@modules/canton/data/parishes';
-import { POBLACION_CANTON, fmt } from '@shared/config/canton';
+import { SUPERFICIE_CANTON_KM2 } from '@shared/config/canton';
 
 const [sanityParroquias, config] = await Promise.all([
   getParroquiasImageUrls().catch(() => []),
   getConfigSitio().catch(() => null),
 ]);
+
+// También es la meta description: lo que se lee en Google.
+const SUBTITULO =
+  'Compras en Atuntaqui, la Fábrica Imbabura en Andrade Marín, cuy en Chaltura, Inti Raymi en Natabuela, tejidos en San Roque y el valle cálido de Imbaya.';
 
 const cantonImageUrl = config?.cantonImageUrl ?? null;
 const cantonImageAlt = config?.cantonImageAlt ?? 'Cantón Antonio Ante — Imbabura';
@@ -62,14 +66,14 @@ const parishList = Object.values(PARISHES).map((p) => ({
   ...p,
   slug: p.id.replaceAll('_', '-'),
   cardSrc: sanityByName[NOMBRE_MAP[p.id] ?? '']?.src ?? null,
-  // Stats formateados en una sola línea
-  statsLine: [p.population, p.altitude].filter(Boolean).join(' · '),
+  // Lo que decide la visita, no el censo
+  idealLine: p.idealPara.length > 0 ? `Ideal para: ${p.idealPara.join(' · ')}` : '',
 }));
 ---
 
 <BaseLayout
   title="Parroquias"
-  description="Directorio de las seis parroquias del Cantón Antonio Ante: Atuntaqui, Andrade Marín, Chaltura, Imbaya, Natabuela y San Roque. Conoce su gente, cultura y proyectos."
+  description={`Atuntaqui, Andrade Marín, Chaltura, Natabuela, San Roque e Imbaya: qué hacer en cada parroquia de Antonio Ante. ${SUBTITULO}`}
 >
   <!-- ── Hero ── -->
   <section class="ph-hero" aria-label="Parroquias del Cantón Antonio Ante">
@@ -101,24 +105,21 @@ const parishList = Object.values(PARISHES).map((p) => ({
         </ol>
       </nav>
 
-      <p class="ph-hero__eyebrow">Cantón Antonio Ante · Imbabura · Ecuador</p>
-      <h1 class="ph-hero__title">
+      <p class="ph-hero__eyebrow animate-entrada">Cantón Antonio Ante · Imbabura · Ecuador</p>
+      <h1 class="ph-hero__title animate-entrada retardo-1">
         6 parroquias,<br /><em>una sola identidad</em>
       </h1>
-      <p class="ph-hero__sub">
-        Desde la Capital Textil hasta los paisajes de Imbaya — cada parroquia es un mundo propio
-        dentro del cantón más dinámico de la Sierra Norte.
-      </p>
+      <p class="ph-hero__sub animate-entrada retardo-2">{SUBTITULO}</p>
 
-      <!-- Estadísticas: 4 números, separador vertical, sin píldoras que rompan -->
-      <div class="ph-hero__stats" aria-hidden="true">
+      <!-- Cifras que invitan: todo queda cerca -->
+      <div class="ph-hero__stats animate-entrada retardo-3" aria-hidden="true">
         <div class="ph-stat"><strong>6</strong><span>parroquias</span></div>
         <div class="ph-stat-sep"></div>
-        <div class="ph-stat"><strong>2</strong><span>urbanas</span></div>
+        <div class="ph-stat">
+          <strong>{SUPERFICIE_CANTON_KM2} km²</strong><span>todo a minutos</span>
+        </div>
         <div class="ph-stat-sep"></div>
-        <div class="ph-stat"><strong>4</strong><span>rurales</span></div>
-        <div class="ph-stat-sep"></div>
-        <div class="ph-stat"><strong>{fmt(POBLACION_CANTON)}</strong><span>habitantes</span></div>
+        <div class="ph-stat"><strong>~2 h</strong><span>desde Quito</span></div>
       </div>
     </div>
 
@@ -129,9 +130,9 @@ const parishList = Object.values(PARISHES).map((p) => ({
   <section class="ph-dir" aria-labelledby="dir-title">
     <div class="ph-dir__inner">
       <div class="ph-dir__hd">
-        <p class="ph-eyebrow">Directorio completo</p>
+        <p class="ph-eyebrow">¿Por dónde empiezas?</p>
         <h2 id="dir-title" class="ph-dir__title">Elige tu parroquia</h2>
-        <p class="ph-dir__sub">Selecciona la parroquia que quieres conocer en detalle.</p>
+        <p class="ph-dir__sub">Cada una tiene su plan. Entra a la que más te provoque.</p>
       </div>
 
       <!--
@@ -157,6 +158,7 @@ const parishList = Object.values(PARISHES).map((p) => ({
                       loading="lazy"
                       decoding="async"
                       aria-hidden="true"
+                      style={`view-transition-name: vt-parroquia-${p.slug};`}
                     />
                   ) : (
                     <div class="pc__img-fallback" aria-hidden="true" />
@@ -176,14 +178,10 @@ const parishList = Object.values(PARISHES).map((p) => ({
                     <p class="pc__slogan">{p.shortDesc}</p>
                   </div>
 
-                  {p.statsLine && (
-                    <p class="pc__stats" aria-hidden="true">
-                      {p.statsLine}
-                    </p>
-                  )}
+                  {p.idealLine && <p class="pc__stats">{p.idealLine}</p>}
 
                   <div class="pc__cta" aria-hidden="true">
-                    <span>Explorar</span>
+                    <span>Ver qué hacer</span>
                     <svg
                       width="14"
                       height="14"
@@ -572,12 +570,9 @@ const parishList = Object.values(PARISHES).map((p) => ({
   /* Stats — 1 línea, texto neutro */
   .pc__stats {
     font-size: 0.75rem;
-    color: var(--color-neutral-400);
+    color: var(--color-neutral-500);
     font-weight: 500;
     margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   /* CTA — separado del body, siempre en el fondo */

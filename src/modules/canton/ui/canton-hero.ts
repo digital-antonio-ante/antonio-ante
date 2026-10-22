@@ -97,23 +97,23 @@ function selectParish(id: string): void {
   if (elPop) elPop.textContent = data.population ?? 'N/D';
   if (elAlt) elAlt.textContent = data.altitude ?? 'N/D';
 
-  // Activity chips
+  // «Ideal para»: chips cortos
   if (elActivities) {
     elActivities.innerHTML = '';
-    data.activities.forEach((act) => {
+    data.idealPara.forEach((tema) => {
       const chip = document.createElement('span');
       chip.className = 'activity-chip';
-      chip.textContent = act;
+      chip.textContent = tema;
       elActivities.appendChild(chip);
     });
   }
 
-  // Project list
+  // «Qué hacer»: los planes concretos de la parroquia
   if (elProjects) {
     elProjects.innerHTML = '';
-    data.projects.forEach((proj) => {
+    data.planes.forEach((plan) => {
       const li = document.createElement('li');
-      li.textContent = proj;
+      li.textContent = plan.titulo;
       elProjects.appendChild(li);
     });
   }
