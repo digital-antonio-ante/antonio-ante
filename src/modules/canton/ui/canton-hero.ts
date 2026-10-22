@@ -12,25 +12,11 @@
  *                import if the element is missing or unparseable.
  */
 
+// Primero: la tira arranca oculta y es la navegación a las parroquias.
+import './parish-strip';
 import { PARISHES } from '../data/parishes';
 import type { ParishData } from '../data/parishes';
 import { openGallery } from './canton-gallery';
-
-// ── Entrada escalonada de la tira de parroquias al aparecer en pantalla ──────
-// Va primero: las tarjetas arrancan ocultas y son la navegación a las
-// parroquias; un fallo más abajo en este módulo no debe dejarlas invisibles.
-const strip = document.querySelector('.parish-strip-section');
-if (strip) {
-  const io = new IntersectionObserver(
-    (entries) => {
-      if (!entries.some((e) => e.isIntersecting)) return;
-      strip.classList.add('is-visible');
-      io.disconnect();
-    },
-    { threshold: 0.2 }
-  );
-  io.observe(strip);
-}
 
 // ── Parish data (server-injected JSON wins, static PARISHES as fallback) ─────
 const dataEl = document.getElementById('parish-data');

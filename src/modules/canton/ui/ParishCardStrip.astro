@@ -7,7 +7,8 @@
  * Interacción vía data-select-parish (CSP-safe, sin onclick inline).
  * Desktop: grid 6 columnas. Tablet/móvil: scroll horizontal con snap que llega
  * al borde de la pantalla: la tarjeta siguiente asoma cortada, sin velos encima.
- * Entrada escalonada al aparecer en pantalla (la activa canton-hero.ts).
+ * Entrada escalonada al aparecer en pantalla, flechas y puntos para quien no
+ * desliza (comportamiento en parish-strip.ts).
  */
 import type { ParishData } from '../data/parishes';
 
@@ -26,7 +27,8 @@ const parishList = Object.values(parishes);
       <h2 class="strip-title">Conoce cada parroquia</h2>
     </div>
     <p class="strip-hint" aria-hidden="true">
-      <span class="strip-hint-arrow">←→</span> Desliza para explorar
+      <span class="strip-hint-arrow">←→</span> Desliza o toca las flechas para ver las
+      {parishList.length} parroquias
     </p>
   </div>
 
@@ -84,6 +86,36 @@ const parishList = Object.values(parishes);
         ))
       }
     </div>
+
+    {/* Flechas: quien no sabe que se desliza, toca. Se ocultan en los extremos. */}
+    <button
+      type="button"
+      class="strip-nav strip-nav--prev"
+      data-strip-nav="-1"
+      aria-label="Ver parroquias anteriores"
+      disabled
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </button>
+    <button
+      type="button"
+      class="strip-nav strip-nav--next"
+      data-strip-nav="1"
+      aria-label="Ver más parroquias"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+    </button>
+  </div>
+
+  {/* Un punto por parroquia: se rellenan los de las tarjetas que están a la vista */}
+  <div class="strip-dots">
+    {
+      parishList.map((p, i) => (
+        <button type="button" class="strip-dot" data-strip-dot={i} aria-label={`Ir a ${p.name}`}>
+          <span aria-hidden="true" />
+        </button>
+      ))
+    }
   </div>
 </section>
 
@@ -95,6 +127,8 @@ const parishList = Object.values(parishes);
 
   .strip-header {
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
     align-items: flex-end;
     justify-content: space-between;
     margin-bottom: 1.5rem;
@@ -122,10 +156,11 @@ const parishList = Object.values(parishes);
     line-height: 1;
     margin: 0;
   }
+  /* Legible para gente mayor: es la instrucción de cómo usar el carrusel */
   .strip-hint {
-    font-size: 0.72rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 0.4rem;
@@ -152,6 +187,96 @@ const parishList = Object.values(parishes);
   }
   .strip-track::-webkit-scrollbar {
     display: none;
+  }
+
+  /* ── Flechas y puntos (solo mientras es carrusel, < 1100 px) ── */
+  .strip-nav {
+    position: absolute;
+    top: calc(50% - 0.25rem);
+    translate: 0 -50%;
+    z-index: 4;
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: none;
+    background: #fff;
+    color: var(--text-main);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition:
+      opacity 0.25s ease,
+      scale 0.2s ease;
+  }
+  .strip-nav svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .strip-nav:hover {
+    scale: 1.08;
+  }
+  .strip-nav:focus-visible {
+    outline: 3px solid var(--primary-green);
+    outline-offset: 2px;
+  }
+  .strip-nav:disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .strip-nav--prev {
+    left: 0.25rem;
+  }
+  .strip-nav--next {
+    right: 0.25rem;
+  }
+  .strip-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.15rem;
+    margin-top: 0.75rem;
+  }
+  /* Botón de 28 px (área táctil) con el punto visible dentro */
+  .strip-dot {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .strip-dot span {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    /* 60 %: contraste ≥ 3:1 sobre el fondo claro (WCAG 1.4.11) */
+    background: color-mix(in srgb, var(--text-main) 60%, transparent);
+    transition:
+      width 0.3s ease,
+      background 0.3s ease;
+  }
+  .strip-dot[aria-current='true'] span {
+    width: 20px;
+    background: var(--primary-green);
+  }
+  .strip-dot:focus-visible {
+    outline: 2px solid var(--primary-green);
+    outline-offset: -2px;
+    border-radius: 9999px;
+  }
+  /* Sin JS las flechas y los puntos no harían nada */
+  @media (scripting: none) {
+    .strip-nav,
+    .strip-dots {
+      display: none;
+    }
   }
 
   /* ── Card ── */
@@ -381,7 +506,9 @@ const parishList = Object.values(parishes);
       width: auto;
       height: 300px;
     }
-    .strip-hint {
+    .strip-hint,
+    .strip-nav,
+    .strip-dots {
       display: none;
     }
   }
@@ -490,6 +617,10 @@ const parishList = Object.values(parishes);
     }
     .pcard {
       animation: none;
+    }
+    .strip-nav,
+    .strip-dot span {
+      transition: none;
     }
     .parish-strip-section:not(.is-visible) .pcard {
       opacity: 1;
