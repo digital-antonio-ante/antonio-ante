@@ -148,7 +148,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
               alt={evento.imageAlt ?? evento.titulo}
               width={evento.imageDims?.width}
               height={evento.imageDims?.height}
-              style={`width: min(100%, ${flyerAncho}px);`}
+              style={`--flyer-original: ${evento.imageDims?.width ?? flyerAncho}px; --flyer-escritorio: ${flyerAncho}px;`}
               fetchpriority="high"
               decoding="async"
             />
@@ -463,12 +463,18 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     align-items: center;
     gap: 2.5rem;
   }
-  /* El flyer completo, a su tamaño como máximo */
+  /* El flyer completo, a su tamaño como máximo; el tope de alto es solo de escritorio */
   .evd-hero-flyer {
     display: block;
+    width: min(100%, var(--flyer-original));
     height: auto;
     border-radius: 14px;
     box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  }
+  @media (min-width: 768px) {
+    .evd-hero-flyer {
+      width: min(100%, var(--flyer-escritorio));
+    }
   }
   @media (max-width: 767px) {
     .evd-hero-inner--flyer {
