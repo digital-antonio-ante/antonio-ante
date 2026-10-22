@@ -38,10 +38,16 @@ const {
   noindex = false,
 } = Astro.props;
 
-const siteName = 'GAD Municipal de Antonio Ante';
+const siteName = 'Conoce Antonio Ante';
 const fullTitle = `${pageTitle} | ${siteName}`;
 const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? SITE_URL;
-const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteUrl).toString();
+// Siempre absoluta y con barra final: es la forma en que se sirven las páginas
+// estáticas y la que lista el sitemap. Sin barra, la canónica apuntaría a una
+// URL que redirige (307), y Google puede descartar una canónica así.
+const canonicalTarget = new URL(canonical ?? Astro.url.pathname, siteUrl);
+canonicalTarget.search = '';
+if (!canonicalTarget.pathname.endsWith('/')) canonicalTarget.pathname += '/';
+const canonicalUrl = canonicalTarget.toString();
 const ogImage = image
   ? image.startsWith('http')
     ? image

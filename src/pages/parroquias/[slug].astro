@@ -11,6 +11,7 @@ import { getConfigSitio } from '@api/endpoints/config-sitio';
 import { PARISHES } from '@modules/canton/data/parishes';
 import { OBRAS_HABILITADAS } from '@shared/config/features';
 import { SITE_URL } from '@shared/config/site';
+import { fmt } from '@shared/config/canton';
 
 export async function getStaticPaths() {
   const parroquias = await getParroquias();
@@ -107,7 +108,7 @@ const jsonLd = JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'AdministrativeArea',
   name: parroquia.nombre,
-  url: `${SITE_URL}/parroquias/${parroquia.slug.current}`,
+  url: `${SITE_URL}/parroquias/${parroquia.slug.current}/`,
   ...(staticData?.description ? { description: staticData.description } : {}),
   ...(ogSrc ? { image: ogSrc } : {}),
   containedInPlace: {
@@ -140,12 +141,7 @@ const jsonLd = JSON.stringify({
 });
 ---
 
-<BaseLayout
-  title={seoTitle}
-  description={seoDesc}
-  image={ogSrc ?? undefined}
-  canonical={`${SITE_URL}/parroquias/${parroquia.slug.current}`}
->
+<BaseLayout title={seoTitle} description={seoDesc} image={ogSrc ?? undefined}>
   <script slot="head" type="application/ld+json" set:html={jsonLd} />
 
   <!--
@@ -184,7 +180,7 @@ const jsonLd = JSON.stringify({
             <ol class="pp-breadcrumb" role="list">
               <li><a href="/">Inicio</a></li>
               <li aria-hidden="true">›</li>
-              <li><a href="/parroquias">Parroquias</a></li>
+              <li><a href="/parroquias/">Parroquias</a></li>
               <li aria-hidden="true">›</li>
               <li aria-current="page">{parroquia.nombre}</li>
             </ol>
@@ -225,7 +221,7 @@ const jsonLd = JSON.stringify({
             {
               parroquia.superficieKm2 && (
                 <div class="pp-stat" role="listitem">
-                  <strong>{parroquia.superficieKm2}</strong>
+                  <strong>{fmt(parroquia.superficieKm2)}</strong>
                   <span>km²</span>
                 </div>
               )
@@ -254,7 +250,7 @@ const jsonLd = JSON.stringify({
             <span class="pp-identity__icon" aria-hidden="true">
               {mapIcon}
             </span>
-            <p class="pp-identity__quote">"{shortDesc}"</p>
+            <p class="pp-identity__quote">«{shortDesc}»</p>
           </div>
         </div>
       )
@@ -456,7 +452,7 @@ const jsonLd = JSON.stringify({
                     📐
                   </span>
                   <div>
-                    <strong class="pp-stat-card__num">{parroquia.superficieKm2}</strong>
+                    <strong class="pp-stat-card__num">{fmt(parroquia.superficieKm2)}</strong>
                     <span class="pp-stat-card__label">km² de superficie</span>
                   </div>
                 </div>
@@ -541,7 +537,7 @@ const jsonLd = JSON.stringify({
             }
 
             {/* Explorar turismo */}
-            <a href="/turismo" class="pp-action-btn pp-action-btn--turismo">
+            <a href="/turismo/" class="pp-action-btn pp-action-btn--turismo">
               <span class="pp-action-btn__icon" aria-hidden="true">🗺️</span>
               <span class="pp-action-btn__label">Explorar turismo</span>
               <svg
@@ -563,7 +559,7 @@ const jsonLd = JSON.stringify({
           </div>
 
           <!-- Volver -->
-          <a href="/parroquias" class="pp-back">
+          <a href="/parroquias/" class="pp-back">
             <svg
               width="15"
               height="15"

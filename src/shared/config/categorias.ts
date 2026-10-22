@@ -161,6 +161,15 @@ export function categoriaEvento(slug: string): CategoriaEvento {
   );
 }
 
+/**
+ * Nombre visible del campo `parroquia` de un evento. El Studio guarda el valor
+ * interno `Canton` para "Todo el cantón" (ver studio/schemas/evento.ts); el
+ * resto de valores ya son el nombre de la parroquia.
+ */
+export function etiquetaParroquia(valor: string): string {
+  return valor === 'Canton' ? 'Todo el cantón' : valor;
+}
+
 /** Categoría de obra con respaldo — mismo criterio que `categoriaEvento`. */
 export function categoriaObra(slug: string): CategoriaObra {
   return (

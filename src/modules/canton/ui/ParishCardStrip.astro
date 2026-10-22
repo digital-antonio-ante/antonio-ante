@@ -34,7 +34,7 @@ const parishList = Object.values(parishes);
         parishList.map((p) => (
           <a
             class="pcard"
-            href={`/parroquias/${p.id.replaceAll('_', '-')}`}
+            href={`/parroquias/${p.id.replaceAll('_', '-')}/`}
             style={`--parish-color: ${p.color};`}
           >
             {/* Foto de fondo con fallback al color de parroquia */}

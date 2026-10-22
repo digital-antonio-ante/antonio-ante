@@ -5,7 +5,7 @@ import BaseLayout from '@ui/BaseLayout.astro';
 import { getParroquiasImageUrls } from '@api/endpoints/parroquias';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 import { PARISHES } from '@modules/canton/data/parishes';
-import { SITE_URL } from '@shared/config/site';
+import { POBLACION_CANTON, fmt } from '@shared/config/canton';
 
 const [sanityParroquias, config] = await Promise.all([
   getParroquiasImageUrls().catch(() => []),
@@ -70,7 +70,6 @@ const parishList = Object.values(PARISHES).map((p) => ({
 <BaseLayout
   title="Parroquias"
   description="Directorio de las seis parroquias del Cantón Antonio Ante: Atuntaqui, Andrade Marín, Chaltura, Imbaya, Natabuela y San Roque. Conoce su gente, cultura y proyectos."
-  canonical={`${SITE_URL}/parroquias`}
 >
   <!-- ── Hero ── -->
   <section class="ph-hero" aria-label="Parroquias del Cantón Antonio Ante">
@@ -107,7 +106,7 @@ const parishList = Object.values(PARISHES).map((p) => ({
         6 parroquias,<br /><em>una sola identidad</em>
       </h1>
       <p class="ph-hero__sub">
-        Desde la Capital Textil hasta los humedales de Imbaya — cada parroquia es un mundo propio
+        Desde la Capital Textil hasta los paisajes de Imbaya — cada parroquia es un mundo propio
         dentro del cantón más dinámico de la Sierra Norte.
       </p>
 
@@ -119,7 +118,7 @@ const parishList = Object.values(PARISHES).map((p) => ({
         <div class="ph-stat-sep"></div>
         <div class="ph-stat"><strong>4</strong><span>rurales</span></div>
         <div class="ph-stat-sep"></div>
-        <div class="ph-stat"><strong>~45 k</strong><span>habitantes</span></div>
+        <div class="ph-stat"><strong>{fmt(POBLACION_CANTON)}</strong><span>habitantes</span></div>
       </div>
     </div>
 
@@ -144,7 +143,7 @@ const parishList = Object.values(PARISHES).map((p) => ({
           parishList.map((p) => (
             <li class="ph-grid__cell" role="listitem">
               <a
-                href={`/parroquias/${p.slug}`}
+                href={`/parroquias/${p.slug}/`}
                 class="pc"
                 style={`--c:${p.color};`}
                 aria-label={`${p.name} — ${p.shortDesc}. ${p.type}.`}

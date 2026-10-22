@@ -260,7 +260,10 @@ const SOCIAL_LABELS: Record<SocialRed['red'], string> = {
   </div>
 
   <div class="footer-bottom">
-    <p class="footer-copy">© {year} GAD Municipal del Cantón Antonio Ante.</p>
+    <p class="footer-copy">
+      © {year} GAD Municipal del Cantón Antonio Ante ·
+      <a href="/privacidad/" class="footer-legal-link">Política de privacidad</a>
+    </p>
     <p class="footer-tagline">Imbabura, Ecuador — <em>Capital de la Moda</em></p>
   </div>
 </footer>
@@ -502,6 +505,14 @@ const SOCIAL_LABELS: Record<SocialRed['red'], string> = {
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.6);
     margin: 0;
+  }
+  .footer-legal-link {
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .footer-legal-link:hover {
+    color: #fff;
   }
   .footer-tagline em {
     font-style: italic;

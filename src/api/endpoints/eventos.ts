@@ -45,33 +45,44 @@ const FIELDS = `
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
-/** Eventos próximos (fechaInicio >= ahora), orden cronológico asc */
+// Un evento está vigente hasta que TERMINA, no hasta que empieza: una feria de
+// tres días sigue siendo "próxima" mientras dura. Mismo criterio que
+// `haTerminado()` en @shared/utils/fecha.
+const FIN = 'dateTime(coalesce(fechaFin, fechaInicio))';
+
+/** Eventos próximos o en curso (aún no terminan), orden cronológico asc */
 export async function getEventosProximos(limit = 10): Promise<Evento[]> {
   const now = new Date().toISOString();
   const query = `
-    *[_type == "evento" && fechaInicio >= $now]
+    *[_type == "evento" && ${FIN} >= dateTime($now)]
     | order(fechaInicio asc) [0...$limit] { ${FIELDS} }
   `;
   return fetchSanity(query, z.array(EventoSchema), { now, limit });
 }
 
-/** Eventos pasados (fechaInicio < ahora), orden cronológico desc */
+/** Eventos ya terminados, orden cronológico desc */
 export async function getEventosPasados(limit = 20): Promise<Evento[]> {
   const now = new Date().toISOString();
   const query = `
-    *[_type == "evento" && fechaInicio < $now]
+    *[_type == "evento" && ${FIN} < dateTime($now)]
     | order(fechaInicio desc) [0...$limit] { ${FIELDS} }
   `;
   return fetchSanity(query, z.array(EventoSchema), { now, limit });
 }
 
-/** Evento marcado como destacado — para el homepage (máx uno activo) */
+/**
+ * Evento destacado para la home: el más cercano de los marcados que aún no
+ * terminan. Uno ya realizado no se destaca —la home anunciaba en octubre la
+ * Expo de febrero con un flyer de "faltan 15 días"—; sin vigentes, la sección
+ * no se muestra.
+ */
 export async function getEventoDestacado(): Promise<Evento | null> {
+  const now = new Date().toISOString();
   const query = `
-    *[_type == "evento" && destacado == true]
-    | order(_createdAt desc) [0] { ${FIELDS} }
+    *[_type == "evento" && destacado == true && ${FIN} >= dateTime($now)]
+    | order(fechaInicio asc) [0] { ${FIELDS} }
   `;
-  return fetchSanity(query, EventoSchema.nullable());
+  return fetchSanity(query, EventoSchema.nullable(), { now });
 }
 
 /** Evento por slug — para la página de detalle */
@@ -92,7 +103,7 @@ export async function getTodosLosEventos(): Promise<Evento[]> {
 export async function getEventosByParroquia(parroquia: string, limit = 3): Promise<Evento[]> {
   const now = new Date().toISOString();
   const query = `
-    *[_type == "evento" && parroquia == $parroquia && fechaInicio >= $now]
+    *[_type == "evento" && parroquia == $parroquia && ${FIN} >= dateTime($now)]
     | order(fechaInicio asc) [0...$limit] { ${FIELDS} }
   `;
   return fetchSanity(query, z.array(EventoSchema), { parroquia, now, limit });

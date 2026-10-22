@@ -24,7 +24,7 @@ function toTelHref(phone: string): string {
 
 <BaseLayout
   title="Contacto"
-  description="Comunícate con el GAD Municipal del Cantón Antonio Ante. Escríbenos tus consultas, solicitudes y sugerencias."
+  description="Comunícate con el GAD Municipal del Cantón Antonio Ante. Escríbenos tus consultas, solicitudes y sugerencias sobre el cantón."
 >
   <!-- Hero -->
   <section class="bg-brand-primary text-white py-12 lg:py-16">
@@ -36,10 +36,10 @@ function toTelHref(phone: string): string {
           <li class="text-white font-medium" aria-current="page">Contacto</li>
         </ol>
       </nav>
-      <h1 class="text-3xl lg:text-4xl font-bold mb-3">Contáctanos</h1>
+      <h1 class="font-display text-3xl lg:text-4xl font-bold tracking-tight mb-3">Contáctanos</h1>
       <p class="text-white/80 max-w-xl">
-        Escríbenos con tus consultas, solicitudes o sugerencias. Te responderemos en un plazo máximo
-        de 3 días hábiles.
+        Escríbenos con tus consultas, solicitudes o sugerencias y te responderemos al correo que
+        nos indiques.
       </p>
     </div>
   </section>
@@ -73,8 +73,7 @@ function toTelHref(phone: string): string {
               <div>
                 <p class="font-bold text-green-800">Mensaje enviado con éxito</p>
                 <p class="text-green-700 text-sm mt-1">
-                  Tu mensaje fue recibido. Te responderemos en un plazo máximo de 3 días hábiles al
-                  correo indicado.
+                  Tu mensaje fue recibido. Te responderemos al correo que nos indicaste.
                 </p>
               </div>
             </div>
@@ -174,9 +173,12 @@ function toTelHref(phone: string): string {
                 aria-required="true"></textarea>
             </div>
 
-            <p class="text-xs text-brand-dark/50">
-              Al enviar este formulario aceptas que tu información sea tratada conforme a la
-              normativa de protección de datos vigente.
+            <p class="text-xs text-brand-dark/60">
+              Usaremos tus datos solo para responder a tu mensaje. Conoce cómo los tratamos y cómo
+              ejercer tus derechos en la <a
+                href="/privacidad/"
+                class="underline text-brand-primary hover:text-brand-dark">política de privacidad</a
+              >.
             </p>
 
             <Button type="submit" id="submit-btn"> Enviar mensaje </Button>
