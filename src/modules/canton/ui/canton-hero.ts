@@ -156,3 +156,17 @@ document.addEventListener('keydown', (e) => {
   const id = btn.dataset.selectParish;
   if (id) selectParish(id);
 });
+
+// ── Entrada escalonada de la tira de parroquias al aparecer en pantalla ──────
+const strip = document.querySelector('.parish-strip-section');
+if (strip) {
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      strip.classList.add('is-visible');
+      io.disconnect();
+    },
+    { threshold: 0.2 }
+  );
+  io.observe(strip);
+}

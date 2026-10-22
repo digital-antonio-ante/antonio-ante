@@ -5,7 +5,9 @@
  * Fondo: foto real (object-fit: cover) con fallback al color de parroquia.
  * Color-wash con mix-blend-mode: multiply en hover — presencia del diseño original.
  * Interacción vía data-select-parish (CSP-safe, sin onclick inline).
- * Desktop: grid 6 columnas. Tablet/móvil: scroll horizontal con snap.
+ * Desktop: grid 6 columnas. Tablet/móvil: scroll horizontal con snap que llega
+ * al borde de la pantalla: la tarjeta siguiente asoma cortada, sin velos encima.
+ * Entrada escalonada al aparecer en pantalla (la activa canton-hero.ts).
  */
 import type { ParishData } from '../data/parishes';
 
@@ -31,11 +33,11 @@ const parishList = Object.values(parishes);
   <div class="strip-track-wrapper">
     <div class="strip-track">
       {
-        parishList.map((p) => (
+        parishList.map((p, i) => (
           <a
             class="pcard"
             href={`/parroquias/${p.id.replaceAll('_', '-')}/`}
-            style={`--parish-color: ${p.color};`}
+            style={`--parish-color: ${p.color}; --i: ${i};`}
           >
             {/* Foto de fondo con fallback al color de parroquia */}
             {p.imageSrc ? (
@@ -82,9 +84,6 @@ const parishList = Object.values(parishes);
         ))
       }
     </div>
-
-    <div class="strip-fade strip-fade--left" aria-hidden="true"></div>
-    <div class="strip-fade strip-fade--right" aria-hidden="true"></div>
   </div>
 </section>
 
@@ -155,24 +154,6 @@ const parishList = Object.values(parishes);
     display: none;
   }
 
-  /* Fades laterales — adaptan al color del hero */
-  .strip-fade {
-    position: absolute;
-    top: 0;
-    bottom: 0.5rem;
-    width: 60px;
-    pointer-events: none;
-    z-index: 2;
-  }
-  .strip-fade--left {
-    left: 0;
-    background: linear-gradient(to right, var(--bg-body, #f6fdf8), transparent);
-  }
-  .strip-fade--right {
-    right: 0;
-    background: linear-gradient(to left, var(--bg-body, #f6fdf8), transparent);
-  }
-
   /* ── Card ── */
   .pcard {
     flex: 0 0 220px;
@@ -189,8 +170,19 @@ const parishList = Object.values(parishes);
     display: block;
     transition:
       transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-      box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.5s ease calc(var(--i) * 70ms),
+      translate 0.7s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i) * 70ms);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  }
+
+  /* Entrada escalonada: la tira está bajo el pliegue, así que el opacity no
+     toca el LCP. Sin JS no se oculta nada. */
+  @media (scripting: enabled) {
+    .parish-strip-section:not(.is-visible) .pcard {
+      opacity: 0;
+      translate: 0 32px;
+    }
   }
   .pcard:hover {
     transform: translateY(-6px) scale(1.02);
@@ -384,9 +376,6 @@ const parishList = Object.values(parishes);
       overflow-x: visible;
       scroll-snap-type: none;
     }
-    .strip-fade {
-      display: none;
-    }
     .pcard {
       flex: none;
       width: auto;
@@ -396,7 +385,49 @@ const parishList = Object.values(parishes);
       display: none;
     }
   }
+  /* Carrusel a sangre: el track ocupa también el relleno lateral del hero
+     (1.5rem en tablet, 1rem en móvil) y el snap respeta ese margen. */
+  @media (max-width: 1099px) {
+    .strip-track {
+      margin-inline: -1.5rem;
+      padding-inline: 1.5rem;
+      scroll-padding-inline: 1.5rem;
+    }
+    /* Profundidad en vez de velo: las tarjetas que entran o salen por el borde
+       se ven algo más pequeñas y crecen al llegar. Solo donde el navegador
+       soporta animaciones ligadas al scroll; en el resto, quietas. */
+    @supports (animation-timeline: view()) {
+      .pcard {
+        animation:
+          asomar linear both,
+          alejarse linear both;
+        animation-timeline: view(inline), view(inline);
+        animation-range: entry, exit;
+      }
+    }
+  }
+  @keyframes asomar {
+    from {
+      scale: 0.88;
+    }
+    to {
+      scale: 1;
+    }
+  }
+  @keyframes alejarse {
+    from {
+      scale: 1;
+    }
+    to {
+      scale: 0.88;
+    }
+  }
   @media (max-width: 768px) {
+    .strip-track {
+      margin-inline: -1rem;
+      padding-inline: 1rem;
+      scroll-padding-inline: 1rem;
+    }
     .strip-title {
       font-size: 1.3rem;
     }
@@ -454,6 +485,13 @@ const parishList = Object.values(parishes);
     .pcard-cta,
     .pcard-accent-bar {
       transition: none;
+    }
+    .pcard {
+      animation: none;
+    }
+    .parish-strip-section:not(.is-visible) .pcard {
+      opacity: 1;
+      translate: none;
     }
   }
 </style>
