@@ -147,8 +147,9 @@ export const PARISHES: Record<string, ParishData> = {
       },
       {
         emoji: '🎪',
-        titulo: 'Ven a la Feria Gastronómica',
-        detalle: 'En septiembre, productores y cocineros de la zona llenan el parque central.',
+        titulo: 'Ven a una feria gastronómica',
+        detalle:
+          'Productores y cocineros de la zona llenan el parque central. Mira la próxima en la agenda.',
       },
       {
         emoji: '🍨',

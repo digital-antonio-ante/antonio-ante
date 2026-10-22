@@ -10,6 +10,8 @@ import { PARISHES } from '@modules/canton/data/parishes';
  * tradición musical de San Roque y +85.000 visitantes en la Expo. Un turista
  * que viene por eso y no lo encuentra no vuelve. Los textos salen de fuentes
  * públicas (ver `parishes.ts`); estas frases no deben volver.
+ *
+ * Si el GAD aporta una fuente para alguna, se repone y se quita su patrón de aquí.
  */
 const ROOT = process.cwd();
 
