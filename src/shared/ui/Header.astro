@@ -18,7 +18,9 @@ const pathname = Astro.url.pathname;
 
 function isActive(href: string): boolean {
   if (href === '/') return pathname === '/';
-  return pathname.startsWith(href);
+  // Los href llevan barra final; las rutas SSR también responden sin ella.
+  const base = href.replace(/\/$/, '');
+  return pathname === base || pathname.startsWith(`${base}/`);
 }
 ---
 

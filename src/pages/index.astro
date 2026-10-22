@@ -2,6 +2,8 @@
 // Prerenderizada: HTML estático generado en build (los datos de Sanity se
 // consultan una sola vez al construir, no en cada request). El webhook de Sanity
 // dispara un redeploy al publicar contenido. Elimina el TTFB del SSR por request.
+// Lo único que caduca sin que nadie publique son los eventos: el script del
+// final retira en el navegador los que ya terminaron (ver `data-fin`).
 export const prerender = true;
 
 import BaseLayout from '@ui/BaseLayout.astro';
@@ -15,6 +17,12 @@ import { getObrasRecientes, getObraDestacada } from '@api/endpoints/obras';
 import { getEventoDestacado, getEventosProximos } from '@api/endpoints/eventos';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 import { OBRAS_HABILITADAS } from '@shared/config/features';
+import {
+  POBLACION_CANTON,
+  ALTITUD_CANTON_M,
+  SUPERFICIE_CANTON_KM2,
+  fmt,
+} from '@shared/config/canton';
 
 // La imagen del panel del cantón es el elemento LCP de la home. Como la página es
 // estática, conocemos su URL en build y podemos precargarla en el <head> con la
@@ -48,19 +56,21 @@ const [obras, obraDestacada, eventoDestacado, eventosProximos] = await Promise.a
     console.error('[EventoDestacado]', err?.message ?? err);
     return null;
   }),
-  getEventosProximos(3).catch((err) => {
+  // Más de los 3 visibles: si alguno caduca antes del próximo build, el
+  // siguiente ocupa su lugar (la regla CSS `li:nth-child(n + 4)` los oculta).
+  getEventosProximos(6).catch((err) => {
     console.error('[EventosProximos]', err?.message ?? err);
     return [];
   }),
 ]);
 
 // Excluir el destacado del strip de próximos (ya tiene su propia sección)
-const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._id).slice(0, 3);
+const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._id);
 ---
 
 <BaseLayout
   title="Inicio"
-  description="Portal oficial del Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante, Imbabura, Ecuador. Conoce sus parroquias, eventos y gestión municipal."
+  description="Conoce Antonio Ante, Imbabura: la capital de la moda del Ecuador. Recorre sus seis parroquias, su gastronomía, su patrimonio textil y la agenda de eventos del cantón."
 >
   {
     heroPreloadHref && (
@@ -111,7 +121,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
                 Próximos eventos
               </h2>
             </div>
-            <a href="/eventos" class="eventos-strip-link">
+            <a href="/eventos/" class="eventos-strip-link">
               Ver todos
               <svg
                 width="14"
@@ -155,9 +165,9 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
         {
           [
             { icono: '🏘️', num: '6', label: 'Parroquias', detail: '2 urbanas · 4 rurales' },
-            { icono: '👥', num: '47.882', label: 'Habitantes', detail: 'Censo 2022 — INEC' },
-            { icono: '🗺️', num: '79 km²', label: 'Superficie', detail: 'Cantón Antonio Ante' },
-            { icono: '⛰️', num: '2.360 m', label: 'Altitud', detail: 'Sobre el nivel del mar' },
+            { icono: '👥', num: fmt(POBLACION_CANTON), label: 'Habitantes', detail: 'Censo 2022 — INEC' },
+            { icono: '🗺️', num: `${SUPERFICIE_CANTON_KM2} km²`, label: 'Superficie', detail: 'Cantón Antonio Ante' },
+            { icono: '⛰️', num: `${fmt(ALTITUD_CANTON_M)} m`, label: 'Altitud', detail: 'Sobre el nivel del mar' },
           ].map(({ icono, num, label, detail }) => (
             <div class="callout-metric" role="listitem">
               <span class="callout-metric-icon" aria-hidden="true">
@@ -176,10 +186,24 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
   </section>
 </BaseLayout>
 
+<script>
+  // La home es estática: entre un build y otro, un evento puede terminar.
+  // Se retira del DOM con su fecha de fin (data-fin, ISO); al quitarlo, el
+  // siguiente de la lista entra en los 3 visibles. Sin tarjetas, se va la sección.
+  const ahora = Date.now();
+  for (const el of document.querySelectorAll<HTMLElement>('[data-fin]')) {
+    if (Date.parse(el.dataset.fin ?? '') < ahora) (el.closest('li') ?? el).remove();
+  }
+  const strip = document.querySelector('.eventos-strip');
+  if (strip && !strip.querySelector('li')) strip.remove();
+</script>
+
 <style>
   /* ── Eventos strip ────────────────────────────────────────────────────────── */
   .eventos-strip {
-    padding: 0 0 3rem;
+    /* Separación propia: sin evento destacado vigente, la sección queda pegada
+       a las tarjetas de parroquia. */
+    padding: 3rem 0;
   }
   .eventos-strip-inner {
     max-width: 80rem;
@@ -231,9 +255,14 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     background: var(--color-brand-primary);
     color: #fff;
   }
+  .eventos-strip-grid > li:nth-child(n + 4) {
+    display: none;
+  }
   .eventos-strip-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* minmax(0, …): con `1fr` a secas la columna no baja del ancho mínimo del
+       contenido y en móvil la tarjeta se salía 20px por la derecha. */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.5rem;
     list-style: none;
     margin: 0;
@@ -242,7 +271,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
 
   @media (max-width: 1024px) {
     .eventos-strip-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
   @media (max-width: 640px) {
@@ -255,7 +284,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
       gap: 0.5rem;
     }
     .eventos-strip-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
     }
   }

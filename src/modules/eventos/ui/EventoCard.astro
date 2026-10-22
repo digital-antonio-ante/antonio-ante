@@ -13,20 +13,17 @@ interface Props {
   loading?: 'lazy' | 'eager';
 }
 
-import { categoriaEvento } from '@shared/config/categorias';
+import { categoriaEvento, etiquetaParroquia } from '@shared/config/categorias';
+import { partesFecha, haTerminado, finDelEvento } from '@shared/utils/fecha';
 
 const { evento, loading = 'lazy' } = Astro.props;
 
 
 const cat = categoriaEvento(evento.categoria);
 
-const fecha = new Date(evento.fechaInicio);
-const dia = fecha.getDate().toString().padStart(2, '0');
-const mes = fecha.toLocaleDateString('es-EC', { month: 'short' }).replace('.', '').toUpperCase();
-const año = fecha.getFullYear();
-const horaStr = fecha.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+const { dia, mesCorto: mes, mesLargo, año, hora: horaStr } = partesFecha(evento.fechaInicio);
 
-const esPasado = fecha < new Date();
+const esPasado = haTerminado(evento);
 
 const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=600&h=340&fit=crop&auto=format&q=80` : null;
 
@@ -37,8 +34,9 @@ const esEntradaLibre = evento.entradaLibre !== false;
   class="ev-card"
   data-categoria={evento.categoria}
   data-tipo={esPasado ? 'pasado' : 'proximo'}
+  data-fin={finDelEvento(evento).toISOString()}
 >
-  <a href={`/eventos/${evento.slug.current}`} class="ev-card__link">
+  <a href={`/eventos/${evento.slug.current}/`} class="ev-card__link">
     <!-- Imagen -->
     <div class="ev-card__img-wrap">
       {
@@ -84,7 +82,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
     <!-- Cuerpo -->
     <div class="ev-card__body">
       <!-- Fila fecha -->
-      <div class="ev-card__date-row" aria-label={`Fecha: ${dia} de ${mes} de ${año}`}>
+      <div class="ev-card__date-row" aria-label={`Fecha: ${Number(dia)} de ${mesLargo} de ${año}`}>
         <div class="ev-card__date-block" style={`border-color: ${cat.color}33;`}>
           <span class="ev-card__date-mes" style={`color: ${cat.color};`}>{mes}</span>
           <span class="ev-card__date-dia">{dia}</span>
@@ -106,7 +104,7 @@ const esEntradaLibre = evento.entradaLibre !== false;
             </svg>
             {horaStr}
           </span>
-          <span class="ev-card__parroquia">{evento.parroquia}</span>
+          <span class="ev-card__parroquia">{etiquetaParroquia(evento.parroquia)}</span>
         </div>
       </div>
 

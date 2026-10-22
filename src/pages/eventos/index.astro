@@ -54,10 +54,14 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
               {total} {total === 1 ? 'evento' : 'eventos'}
             </span>
             {proximosFiltrados.length > 0 && (
-              <span class="pill pill--proximos">📅 {proximosFiltrados.length} próximos</span>
+              <span class="pill pill--proximos">
+                📅 {proximosFiltrados.length} {proximosFiltrados.length === 1 ? 'próximo' : 'próximos'}
+              </span>
             )}
             {pasadosFiltrados.length > 0 && (
-              <span class="pill pill--pasados">✓ {pasadosFiltrados.length} realizados</span>
+              <span class="pill pill--pasados">
+                ✓ {pasadosFiltrados.length} {pasadosFiltrados.length === 1 ? 'realizado' : 'realizados'}
+              </span>
             )}
           </div>
         )
@@ -65,7 +69,7 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
 
       {
         parroquiaFiltro && (
-          <a href="/eventos" class="ev-clear-filter">
+          <a href="/eventos/" class="ev-clear-filter">
             <svg
               width="12"
               height="12"
@@ -433,7 +437,7 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
   /* ── Grid ──────────────────────────────────────────────────────────────── */
   .ev-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.5rem;
     list-style: none;
     margin: 0;
@@ -477,7 +481,7 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
   /* ── Responsive ────────────────────────────────────────────────────────── */
   @media (max-width: 1024px) {
     .ev-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
   @media (max-width: 640px) {
@@ -493,7 +497,7 @@ const pageTitle = parroquiaFiltro ? `Eventos en ${parroquiaFiltro}` : 'Eventos d
       gap: 0.75rem;
     }
     .ev-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
     }
   }

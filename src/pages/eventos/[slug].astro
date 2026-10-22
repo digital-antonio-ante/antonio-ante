@@ -3,10 +3,12 @@ import BaseLayout from '@ui/BaseLayout.astro';
 import PortableText from '@ui/PortableText.astro';
 import CantonGallery from '../../modules/canton/ui/CantonGallery.astro';
 import { getEventoBySlug, getEventosProximos } from '@api/endpoints/eventos';
-import { CATEGORIAS_EVENTO, alfa, categoriaEvento } from '@shared/config/categorias';
+import { alfa, categoriaEvento, etiquetaParroquia } from '@shared/config/categorias';
+import { partesFecha, haTerminado } from '@shared/utils/fecha';
+import { SITE_URL } from '@shared/config/site';
 
 const { slug } = Astro.params;
-if (!slug) return Astro.redirect('/eventos');
+if (!slug) return Astro.redirect('/eventos/');
 
 const evento = await getEventoBySlug(slug).catch(() => null);
 if (!evento) return new Response(null, { status: 404 });
@@ -15,33 +17,37 @@ if (!evento) return new Response(null, { status: 404 });
 
 const cat = categoriaEvento(evento.categoria);
 
-const fechaInicio = new Date(evento.fechaInicio);
-const dia = fechaInicio.getDate().toString().padStart(2, '0');
-const mesCorto = fechaInicio
-  .toLocaleDateString('es-EC', { month: 'short' })
-  .replace('.', '')
-  .toUpperCase();
-const mesLargo = fechaInicio.toLocaleDateString('es-EC', { month: 'long' });
-const año = fechaInicio.getFullYear();
-const horaStr = fechaInicio.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
-const diaSemana = fechaInicio.toLocaleDateString('es-EC', { weekday: 'long' });
-const fechaLarga = `${diaSemana}, ${fechaInicio.getDate()} de ${mesLargo} de ${año}`;
-const esPasado = fechaInicio < new Date();
-
-const fechaFin = evento.fechaFin ? new Date(evento.fechaFin) : null;
-const fechaFinStr = fechaFin
-  ? fechaFin.toLocaleDateString('es-EC', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  : null;
-const horaFinStr = fechaFin
-  ? fechaFin.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })
-  : null;
+const inicio = partesFecha(evento.fechaInicio);
+const fin = evento.fechaFin ? partesFecha(evento.fechaFin) : null;
+const esPasado = haTerminado(evento);
+const parroquia = etiquetaParroquia(evento.parroquia);
 
 const esEntradaLibre = evento.entradaLibre !== false;
+
+const jsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: evento.titulo,
+  description: evento.resumen,
+  startDate: evento.fechaInicio,
+  ...(evento.fechaFin ? { endDate: evento.fechaFin } : {}),
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  isAccessibleForFree: esEntradaLibre,
+  url: new URL(`/eventos/${slug}/`, SITE_URL).toString(),
+  ...(evento.imageUrl ? { image: `${evento.imageUrl}?w=1200&h=630&fit=crop&auto=format&q=80` } : {}),
+  location: {
+    '@type': 'Place',
+    name: evento.lugar,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: evento.parroquia === 'Canton' ? 'Atuntaqui' : evento.parroquia,
+      addressRegion: 'Imbabura',
+      addressCountry: 'EC',
+    },
+  },
+  organizer: { '@type': 'GovernmentOrganization', name: 'GAD Municipal de Antonio Ante' },
+});
 const heroImg = evento.imageUrl
   ? `${evento.imageUrl}?w=1600&h=700&fit=crop&auto=format&q=85`
   : null;
@@ -63,15 +69,16 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   description={evento.resumen}
   image={ogImg}
   type="article"
-  canonical={`/eventos/${slug}`}
+  canonical={`/eventos/${slug}/`}
 >
+  <script slot="head" type="application/ld+json" set:html={jsonLd} />
   <!-- ─── Breadcrumb ──────────────────────────────────────────────────────── -->
   <nav class="evd-breadcrumb" aria-label="Ruta de navegación">
     <div class="evd-bc-inner">
       <ol>
         <li><a href="/">Inicio</a></li>
         <li aria-hidden="true">›</li>
-        <li><a href="/eventos">Eventos</a></li>
+        <li><a href="/eventos/">Eventos</a></li>
         <li aria-hidden="true">›</li>
         <li aria-current="page">{evento.titulo}</li>
       </ol>
@@ -117,7 +124,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
               d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
             ></path>
           </svg>
-          {evento.lugar} · {evento.parroquia}
+          {evento.lugar} · {parroquia}
         </p>
       </div>
     </div>
@@ -127,7 +134,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   <div class="evd-body-wrap">
     <div class="evd-body-inner">
       <!-- Col. izquierda: contenido -->
-      <main class="evd-main-col">
+      <div class="evd-main-col">
         <!-- Descripción -->
         {
           evento.descripcion && evento.descripcion.length > 0 ? (
@@ -175,16 +182,11 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
               <h2 class="evd-card-title">Otros eventos próximos</h2>
               <ul class="evd-relacionados" role="list">
                 {relacionados.map((rel) => {
-                  const relFecha = new Date(rel.fechaInicio);
-                  const relDia = relFecha.getDate().toString().padStart(2, '0');
-                  const relMes = relFecha
-                    .toLocaleDateString('es-EC', { month: 'short' })
-                    .replace('.', '')
-                    .toUpperCase();
+                  const { dia: relDia, mesCorto: relMes } = partesFecha(rel.fechaInicio);
                   const relCat = categoriaEvento(rel.categoria);
                   return (
                     <li>
-                      <a href={`/eventos/${rel.slug.current}`} class="evd-rel-card">
+                      <a href={`/eventos/${rel.slug.current}/`} class="evd-rel-card">
                         <div
                           class="evd-rel-date"
                           style={`border-color: ${alfa(relCat.color, 20)};`}
@@ -218,51 +220,35 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
             </div>
           )
         }
-
-        <a href="/eventos" class="evd-back-link">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            aria-hidden="true"
-          >
-            <path d="M19 12H5M5 12l7 7M5 12l7-7"></path>
-          </svg>
-          Ver todos los eventos
-        </a>
-      </main>
+      </div>
 
       <!-- Col. derecha: info panel -->
       <aside class="evd-aside" aria-label="Información del evento">
         <!-- Bloque de fecha -->
         <div class="evd-card evd-date-card">
           <div class="evd-date-big" style={`border-top: 4px solid ${cat.color};`}>
-            <span class="evd-date-mes" style={`color:${cat.color};`}>{mesCorto}</span>
-            <span class="evd-date-dia">{dia}</span>
-            <span class="evd-date-año">{año}</span>
+            <span class="evd-date-mes" style={`color:${cat.color};`}>{inicio.mesCorto}</span>
+            <span class="evd-date-dia">{inicio.dia}</span>
+            <span class="evd-date-año">{inicio.año}</span>
           </div>
 
           <dl class="evd-date-list">
             <dt>Fecha</dt>
-            <dd class="evd-date-capitalize">{fechaLarga}</dd>
+            <dd>{inicio.fechaLarga}</dd>
             {
               !esPasado && (
                 <>
                   <dt>Hora</dt>
-                  <dd>{horaStr} hrs</dd>
+                  <dd>{inicio.hora}</dd>
                 </>
               )
             }
             {
-              fechaFin && (
+              fin && (
                 <>
                   <dt>Finaliza</dt>
-                  <dd class="evd-date-capitalize">
-                    {fechaFinStr}
-                    {horaFinStr && ` · ${horaFinStr} hrs`}
+                  <dd>
+                    {fin.fechaLarga} · {fin.hora}
                   </dd>
                 </>
               )
@@ -270,7 +256,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
             <dt>Lugar</dt>
             <dd>{evento.lugar}</dd>
             <dt>Parroquia</dt>
-            <dd>{evento.parroquia}</dd>
+            <dd>{parroquia}</dd>
           </dl>
 
           <div class="evd-date-footer">
@@ -322,7 +308,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
               </a>
             )
           }
-          <a href="/eventos" class="evd-cta-btn evd-cta-btn--secondary"> Ver todos los eventos </a>
+          <a href="/eventos/" class="evd-cta-btn evd-cta-btn--secondary"> Ver todos los eventos </a>
         </div>
 
         <!-- Info -->
@@ -337,7 +323,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
               </span>
             </dd>
             <dt>Parroquia</dt>
-            <dd>{evento.parroquia}</dd>
+            <dd>{parroquia}</dd>
             <dt>Estado</dt>
             <dd>
               <span
@@ -555,7 +541,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     max-width: 80rem;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: minmax(0, 1fr) 320px;
     gap: 1.75rem;
     align-items: start;
   }
@@ -590,7 +576,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   /* ── Galería inline ─────────────────────────────────────────────────── */
   .evd-galeria {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.65rem;
   }
   .evd-galeria-thumb {
@@ -701,21 +687,6 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   }
 
   /* ── Back link ──────────────────────────────────────────────────────── */
-  .evd-back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--color-brand-primary);
-    text-decoration: none;
-    margin-top: 0.5rem;
-    padding: 0.5rem 0;
-    transition: gap 0.2s ease;
-  }
-  .evd-back-link:hover {
-    gap: 0.65rem;
-  }
 
   /* ── Aside: Fecha card ──────────────────────────────────────────────── */
   .evd-date-card {
@@ -754,7 +725,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   }
   .evd-date-list {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
     gap: 0.5rem 1rem;
     margin: 0;
     text-align: left;
@@ -770,9 +741,6 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
     color: var(--color-neutral-700);
     font-weight: 500;
     margin: 0;
-  }
-  .evd-date-capitalize {
-    text-transform: capitalize;
   }
   .evd-date-footer {
     margin-top: 1rem;
@@ -839,7 +807,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   /* ── Info card ──────────────────────────────────────────────────────── */
   .evd-info-list {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
     gap: 0.65rem 1.25rem;
     margin: 0;
     align-items: center;
@@ -877,11 +845,11 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
   /* ── Responsive ─────────────────────────────────────────────────────── */
   @media (max-width: 900px) {
     .evd-body-inner {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .evd-aside {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1rem;
     }
     .evd-aside .evd-card {
@@ -891,7 +859,7 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
       grid-column: 1 / -1;
     }
     .evd-galeria {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
   @media (max-width: 640px) {
@@ -905,10 +873,10 @@ const relacionados = (await getEventosProximos(5).catch(() => []))
       min-height: 280px;
     }
     .evd-aside {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .evd-galeria {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 </style>

@@ -2,13 +2,21 @@
 export const prerender = true;
 
 import BaseLayout from '@ui/BaseLayout.astro';
+import { getConfigSitio } from '@api/endpoints/config-sitio';
+import { ALTITUD_CANTON_M, fmt } from '@shared/config/canton';
+
+// La misma foto panorámica del cantón que usa el panel de la home (Sanity).
+const config = await getConfigSitio().catch(() => null);
+const heroImg = config?.cantonImageUrl ?? null;
+const heroImgAlt = config?.cantonImageAlt ?? 'Vista del cantón Antonio Ante';
+const altitud = `${fmt(ALTITUD_CANTON_M)} m s. n. m.`;
 
 const atractivos = [
   {
     nombre: 'Expo Atuntaqui',
     categoria: 'Textil',
     descripcion:
-      'La feria textil más importante del norte del Ecuador. Más de 200 expositores presentan moda, confección y artesanías. Se realiza en enero de cada año.',
+      'La feria textil más importante del norte del Ecuador: moda, confección, artesanías y gastronomía en las calles de Atuntaqui, cada año durante el feriado de Carnaval.',
     emoji: '🧵',
     color: 'bg-blue-50 border-blue-200',
     accentColor: 'text-blue-700',
@@ -17,7 +25,7 @@ const atractivos = [
     nombre: 'Fábrica Imbabura',
     categoria: 'Patrimonio',
     descripcion:
-      'Declarada Patrimonio Cultural de la Nación. Esta antigua fábrica textil del siglo XIX es hoy un museo vivo que narra la historia industrial del Ecuador.',
+      'Ícono de la industria textil ecuatoriana, inaugurada en la década de 1920 en Andrade Marín. Hoy es un complejo cultural y museo que narra la historia industrial del país.',
     emoji: '🏭',
     color: 'bg-amber-50 border-amber-200',
     accentColor: 'text-amber-700',
@@ -26,16 +34,16 @@ const atractivos = [
     nombre: 'Chaltura — Capital del Cuy',
     categoria: 'Gastronomía',
     descripcion:
-      'Reconocida internacionalmente por su gastronomía. Los tradicionales cuyes y hornados de Chaltura son un referente culinario de la sierra ecuatoriana.',
+      'El destino gastronómico del cantón. El cuy asado y el hornado de Chaltura son un referente culinario de la Sierra ecuatoriana.',
     emoji: '🍽️',
     color: 'bg-red-50 border-red-200',
     accentColor: 'text-red-700',
   },
   {
-    nombre: 'Laguna de Imbaya',
+    nombre: 'Paisajes de Imbaya',
     categoria: 'Naturaleza',
     descripcion:
-      'Ecosistema de humedal con aves migratorias y vegetación nativa. Ideal para senderismo, observación de aves y turismo ecológico responsable.',
+      'Valles agrícolas, quebradas y miradores en la parroquia más extensa del cantón. Ideal para caminatas y pesca deportiva.',
     emoji: '🏞️',
     color: 'bg-teal-50 border-teal-200',
     accentColor: 'text-teal-700',
@@ -44,7 +52,7 @@ const atractivos = [
     nombre: 'Festival de la Confraternidad — Natabuela',
     categoria: 'Cultura',
     descripcion:
-      'Celebración del pueblo indígena Natabuela con música, danza y trajes típicos. Una experiencia cultural auténtica declarada Patrimonio Inmaterial.',
+      'Celebración del pueblo indígena Natabuela con música, danza y trajes típicos: una experiencia cultural auténtica.',
     emoji: '🎊',
     color: 'bg-purple-50 border-purple-200',
     accentColor: 'text-purple-700',
@@ -62,9 +70,9 @@ const atractivos = [
 
 const estadisticas = [
   { valor: '+85k', descripcion: 'Visitantes en la Expo 2026' },
-  { valor: '2.406 m', descripcion: 'Altitud sobre el nivel del mar' },
+  { valor: `${fmt(ALTITUD_CANTON_M)} m`, descripcion: 'Altitud sobre el nivel del mar' },
   { valor: '6', descripcion: 'Destinos en un solo cantón' },
-  { valor: '1 h', descripcion: 'Desde Quito en carretera' },
+  { valor: '~2 h', descripcion: 'Desde Quito en carretera' },
 ];
 ---
 
@@ -93,52 +101,73 @@ const estadisticas = [
       </svg>
     </div>
 
-    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-      <nav aria-label="Breadcrumb" class="mb-6">
-        <ol class="flex items-center gap-2 text-white/70 text-sm" role="list">
-          <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
-          <li aria-hidden="true" class="select-none">›</li>
-          <li class="text-white font-medium" aria-current="page">Turismo</li>
-        </ol>
-      </nav>
+    <div
+      class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 grid lg:grid-cols-[minmax(0,1fr)_26rem] gap-12 items-center"
+    >
+      <div>
+        <nav aria-label="Breadcrumb" class="mb-6">
+          <ol class="flex items-center gap-2 text-white/70 text-sm" role="list">
+            <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
+            <li aria-hidden="true" class="select-none">›</li>
+            <li class="text-white font-medium" aria-current="page">Turismo</li>
+          </ol>
+        </nav>
 
-      <p
-        class="inline-flex items-center gap-2 text-brand-primary-soft font-bold text-xs uppercase tracking-widest mb-4"
-      >
-        <span aria-hidden="true">★</span>
-        Imbabura · Ecuador · 2.406 m s.n.m.
-      </p>
+        <p
+          class="inline-flex items-center gap-2 text-brand-primary-soft font-bold text-xs uppercase tracking-widest mb-4"
+        >
+          <span aria-hidden="true">★</span>
+          Imbabura · Ecuador · {altitud}
+        </p>
 
-      <h1
-        id="turismo-heading"
-        class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6"
-      >
-        Descubre<br />
-        <span class="text-brand-primary-soft">Antonio Ante</span>
-      </h1>
+        <h1
+          id="turismo-heading"
+          class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight mb-6"
+        >
+          Descubre<br />
+          <span class="text-brand-primary-soft">Antonio Ante</span>
+        </h1>
 
-      <p class="text-white/80 text-lg lg:text-xl max-w-2xl leading-relaxed mb-10">
-        La <strong class="text-white">Capital de la Moda del Ecuador</strong>. Un cantón que combina
-        industria textil de talla mundial, gastronomía reconocida, patrimonio histórico y naturaleza
-        exuberante — todo en menos de 80 km².
-      </p>
+        <p class="text-white/80 text-lg lg:text-xl max-w-2xl leading-relaxed mb-10">
+          La <strong class="text-white">Capital de la Moda del Ecuador</strong>. Un cantón que
+          combina industria textil de talla mundial, gastronomía reconocida, patrimonio histórico y
+          naturaleza exuberante — todo en menos de 80 km².
+        </p>
 
-      <!-- Pills de actividades -->
-      <div class="flex flex-wrap gap-2" aria-label="Tipos de turismo disponibles">
-        {
-          [
-            '🧵 Moda & Textil',
-            '🍽️ Gastronomía',
-            '🏛️ Patrimonio',
-            '🏞️ Naturaleza',
-            '🎊 Cultura',
-          ].map((pill) => (
-            <span class="px-4 py-1.5 bg-white/10 text-white text-sm font-semibold rounded-full border border-white/20">
-              {pill}
-            </span>
-          ))
-        }
+        <!-- Pills de actividades -->
+        <div class="flex flex-wrap gap-2" aria-label="Tipos de turismo disponibles">
+          {
+            [
+              '🧵 Moda & Textil',
+              '🍽️ Gastronomía',
+              '🏛️ Patrimonio',
+              '🏞️ Naturaleza',
+              '🎊 Cultura',
+            ].map((pill) => (
+              <span class="px-4 py-1.5 bg-white/10 text-white text-sm font-semibold rounded-full border border-white/20">
+                {pill}
+              </span>
+            ))
+          }
+        </div>
       </div>
+
+      {
+        heroImg && (
+          <figure class="hidden lg:block m-0">
+            <img
+              src={`${heroImg}?w=832&h=1040&fit=crop&auto=format&q=80`}
+              srcset={`${heroImg}?w=416&h=520&fit=crop&auto=format&q=80 416w, ${heroImg}?w=832&h=1040&fit=crop&auto=format&q=80 832w`}
+              sizes="26rem"
+              alt={heroImgAlt}
+              width="416"
+              height="520"
+              class="w-full aspect-[4/5] object-cover rounded-2xl shadow-2xl ring-1 ring-white/15"
+              decoding="async"
+            />
+          </figure>
+        )
+      }
     </div>
   </section>
 
@@ -167,11 +196,14 @@ const estadisticas = [
         <p class="text-brand-primary text-xs font-bold uppercase tracking-widest mb-2">
           Qué visitar
         </p>
-        <h2 id="atractivos-heading" class="text-2xl lg:text-3xl font-bold text-brand-primary">
+        <h2
+          id="atractivos-heading"
+          class="font-display text-2xl lg:text-3xl font-bold text-brand-primary"
+        >
           Principales atractivos
         </h2>
         <p class="text-brand-dark/60 mt-3 max-w-xl mx-auto">
-          Seis experiencias únicas dentro del cantón más pequeño del Ecuador.
+          Seis experiencias únicas dentro del cantón más pequeño de Imbabura.
         </p>
       </div>
 
@@ -211,22 +243,25 @@ const estadisticas = [
           <p class="text-brand-primary text-xs font-bold uppercase tracking-widest mb-2">
             Accesibilidad
           </p>
-          <h2 id="llegar-heading" class="text-2xl lg:text-3xl font-bold text-brand-primary mb-4">
+          <h2
+            id="llegar-heading"
+            class="font-display text-2xl lg:text-3xl font-bold text-brand-primary mb-4"
+          >
             Cómo llegar
           </h2>
           <p class="text-brand-dark/70 mb-6">
             Atuntaqui se encuentra a <strong class="text-brand-dark">~100 km</strong> al norte de Quito
             por la Panamericana Norte (E35). El viaje dura aproximadamente <strong
-              class="text-brand-dark">1 hora y 30 minutos</strong
-            >.
+              class="text-brand-dark">2 horas</strong
+            >, según el tráfico.
           </p>
           <ul class="space-y-3 text-sm" role="list">
             {
               [
-                { desde: 'Quito', tiempo: '~1h 30min', via: 'Panamericana Norte (E35)' },
+                { desde: 'Quito', tiempo: '~2 h', via: 'Panamericana Norte (E35)' },
                 { desde: 'Ibarra', tiempo: '~15 min', via: 'E35 sur' },
                 { desde: 'Otavalo', tiempo: '~20 min', via: 'E35 norte' },
-                { desde: 'Tulcán', tiempo: '~2h 30min', via: 'Panamericana Sur' },
+                { desde: 'Tulcán', tiempo: '~2 h 30 min', via: 'Panamericana (E35)' },
               ].map(({ desde, tiempo, via }) => (
                 <li class="flex items-start gap-3">
                   <svg
@@ -269,7 +304,7 @@ const estadisticas = [
             </div>
             <div>
               <dt class="text-brand-dark/50 font-medium">Altitud</dt>
-              <dd class="font-mono text-brand-dark font-semibold">2.406 m s.n.m.</dd>
+              <dd class="font-mono text-brand-dark font-semibold">{altitud}</dd>
             </div>
             <div>
               <dt class="text-brand-dark/50 font-medium">Temperatura</dt>
@@ -307,20 +342,22 @@ const estadisticas = [
   <!-- CTA final -->
   <section class="py-16 bg-brand-primary text-white" aria-label="Planifica tu visita">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="text-2xl lg:text-3xl font-bold mb-4">¿Listo para visitar Antonio Ante?</h2>
+      <h2 class="font-display text-2xl lg:text-3xl font-bold mb-4">
+        ¿Listo para visitar Antonio Ante?
+      </h2>
       <p class="text-white/80 max-w-xl mx-auto mb-8">
         Contáctanos para más información sobre eventos, hospedaje y actividades turísticas en el
         cantón.
       </p>
       <div class="flex flex-wrap justify-center gap-4">
         <a
-          href="/contacto"
+          href="/contacto/"
           class="inline-flex items-center gap-2 px-6 py-3 bg-brand-secondary text-white font-semibold rounded-lg hover:opacity-90 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-brand-primary"
         >
           Contáctanos
         </a>
         <a
-          href="/parroquias"
+          href="/parroquias/"
           class="inline-flex items-center gap-2 px-6 py-3 border-2 border-white/60 text-white font-semibold rounded-lg hover:border-white hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-primary"
         >
           Ver parroquias

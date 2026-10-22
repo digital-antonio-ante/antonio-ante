@@ -120,7 +120,7 @@ function selectParish(id: string): void {
 
   // Deep-link to parish page con nombre dinámico
   if (elParishLink) {
-    elParishLink.href = `/parroquias/${id.replaceAll('_', '-')}`;
+    elParishLink.href = `/parroquias/${id.replaceAll('_', '-')}/`;
   }
   if (elParishLinkText) {
     elParishLinkText.textContent = `Explorar ${data.name}`;

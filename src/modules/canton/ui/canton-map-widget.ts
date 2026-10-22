@@ -99,7 +99,7 @@ function selectParish(id: string): void {
   }
 
   if (elParishLink) {
-    elParishLink.href = `/parroquias/${id.replaceAll('_', '-')}`;
+    elParishLink.href = `/parroquias/${id.replaceAll('_', '-')}/`;
   }
 
   if (elGalleryBtn) {

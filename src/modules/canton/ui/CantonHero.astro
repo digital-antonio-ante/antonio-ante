@@ -16,6 +16,7 @@ import CantonMapSVG from './CantonMapSVG.astro';
 import CantonInfoPanel from './CantonInfoPanel.astro';
 import ParishCardStrip from './ParishCardStrip.astro';
 import CantonGallery from './CantonGallery.astro';
+import { ALTITUD_CANTON_M, fmt } from '@shared/config/canton';
 import { PARISHES } from '../data/parishes';
 import { getParroquiasImageUrls } from '@api/endpoints/parroquias';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
@@ -116,7 +117,7 @@ const highlightsCanton = config?.highlightsCanton ?? null;
       <div class="canton-pills" role="list" aria-label="Características del cantón">
         <span class="canton-pill" role="listitem">🧵 Capital Textil</span>
         <span class="canton-pill" role="listitem">🍽️ Gastronomía</span>
-        <span class="canton-pill" role="listitem">🏔️ 2.406 m s. n. m.</span>
+        <span class="canton-pill" role="listitem">🏔️ {fmt(ALTITUD_CANTON_M)} m s. n. m.</span>
       </div>
     </div>
   </header>

@@ -6,7 +6,8 @@
  * Si no hay evento destacado el componente no renderiza nada.
  */
 import type { Evento } from '@api/endpoints/eventos';
-import { categoriaEvento } from '@shared/config/categorias';
+import { categoriaEvento, etiquetaParroquia } from '@shared/config/categorias';
+import { partesFecha, haTerminado, finDelEvento } from '@shared/utils/fecha';
 
 interface Props {
   evento: Evento | null;
@@ -18,30 +19,23 @@ if (!evento) return;
 
 const cat = categoriaEvento(evento.categoria);
 
-const fechaInicio = new Date(evento.fechaInicio);
-const dia = fechaInicio.getDate().toString().padStart(2, '0');
-const mesCorto = fechaInicio
-  .toLocaleDateString('es-EC', { month: 'short' })
-  .replace('.', '')
-  .toUpperCase();
-const mesLargo = fechaInicio.toLocaleDateString('es-EC', { month: 'long' });
-const año = fechaInicio.getFullYear();
-const horaStr = fechaInicio.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
-const esPasado = fechaInicio < new Date();
-
-const fechaFin = evento.fechaFin ? new Date(evento.fechaFin) : null;
-const diaFin = fechaFin ? fechaFin.getDate().toString().padStart(2, '0') : null;
-const mesFin = fechaFin
-  ? fechaFin.toLocaleDateString('es-EC', { month: 'short' }).replace('.', '').toUpperCase()
-  : null;
-
-const esMultidia = fechaFin && fechaFin.toDateString() !== fechaInicio.toDateString();
+const inicio = partesFecha(evento.fechaInicio);
+const fin = evento.fechaFin ? partesFecha(evento.fechaFin) : null;
+const { dia, mesCorto, mesLargo, año, hora: horaStr } = inicio;
+const esPasado = haTerminado(evento);
+const diaFin = fin?.dia ?? null;
+const mesFin = fin?.mesCorto ?? null;
+const esMultidia = fin !== null && fin.claveDia !== inicio.claveDia;
 
 const esEntradaLibre = evento.entradaLibre !== false;
 const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=format&q=85` : null;
 ---
 
-<section class="evd-section" aria-labelledby="evd-heading">
+<section
+  class="evd-section"
+  aria-labelledby="evd-heading"
+  data-fin={finDelEvento(evento).toISOString()}
+>
   <div class="evd-inner">
     <!-- Eyebrow pill -->
     <div class="evd-eyebrow-wrap" aria-hidden="true">
@@ -78,7 +72,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
           <p class="evd-resumen">{evento.resumen}</p>
 
           <!-- Bloque de fecha -->
-          <div class="evd-date-block" aria-label={`Fecha: ${dia} de ${mesLargo} de ${año}`}>
+          <div class="evd-date-block" aria-label={`Fecha: ${Number(dia)} de ${mesLargo} de ${año}`}>
             <div class="evd-date-calendar" style={`border-top: 4px solid ${cat.color};`}>
               <span class="evd-date-mes" style={`color:${cat.color};`}>{mesCorto}</span>
               <span class="evd-date-dia">{dia}</span>
@@ -113,7 +107,7 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
                         <polyline points="12 6 12 12 16 14" />
                       </>
                     </svg>
-                    {horaStr} hrs
+                    {horaStr}
                   </p>
                 )
               }
@@ -132,14 +126,14 @@ const imgSrc = evento.imageUrl ? `${evento.imageUrl}?w=900&h=560&fit=crop&auto=f
                 {evento.lugar}
               </p>
               <p class="evd-date-parroquia">
-                {evento.parroquia}
+                {etiquetaParroquia(evento.parroquia)}
               </p>
             </div>
           </div>
 
           <!-- CTAs -->
           <div class="evd-cta-wrap">
-            <a href={`/eventos/${evento.slug.current}`} class="evd-cta-primary">
+            <a href={`/eventos/${evento.slug.current}/`} class="evd-cta-primary">
               Ver detalles
               <svg
                 width="14"

@@ -40,7 +40,7 @@ export const PARISHES: Record<string, ParishData> = {
     shortDesc: 'Capital textil del Ecuador',
     description:
       'Capital del cantón. Reconocida como el motor industrial y textil de la región, atrayendo a miles con su "Expo Atuntaqui" anual.',
-    population: '~25.000 hab.',
+    population: '23.851 hab.',
     altitude: '2.406 m s. n. m.',
     activities: ['Industria Textil', 'Comercio', 'Gastronomía'],
     projects: [
@@ -59,7 +59,7 @@ export const PARISHES: Record<string, ParishData> = {
     shortDesc: 'Patrimonio histórico-industrial',
     description:
       'La cuna del desarrollo industrial primigenio. Hoy es un polo residencial que alberga el Complejo Histórico Fábrica Imbabura.',
-    population: '~8.500 hab.',
+    population: '3.891 hab.',
     altitude: '2.410 m s. n. m.',
     activities: ['Turismo Histórico', 'Educación', 'Servicios'],
     projects: ['Complejo Cultural Fábrica Imbabura', 'Mejoras en Vías Residenciales'],
@@ -74,7 +74,7 @@ export const PARISHES: Record<string, ParishData> = {
     shortDesc: 'Capital mundial del cuy',
     description:
       'Conocida como "El Pueblo de la Gente Feliz". Destaca por su turismo gastronómico y hermosos paisajes agrícolas.',
-    population: '~3.000 hab.',
+    population: '3.068 hab.',
     altitude: '2.340 m s. n. m.',
     activities: ['Gastronomía', 'Agricultura', 'Turismo'],
     projects: ['Festival Gastronómico del Cuy', 'Rutas de Arándanos'],
@@ -89,7 +89,7 @@ export const PARISHES: Record<string, ParishData> = {
     shortDesc: 'Tierra de los abuelos',
     description:
       'Famosa por su cultura, tradiciones y el Centro Gerontológico más grande del Ecuador.',
-    population: '~12.500 hab.',
+    population: '5.651 hab.',
     altitude: '2.400 m s. n. m.',
     activities: ['Cultura', 'Turismo', 'Agricultura'],
     projects: ['Centro Gerontológico Municipal', 'Festival de la Confraternidad', 'Mirador'],
@@ -104,7 +104,7 @@ export const PARISHES: Record<string, ParishData> = {
     shortDesc: 'Tradición y música',
     description:
       'Destacada por su arraigada tradición musical. Representa la alegría de su gente a través de sus bandas y festividades.',
-    population: '~10.200 hab.',
+    population: '10.142 hab.',
     altitude: '2.450 m s. n. m.',
     activities: ['Música', 'Artesanía', 'Comercio'],
     projects: ['Renovación del Parque Central', 'Escuela de Artes Populares', 'Centro de Eventos'],
@@ -119,7 +119,7 @@ export const PARISHES: Record<string, ParishData> = {
     shortDesc: 'Ecoturismo y naturaleza',
     description:
       'El rincón ecológico del cantón. Destaca por sus paisajes naturales, cuerpos de agua y vocación hacia la preservación ambiental.',
-    population: '~3.000 hab.',
+    population: '1.279 hab.',
     altitude: '2.300 m s. n. m.',
     activities: ['Ecoturismo', 'Agricultura', 'Pesca Deportiva'],
     projects: ['Protección de Humedales', 'Rutas Ecológicas y Senderismo'],

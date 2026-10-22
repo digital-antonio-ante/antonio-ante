@@ -11,6 +11,8 @@
  * Sin onclick inline (CSP-safe).
  */
 
+import { POBLACION_CANTON, ALTITUD_CANTON_M, fmt } from '@shared/config/canton';
+
 interface HighlightItem {
   icono: string;
   titulo: string;
@@ -105,12 +107,12 @@ const cantonImgSrcset = cantonImgBase
         </div>
         <div class="stat-divider"></div>
         <div class="canton-stat">
-          <span class="stat-number">~45k</span>
+          <span class="stat-number">{fmt(POBLACION_CANTON)}</span>
           <span class="stat-label">Habitantes</span>
         </div>
         <div class="stat-divider"></div>
         <div class="canton-stat">
-          <span class="stat-number">2.406</span>
+          <span class="stat-number">{fmt(ALTITUD_CANTON_M)}</span>
           <span class="stat-label">m s. n. m.</span>
         </div>
       </div>
@@ -142,7 +144,7 @@ const cantonImgSrcset = cantonImgBase
   <div id="panel-content" class="panel-content hidden">
     <!-- Imagen de portada (con fondo de color de la parroquia como fallback) -->
     <div class="panel-image-container" id="panel-image-container">
-      <img id="panel-image" src="" alt="" class="panel-img" loading="lazy" decoding="async" />
+      <img id="panel-image" alt="" class="panel-img" loading="lazy" decoding="async" />
       <div class="panel-image-overlay">
         <span class="panel-badge" id="panel-selected-badge">✓ Seleccionada</span>
       </div>
@@ -186,7 +188,7 @@ const cantonImgSrcset = cantonImgBase
       <div class="panel-actions">
         <a
           id="panel-parish-link"
-          href="/parroquias"
+          href="/parroquias/"
           class="parish-link-btn"
           aria-label="Explorar la página completa de la parroquia"
         >

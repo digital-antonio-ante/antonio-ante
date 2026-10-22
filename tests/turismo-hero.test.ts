@@ -42,13 +42,15 @@ describe('hero de Turismo', () => {
     // Los tonos base (#277816, #005d1f, #003109) son oscuros: sobre este hero
     // solo sirven las variantes claras.
     for (const token of coloresDeTexto(turismo)) {
-      expect(token, `${token} es un tono oscuro sobre fondo oscuro`).toMatch(/-(soft|faint|light)$/);
+      expect(token, `${token} es un tono oscuro sobre fondo oscuro`).toMatch(
+        /-(soft|faint|light)$/
+      );
     }
   });
 });
 
 describe('navegación principal', () => {
   it('Turismo es alcanzable desde el menú, no solo desde el sitemap', () => {
-    expect(NAV_ITEMS.map((i) => i.href)).toContain('/turismo');
+    expect(NAV_ITEMS.map((i) => i.href)).toContain('/turismo/');
   });
 });

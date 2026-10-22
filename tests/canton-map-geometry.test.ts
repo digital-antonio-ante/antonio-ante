@@ -112,9 +112,10 @@ describe('orden de pintado', () => {
       for (const other of p.coveredBy) {
         const j = order.indexOf(other);
         expect(j, `${p.id} declara tapada por ${other}, que no existe`).toBeGreaterThan(-1);
-        expect(j, `${p.id} no puede quedar tapada por ${other}, que se pinta antes`).toBeGreaterThan(
-          i
-        );
+        expect(
+          j,
+          `${p.id} no puede quedar tapada por ${other}, que se pinta antes`
+        ).toBeGreaterThan(i);
       }
     });
   });

@@ -1,0 +1,195 @@
+---
+/**
+ * Política de privacidad — BORRADOR v1.0, pendiente de revisión por un abogado
+ * ecuatoriano (governance:legal-readiness). Puntos que debe confirmar:
+ *   · RUC del GAD y si hay delegado de protección de datos designado.
+ *   · Mecanismo LOPDP que ampara la transferencia internacional (Sanity, Cloudflare).
+ *   · Plazo de conservación (12 meses) y plazo de respuesta (15 días).
+ *   · Tratamiento de mensajes enviados por menores de edad.
+ *
+ * Debe describir lo que el software HACE. Si se añade analítica, cookies, un
+ * proveedor de correo u otro tratamiento, esta página cambia en el mismo PR.
+ */
+export const prerender = true;
+
+import BaseLayout from '@ui/BaseLayout.astro';
+import { getConfigSitio } from '@api/endpoints/config-sitio';
+import { GA4_ID } from '@shared/config/analitica';
+
+const config = await getConfigSitio().catch(() => null);
+const email = config?.emailContacto ?? 'municipio@antonioante.gob.ec';
+// La dirección de Sanity termina en punto; aquí va a mitad de frase.
+const direccion = (
+  config?.direccion ?? 'Amazonas 11-19 y Av. Julio M. Aguinaga, Atuntaqui, Imbabura, Ecuador'
+).replace(/\.\s*$/, '');
+
+const VIGENTE_DESDE = '23 de octubre de 2026';
+---
+
+<BaseLayout
+  title="Política de privacidad"
+  description="Cómo trata el GAD Municipal de Antonio Ante los datos personales que recibe a través de Conoce Antonio Ante y cómo ejercer tus derechos."
+>
+  <section class="bg-brand-deep text-white">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-14">
+      <nav aria-label="Breadcrumb" class="mb-5">
+        <ol class="flex items-center gap-2 text-white/70 text-sm" role="list">
+          <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
+          <li aria-hidden="true" class="select-none">›</li>
+          <li class="text-white font-medium" aria-current="page">Política de privacidad</li>
+        </ol>
+      </nav>
+      <h1 class="font-display text-3xl lg:text-4xl font-bold tracking-tight mb-3">
+        Política de privacidad
+      </h1>
+      <p class="text-white/80">Versión 1.0 · Vigente desde el {VIGENTE_DESDE}</p>
+    </div>
+  </section>
+
+  <article class="legal max-w-3xl mx-auto px-4 sm:px-6 py-12 text-brand-dark">
+    <p>
+      Esta política explica qué datos personales recibimos a través de
+      <strong>conoceantonioante.com</strong>, para qué los usamos y cómo puedes ejercer tus
+      derechos, conforme a la Ley Orgánica de Protección de Datos Personales del Ecuador (LOPDP).
+    </p>
+
+    <h2>1. Responsable del tratamiento</h2>
+    <p>
+      Gobierno Autónomo Descentralizado Municipal del Cantón Antonio Ante (GAD Municipal de Antonio
+      Ante), con domicilio en {direccion}. Para cualquier asunto sobre tus datos escríbenos a
+      <a href={`mailto:${email}`}>{email}</a>.
+    </p>
+
+    <h2>2. Qué datos tratamos</h2>
+    <p>
+      Navegar por este sitio no requiere registrarse ni entregar datos. Solo tratamos los datos que
+      tú nos envías con el <a href="/contacto/">formulario de contacto</a>:
+    </p>
+    <ul>
+      <li>Nombre completo y correo electrónico (obligatorios).</li>
+      <li>Teléfono (opcional).</li>
+      <li>El asunto y el contenido de tu mensaje.</li>
+    </ul>
+    <p>
+      Te pedimos no incluir en el mensaje datos sensibles (salud, origen étnico, creencias, datos
+      financieros) que no sean necesarios para tu consulta.
+    </p>
+
+    <h2>3. Para qué los usamos y con qué base</h2>
+    <p>
+      Usamos tus datos únicamente para <strong>leer y responder tu mensaje</strong> y, si tu consulta
+      lo requiere, derivarla a la dependencia municipal que corresponda. La base es tu
+      <strong>consentimiento</strong>, que das al enviar el formulario y que puedes retirar en
+      cualquier momento escribiendo al correo indicado. No usamos tus datos para publicidad, no los
+      vendemos ni los cedemos a terceros con fines propios.
+    </p>
+
+    <h2>4. Cuánto tiempo los conservamos</h2>
+    <p>
+      Conservamos cada mensaje <strong>hasta 12 meses</strong> desde que lo recibimos y después lo eliminamos,
+      salvo que una obligación legal exija conservarlo por más tiempo.
+    </p>
+
+    <h2>5. Quién más interviene (encargados del tratamiento)</h2>
+    <ul>
+      <li>
+        <strong>Sanity AS</strong> — plataforma de gestión de contenidos donde se almacenan los mensajes
+        del formulario y las imágenes del sitio.
+      </li>
+      <li>
+        <strong>Cloudflare, Inc.</strong> — alojamiento y entrega del sitio web. Como cualquier servidor
+        web, recibe técnicamente la dirección IP de quien visita el sitio.
+      </li>
+    </ul>
+    <p>
+      Ambos proveedores tienen sus servidores <strong>fuera del Ecuador</strong>, por lo que enviar
+      el formulario implica una transferencia internacional de tus datos, limitada a lo necesario
+      para prestar el servicio y sujeta a sus compromisos contractuales de seguridad y
+      confidencialidad.
+    </p>
+
+    <h2>6. Cookies y analítica</h2>
+    {
+      GA4_ID ? (
+        <p>
+          Usamos <strong>Google Analytics 4</strong> (Google LLC, EE. UU.) para contar visitas y
+          páginas vistas de forma agregada. Instala las cookies «_ga» y «_ga_*», con una duración
+          de hasta 2 años. No usamos herramientas de publicidad.
+        </p>
+      ) : (
+        <p>
+          Este sitio <strong>no usa cookies</strong> ni herramientas de analítica o publicidad.
+        </p>
+      )
+    }
+    <p>
+      Las tipografías se sirven desde nuestro propio dominio. Los enlaces a Google Maps, Facebook o
+      Instagram te llevan a sitios de terceros que tienen sus propias políticas.
+    </p>
+
+    <h2>7. Tus derechos</h2>
+    <p>
+      Puedes ejercer en cualquier momento tus derechos de <strong
+        >acceso, rectificación y actualización, eliminación, oposición, portabilidad y suspensión
+        del tratamiento</strong
+      >, y a no ser objeto de decisiones basadas únicamente en tratamientos automatizados.
+      Escríbenos a
+      <a href={`mailto:${email}`}>{email}</a> indicando tu nombre y qué derecho quieres ejercer; te responderemos
+      en un plazo máximo de <strong>15 días</strong>.
+    </p>
+    <p>
+      Si consideras que no hemos atendido tu solicitud, puedes presentar un reclamo ante la
+      <strong>Superintendencia de Protección de Datos Personales</strong>.
+    </p>
+
+    <h2>8. Menores de edad</h2>
+    <p>
+      El formulario de contacto no está dirigido a menores de edad. Si eres menor, pide a tu madre,
+      padre o representante legal que nos escriba en tu nombre.
+    </p>
+
+    <h2>9. Seguridad</h2>
+    <p>
+      Los datos viajan cifrados (HTTPS), los mensajes se guardan fuera del acceso público y solo las
+      personas autorizadas por el GAD pueden consultarlos.
+    </p>
+
+    <h2>10. Cambios a esta política</h2>
+    <p>
+      Si cambiamos la forma en que tratamos tus datos, publicaremos aquí la nueva versión con su
+      fecha de vigencia.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .legal :global(h2) {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-brand-primary);
+    margin: 2.25rem 0 0.75rem;
+    letter-spacing: -0.01em;
+  }
+  .legal :global(p),
+  .legal :global(li) {
+    line-height: 1.7;
+    color: color-mix(in srgb, var(--color-brand-dark) 85%, transparent);
+  }
+  .legal :global(p) {
+    margin: 0 0 1rem;
+  }
+  .legal :global(ul) {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin: 0 0 1rem;
+  }
+  .legal :global(li) {
+    margin-bottom: 0.4rem;
+  }
+  .legal :global(a) {
+    color: var(--color-brand-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+</style>

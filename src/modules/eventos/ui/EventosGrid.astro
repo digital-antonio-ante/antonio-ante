@@ -34,7 +34,7 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
         <h2 id="evg-heading" class="evg-title">Eventos y actividades</h2>
         <p class="evg-sub">Ferias, cultura, deporte y vida comunitaria.</p>
       </div>
-      <a href="/eventos" class="evg-ver-todos" aria-label="Ver todos los eventos">
+      <a href="/eventos/" class="evg-ver-todos" aria-label="Ver todos los eventos">
         Ver todos
         <svg
           width="14"
@@ -358,7 +358,7 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
   /* Grid */
   .evg-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.5rem;
     list-style: none;
     margin: 0;
@@ -404,7 +404,7 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
   /* Responsive */
   @media (max-width: 1024px) {
     .evg-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
   @media (max-width: 640px) {
@@ -428,7 +428,7 @@ const todasCategorias = [...new Set([...proximos, ...pasados].map((e) => e.categ
       gap: 0.75rem;
     }
     .evg-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
     }
   }

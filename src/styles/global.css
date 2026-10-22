@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ─── Fuentes auto-hospedadas (self-hosted) ────────────────────────────────────
  * Inter y Space Grotesk se sirven desde /fonts (mismo origen) en lugar de Google
@@ -17,9 +17,9 @@
   font-weight: 100 900;
   font-display: swap;
   src: url('/fonts/inter-latin-var.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
-    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
-    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
   font-family: 'Space Grotesk';
@@ -27,9 +27,9 @@
   font-weight: 300 700;
   font-display: swap;
   src: url('/fonts/spacegrotesk-latin-var.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
-    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
-    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @theme {
@@ -59,10 +59,10 @@
   --color-brand-primary: #277816;
 
   /* Rojo Fuego — CTAs de alta acción (máx 15% área visual) */
-  --color-brand-secondary: #DC2626;
+  --color-brand-secondary: #dc2626;
 
   /* Amber Andino — barras decorativas, hover cálido, rompe el binario */
-  --color-brand-gold-vivid: #D97706;
+  --color-brand-gold-vivid: #d97706;
 
   /* Amber claro — eyebrow sobre los heroes oscuros de sección (8.72:1 ✓ AAA) */
   --color-brand-gold-soft: #fbbf24;
@@ -89,7 +89,7 @@
   --color-brand-accent: #f0fdf4;
 
   /* Blanco Limpio — superficies de cards, formularios */
-  --color-brand-light: #FFFFFF;
+  --color-brand-light: #ffffff;
 
   /* ─── Neutros "Piedra Andina" ────────────────────────────────────────────────
    *
@@ -204,8 +204,15 @@
   --text-4xl: clamp(2.25rem, 1.85rem + 2vw, 3.75rem);
 
   /* ─── Familias tipográficas ─── */
-  --font-family-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-family-serif: Merriweather, ui-serif, Georgia, serif;
+  /* Tailwind 4 lee `--font-sans` (utilidad `font-sans`, que usa el <body>).
+     Con el nombre anterior, `--font-family-sans`, Inter se precargaba pero
+     nunca se aplicaba: el texto salía en la fuente del sistema de cada equipo.
+     Las fuentes de emoji van al final porque Inter no las trae. */
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Noto Color Emoji';
+  /* Titulares de marca — utilidad `font-display`. */
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
 
   /* ─── Espaciado y bordes consistentes ─── */
   --radius-sm: 0.375rem;
@@ -227,7 +234,7 @@
   }
 
   html {
-    font-family: var(--font-family-sans);
+    font-family: var(--font-sans);
     color: var(--color-brand-ink);
     background-color: var(--color-brand-light);
     -webkit-font-smoothing: antialiased;
@@ -262,9 +269,9 @@
 body {
   /* Mesh gradient: 4 elipses posicionadas + base blanco-verdoso */
   background:
-    radial-gradient(ellipse 70% 45% at 8% 12%,  rgba(39, 120, 22, 0.10) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 35% at 92% 8%,  rgba(220, 38, 38, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 65% 50% at 50% 95%, rgba(0, 93, 31, 0.08)  0%, transparent 68%),
+    radial-gradient(ellipse 70% 45% at 8% 12%, rgba(39, 120, 22, 0.1) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 35% at 92% 8%, rgba(220, 38, 38, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 65% 50% at 50% 95%, rgba(0, 93, 31, 0.08) 0%, transparent 68%),
     radial-gradient(ellipse 45% 35% at 88% 55%, rgba(215, 119, 6, 0.06) 0%, transparent 62%),
     linear-gradient(170deg, #f5fdf6 0%, #fafffe 45%, #fdfffe 75%, #fffdf8 100%);
   background-attachment: fixed;

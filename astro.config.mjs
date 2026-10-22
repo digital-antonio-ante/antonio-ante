@@ -1,10 +1,42 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { loadEnv } from 'vite';
 import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { OBRAS_HABILITADAS } from './src/shared/config/features.ts';
 import { SITE_URL } from './src/shared/config/site.ts';
+
+const env = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
+
+/**
+ * Las fichas de evento son SSR: el sitemap solo descubre rutas estáticas, así
+ * que sus URLs se piden a Sanity al construir. Cada publicación de un evento
+ * dispara un build (webhook), así que la lista se mantiene al día. Si Sanity
+ * no responde, el build sigue sin ellas en vez de fallar.
+ */
+/** @returns {Promise<string[]>} */
+async function urlsDeEventos() {
+  const projectId = env.PUBLIC_SANITY_PROJECT_ID;
+  const dataset = env.PUBLIC_SANITY_DATASET ?? 'production';
+  if (!projectId) return [];
+  const query = encodeURIComponent('*[_type == "evento" && defined(slug.current)].slug.current');
+  try {
+    // API en vivo, nunca apicdn: el build que dispara el webhook debe ver el
+    // evento recién publicado (mismo criterio que src/api/clients/sanity.ts).
+    const res = await fetch(
+      `https://${projectId}.api.sanity.io/v2025-01-01/data/query/${dataset}?query=${query}`,
+      { signal: AbortSignal.timeout(10_000) }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    /** @type {{ result?: string[] }} */
+    const { result } = await res.json();
+    return (result ?? []).map((slug) => `${SITE_URL}/eventos/${slug}/`);
+  } catch (err) {
+    console.warn('[sitemap] No se pudieron leer los eventos de Sanity:', String(err));
+    return [];
+  }
+}
 
 export default defineConfig({
   site: SITE_URL,
@@ -24,6 +56,7 @@ export default defineConfig({
   },
   integrations: [
     sitemap({
+      customPages: await urlsDeEventos(),
       filter: (page) =>
         !page.includes('/api/') &&
         !page.includes('/admin') &&
