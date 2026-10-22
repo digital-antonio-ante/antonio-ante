@@ -398,9 +398,11 @@ const parishList = Object.values(parishes);
        soporta animaciones ligadas al scroll; en el resto, quietas. */
     @supports (animation-timeline: view()) {
       .pcard {
+        /* `forwards` en la segunda: con `both` su relleno hacia atrás (scale 1)
+           pisaba a `asomar` y la tarjeta que asoma por la derecha no se achicaba. */
         animation:
           asomar linear both,
-          alejarse linear both;
+          alejarse linear forwards;
         animation-timeline: view(inline), view(inline);
         animation-range: entry, exit;
       }
