@@ -10,10 +10,15 @@ import BaseLayout from '@ui/BaseLayout.astro';
   noindex
 >
   <section class="flex flex-col items-center justify-center py-32 px-4 text-center">
-    <p class="font-display text-8xl font-bold text-brand-primary/10 select-none" aria-hidden="true">404</p>
-    <h1 class="font-display text-2xl font-bold tracking-tight text-brand-primary mt-2 mb-3">Página no encontrada</h1>
+    <p class="font-display text-8xl font-bold text-brand-primary/10 select-none" aria-hidden="true">
+      404
+    </p>
+    <h1 class="font-display text-2xl font-bold tracking-tight text-brand-primary mt-2 mb-3">
+      Página no encontrada
+    </h1>
     <p class="text-brand-dark/60 max-w-md mb-8">
-      La dirección que ingresaste no existe o fue movida. Verifica la URL o regresa al inicio.
+      Esta página no existe o cambió de dirección. Pero el cantón sigue aquí: elige por dónde
+      seguir.
     </p>
     <div class="flex flex-wrap justify-center gap-4">
       <a
@@ -23,10 +28,16 @@ import BaseLayout from '@ui/BaseLayout.astro';
         Ir al inicio
       </a>
       <a
-        href="/contacto/"
+        href="/turismo/"
         class="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-200 text-brand-dark font-semibold rounded-lg hover:border-brand-primary hover:text-brand-primary transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
       >
-        Contacto
+        Qué visitar
+      </a>
+      <a
+        href="/eventos/"
+        class="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-200 text-brand-dark font-semibold rounded-lg hover:border-brand-primary hover:text-brand-primary transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+      >
+        Ver la agenda
       </a>
     </div>
   </section>

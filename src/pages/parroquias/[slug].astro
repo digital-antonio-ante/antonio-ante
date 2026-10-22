@@ -7,6 +7,8 @@ import CantonGallery from '@modules/canton/ui/CantonGallery.astro';
 import ParishSocialsCTA from '@modules/canton/ui/ParishSocialsCTA.astro';
 import { getParroquias, getParroquia } from '@api/endpoints/parroquias';
 import { getObrasByParroquia } from '@api/endpoints/obras';
+import { getEventosByParroquia } from '@api/endpoints/eventos';
+import EventoCard from '@modules/eventos/ui/EventoCard.astro';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 import { PARISHES } from '@modules/canton/data/parishes';
 import { OBRAS_HABILITADAS } from '@shared/config/features';
@@ -71,26 +73,10 @@ const galeriaFotos = (parroquia.galeria ?? []).filter((f) => !!f.url);
 const galleryImages = galeriaFotos.map((f) => `${f.url}?auto=format&q=90`);
 const galleryThumbs = galeriaFotos.map((f) => `${f.url}?w=320&h=220&fit=crop&auto=format&q=82`);
 
-const activityEmojis: Record<string, string> = {
-  'Industria Textil': '🧵',
-  Comercio: '🛒',
-  Gastronomía: '🍽️',
-  'Turismo Histórico': '🏛️',
-  Educación: '📚',
-  Servicios: '⚙️',
-  Turismo: '🗺️',
-  Agricultura: '🌾',
-  Cultura: '🎭',
-  Música: '🎺',
-  Artesanía: '🏺',
-  Ecoturismo: '🌿',
-  'Pesca Deportiva': '🎣',
-  Salud: '🏥',
-  Deporte: '⚽',
-};
 const mapIcon = staticData?.mapIcon ?? '📍';
 const shortDesc = staticData?.shortDesc ?? null;
-const activities = staticData?.activities ?? [];
+const planes = staticData?.planes ?? [];
+const idealPara = staticData?.idealPara ?? [];
 
 const altitude = staticData?.altitude ?? null;
 
@@ -100,9 +86,13 @@ const tipoDisplay = parroquia.esCabeceraCantonal
 
 const seoTitle = shortDesc ? `${parroquia.nombre} — ${shortDesc}` : parroquia.nombre;
 
-const seoDesc = shortDesc
-  ? `${parroquia.nombre} — ${shortDesc}. Parroquia del Cantón Antonio Ante, Imbabura, Ecuador.`
-  : `Información sobre ${parroquia.nombre}, parroquia del Cantón Antonio Ante, Imbabura, Ecuador.`;
+// Lo que se lee en Google: qué se puede hacer, no la división administrativa.
+const seoDesc =
+  staticData?.description ??
+  `Qué hacer en ${parroquia.nombre}, parroquia del cantón Antonio Ante, Imbabura, Ecuador.`;
+
+// Próximos eventos de la parroquia: una razón concreta para venir ya
+const eventosParroquia = await getEventosByParroquia(parroquia.nombre).catch(() => []);
 
 const jsonLd = JSON.stringify({
   '@context': 'https://schema.org',
@@ -168,6 +158,7 @@ const jsonLd = JSON.stringify({
               loading="eager"
               decoding="async"
               fetchpriority="high"
+              style={`view-transition-name: vt-parroquia-${parroquia.slug.current};`}
             />
             <div class="pp-hero__panel-fade" />
           </div>
@@ -175,7 +166,7 @@ const jsonLd = JSON.stringify({
       }
 
       <div class="pp-hero__inner">
-        <div class="pp-hero__text">
+        <div class="pp-hero__text animate-entrada">
           <nav aria-label="Breadcrumb">
             <ol class="pp-breadcrumb" role="list">
               <li><a href="/">Inicio</a></li>
@@ -284,21 +275,40 @@ const jsonLd = JSON.stringify({
             )
           }
 
-          <!-- Actividades con emojis -->
+          <!-- Planes concretos para el visitante -->
           {
-            activities.length > 0 && (
+            planes.length > 0 && (
               <div class="pp-block pp-reveal">
                 <h2 class="pp-block__title">¿Qué hacer aquí?</h2>
-                <div class="pp-activities">
-                  {activities.map((act) => (
-                    <div class="pp-act">
-                      <span class="pp-act__emoji" aria-hidden="true">
-                        {activityEmojis[act] ?? '✦'}
+                <ul class="pp-planes" role="list">
+                  {planes.map((plan) => (
+                    <li class="pp-plan">
+                      <span class="pp-plan__emoji" aria-hidden="true">
+                        {plan.emoji}
                       </span>
-                      {act}
-                    </div>
+                      <div>
+                        <h3 class="pp-plan__titulo">{plan.titulo}</h3>
+                        <p class="pp-plan__detalle">{plan.detalle}</p>
+                      </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
+              </div>
+            )
+          }
+
+          <!-- Próximos eventos aquí (la página es estática: el script retira los que caducan) -->
+          {
+            eventosParroquia.length > 0 && (
+              <div class="pp-block pp-reveal pp-eventos">
+                <h2 class="pp-block__title">Próximamente en {parroquia.nombre}</h2>
+                <ul class="pp-eventos__grid" role="list">
+                  {eventosParroquia.map((evento) => (
+                    <li>
+                      <EventoCard evento={evento} />
+                    </li>
+                  ))}
+                </ul>
               </div>
             )
           }
@@ -430,52 +440,25 @@ const jsonLd = JSON.stringify({
           <div class="pp-stats pp-reveal">
             <span class="pp-stats__tipo">{tipoDisplay}</span>
 
+            {/* Las cifras ya están en el hero: aquí, lo que sirve para decidir la visita */}
             {
-              parroquia.poblacion && (
+              idealPara.length > 0 && (
                 <div class="pp-stat-card">
                   <span class="pp-stat-card__icon" aria-hidden="true">
-                    👥
+                    ✨
                   </span>
                   <div>
-                    <strong class="pp-stat-card__num">
-                      {parroquia.poblacion.toLocaleString('es-EC')}
-                    </strong>
-                    <span class="pp-stat-card__label">habitantes</span>
-                  </div>
-                </div>
-              )
-            }
-            {
-              parroquia.superficieKm2 && (
-                <div class="pp-stat-card">
-                  <span class="pp-stat-card__icon" aria-hidden="true">
-                    📐
-                  </span>
-                  <div>
-                    <strong class="pp-stat-card__num">{fmt(parroquia.superficieKm2)}</strong>
-                    <span class="pp-stat-card__label">km² de superficie</span>
-                  </div>
-                </div>
-              )
-            }
-            {
-              altitude && (
-                <div class="pp-stat-card">
-                  <span class="pp-stat-card__icon" aria-hidden="true">
-                    ⛰️
-                  </span>
-                  <div>
-                    <strong class="pp-stat-card__num">{altitude}</strong>
-                    <span class="pp-stat-card__label">altitud</span>
+                    <strong class="pp-stat-card__num">{idealPara.join(' · ')}</strong>
+                    <span class="pp-stat-card__label">ideal para</span>
                   </div>
                 </div>
               )
             }
             <div class="pp-stat-card">
-              <span class="pp-stat-card__icon" aria-hidden="true">📍</span>
+              <span class="pp-stat-card__icon" aria-hidden="true">🚗</span>
               <div>
-                <strong class="pp-stat-card__num">Antonio Ante</strong>
-                <span class="pp-stat-card__label">Imbabura, Ecuador</span>
+                <strong class="pp-stat-card__num">~2 h desde Quito</strong>
+                <span class="pp-stat-card__label">por la Panamericana Norte</span>
               </div>
             </div>
           </div>
@@ -539,7 +522,7 @@ const jsonLd = JSON.stringify({
             {/* Explorar turismo */}
             <a href="/turismo/" class="pp-action-btn pp-action-btn--turismo">
               <span class="pp-action-btn__icon" aria-hidden="true">🗺️</span>
-              <span class="pp-action-btn__label">Explorar turismo</span>
+              <span class="pp-action-btn__label">Más planes en el cantón</span>
               <svg
                 class="pp-action-btn__chevron"
                 width="14"
@@ -870,30 +853,51 @@ const jsonLd = JSON.stringify({
     margin: 0;
   }
 
-  /* Actividades */
-  .pp-activities {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  /* Planes */
+  .pp-planes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
   }
-
-  .pp-act {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
+  .pp-plan {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
     background: var(--color-neutral-50);
     border: 1px solid var(--color-neutral-200);
-    border-radius: 9999px;
-    padding: 0.35rem 0.85rem;
-    font-size: 0.83rem;
-    font-weight: 600;
-    color: var(--color-neutral-700);
+    border-left: 3px solid var(--color);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
   }
-
-  .pp-act__emoji {
-    font-size: 1.05rem;
+  .pp-plan__emoji {
+    font-size: 1.4rem;
     line-height: 1;
     flex-shrink: 0;
+  }
+  .pp-plan__titulo {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--color-neutral-900);
+    margin: 0 0 0.2rem;
+  }
+  .pp-plan__detalle {
+    font-size: 0.83rem;
+    line-height: 1.55;
+    color: var(--color-neutral-600);
+    margin: 0;
+  }
+
+  /* Próximos eventos de la parroquia */
+  .pp-eventos__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
   }
 
   /* Obras vinculadas */
@@ -1158,17 +1162,21 @@ const jsonLd = JSON.stringify({
     color: color-mix(in srgb, var(--color) 45%, var(--color-neutral-200));
   }
 
-  /* ── Animación scroll reveal ── */
-  .pp-reveal {
-    opacity: 0;
-    transform: translateY(18px);
-    transition:
-      opacity 0.5s ease,
-      transform 0.5s ease;
-  }
-  .pp-reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
+  /* ── Animación scroll reveal ──
+   * Solo se oculta si el navegador ejecuta scripts: sin JS (o si el script
+   * falla) el contenido se ve igual, en lugar de quedarse invisible. */
+  @media (scripting: enabled) {
+    .pp-reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition:
+        opacity 0.5s ease,
+        transform 0.5s ease;
+    }
+    .pp-reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .pp-reveal {
@@ -1326,10 +1334,9 @@ const jsonLd = JSON.stringify({
       white-space: normal;
     }
 
-    /* Actividades: touch target mayor */
-    .pp-act {
-      padding: 0.45rem 0.95rem;
-      font-size: 0.85rem;
+    .pp-planes,
+    .pp-eventos__grid {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
@@ -1531,6 +1538,15 @@ const jsonLd = JSON.stringify({
     { threshold: 0.08, rootMargin: '0px 0px -32px 0px' }
   );
   document.querySelectorAll('.pp-reveal').forEach((el) => io.observe(el));
+
+  // La ficha es estática: entre un build y otro un evento puede terminar. Se
+  // retira por su fecha de fin (data-fin); sin eventos, se va el bloque.
+  const ahora = Date.now();
+  for (const el of document.querySelectorAll<HTMLElement>('.pp-eventos [data-fin]')) {
+    if (Date.parse(el.dataset.fin ?? '') < ahora) el.closest('li')?.remove();
+  }
+  const bloqueEventos = document.querySelector('.pp-eventos');
+  if (bloqueEventos && !bloqueEventos.querySelector('li')) bloqueEventos.remove();
 </script>
 
 <script>

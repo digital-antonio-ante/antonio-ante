@@ -25,7 +25,7 @@
  * pinta dentro de otra, ningún trazo queda huérfano y el resalte de la
  * seleccionada no puede ensuciarse.
  *
- * El JS de canton-hero.ts / canton-map-widget.ts detecta `data-select-parish`
+ * El JS de canton-hero.ts detecta `data-select-parish`
  * — mismo contrato que antes, sin cambios.
  */
 import { PARISHES } from '../data/parishes';
@@ -164,7 +164,11 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
                 viñeta se quedan fuera: son marcas, no territorio, y recortarlas
                 las decapitaría contra la frontera. */}
             <g class="parish-body" mask={maskFor(p)}>
-              <use class="parish-fill" href={`#${shapeId(p.id)}`} fill={`url(#${UID}-grad-${p.gradientId})`} />
+              <use
+                class="parish-fill"
+                href={`#${shapeId(p.id)}`}
+                fill={`url(#${UID}-grad-${p.gradientId})`}
+              />
               {/* La foto no necesita clip propio: la máscara del grupo ya la
                   confina, y `pointer-events: none` impide que su rectángulo
                   se coma los clics dirigidos al contorno. */}
@@ -229,11 +233,7 @@ const scaleBarWidth = scaleBar.km * MAP_UNITS_PER_KM;
     <g class="halo-layer" aria-hidden="true">
       {
         PARISH_GEOMETRY.map((p) => (
-          <g
-            class="parish-halo"
-            data-select-parish={p.id}
-            style={`--pc: ${PARISHES[p.id].color};`}
-          >
+          <g class="parish-halo" data-select-parish={p.id} style={`--pc: ${PARISHES[p.id].color};`}>
             <g mask={maskFor(p)}>
               <g class="halo-glow">
                 {boundaryOf(p).map((id) => (

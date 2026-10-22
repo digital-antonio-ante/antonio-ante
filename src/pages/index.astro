@@ -17,12 +17,6 @@ import { getObrasRecientes, getObraDestacada } from '@api/endpoints/obras';
 import { getEventoDestacado, getEventosProximos } from '@api/endpoints/eventos';
 import { getConfigSitio } from '@api/endpoints/config-sitio';
 import { OBRAS_HABILITADAS } from '@shared/config/features';
-import {
-  POBLACION_CANTON,
-  ALTITUD_CANTON_M,
-  SUPERFICIE_CANTON_KM2,
-  fmt,
-} from '@shared/config/canton';
 
 // La imagen del panel del cantón es el elemento LCP de la home. Como la página es
 // estática, conocemos su URL en build y podemos precargarla en el <head> con la
@@ -70,7 +64,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
 
 <BaseLayout
   title="Inicio"
-  description="Conoce Antonio Ante, Imbabura: la capital de la moda del Ecuador. Recorre sus seis parroquias, su gastronomía, su patrimonio textil y la agenda de eventos del cantón."
+  description="Antonio Ante, Imbabura: la Capital de la Moda del Ecuador, a dos horas de Quito. Más de 150 almacenes de ropa, cuy en Chaltura, la Fábrica Imbabura hecha museo y la agenda de ferias y fiestas."
 >
   {
     heroPreloadHref && (
@@ -116,7 +110,7 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
         <div class="eventos-strip-inner">
           <div class="eventos-strip-header">
             <div>
-              <p class="eventos-strip-eyebrow">Agenda del cantón</p>
+              <p class="eventos-strip-eyebrow">No te lo pierdas</p>
               <h2 id="eventos-heading" class="eventos-strip-title">
                 Próximos eventos
               </h2>
@@ -148,40 +142,43 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     )
   }
 
-  <!-- ─── Identidad cantonal ──────────────────────────────────────────────── -->
+  <!-- ─── Cierre: invitación a venir (no una ficha técnica) ──────────────── -->
   <section class="canton-callout" aria-labelledby="callout-heading">
     <div class="callout-bar" aria-hidden="true"></div>
 
     <div class="callout-inner">
       <div class="callout-text">
-        <p class="callout-eyebrow">Cantón Antonio Ante · Imbabura · Ecuador</p>
-        <h2 id="callout-heading" class="callout-title">
-          Seis parroquias,<br />una sola identidad.
-        </h2>
-        <p class="callout-sub">Cada rincón guarda su propia historia, cultura y paisaje.</p>
+        <p class="callout-eyebrow">Planifica tu visita</p>
+        <h2 id="callout-heading" class="callout-title">Ven este fin de semana.</h2>
+        <p class="callout-sub">
+          Antonio Ante está a unas dos horas de Quito por la Panamericana Norte y a 15 minutos de
+          Ibarra. Elige tu plan:
+        </p>
       </div>
 
-      <div class="callout-metrics" role="list" aria-label="Estadísticas del cantón">
+      <ul class="callout-metrics" role="list" aria-label="Planes para tu visita">
         {
           [
-            { icono: '🏘️', num: '6', label: 'Parroquias', detail: '2 urbanas · 4 rurales' },
-            { icono: '👥', num: fmt(POBLACION_CANTON), label: 'Habitantes', detail: 'Censo 2022 — INEC' },
-            { icono: '🗺️', num: `${SUPERFICIE_CANTON_KM2} km²`, label: 'Superficie', detail: 'Cantón Antonio Ante' },
-            { icono: '⛰️', num: `${fmt(ALTITUD_CANTON_M)} m`, label: 'Altitud', detail: 'Sobre el nivel del mar' },
-          ].map(({ icono, num, label, detail }) => (
-            <div class="callout-metric" role="listitem">
-              <span class="callout-metric-icon" aria-hidden="true">
-                {icono}
-              </span>
-              <div>
-                <strong class="callout-metric-num">{num}</strong>
-                <span class="callout-metric-label">{label}</span>
-                <span class="callout-metric-detail">{detail}</span>
-              </div>
-            </div>
+            { icono: '🚗', num: '~2 h', label: 'Desde Quito', detail: 'Cómo llegar', href: '/turismo/#como-llegar' },
+            { icono: '🧵', num: 'Compras', label: 'Atuntaqui', detail: 'Ropa de fábrica', href: '/parroquias/atuntaqui/' },
+            { icono: '🍽️', num: 'Cuy', label: 'Chaltura', detail: 'Frito en paila', href: '/parroquias/chaltura/' },
+            { icono: '📅', num: 'Agenda', label: 'Eventos', detail: 'Ferias y fiestas', href: '/eventos/' },
+          ].map(({ icono, num, label, detail, href }) => (
+            <li>
+              <a class="callout-metric" href={href}>
+                <span class="callout-metric-icon" aria-hidden="true">
+                  {icono}
+                </span>
+                <div>
+                  <strong class="callout-metric-num">{num}</strong>
+                  <span class="callout-metric-label">{label}</span>
+                  <span class="callout-metric-detail">{detail}</span>
+                </div>
+              </a>
+            </li>
           ))
         }
-      </div>
+      </ul>
     </div>
   </section>
 </BaseLayout>
@@ -351,6 +348,8 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     flex-shrink: 0;
     flex-wrap: wrap;
     margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .callout-metric {
@@ -362,6 +361,18 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     border-radius: 12px;
     padding: 0.75rem 1rem;
     min-width: 100px;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .callout-metric:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-brand-primary);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
   }
 
   .callout-metric-icon {
@@ -433,9 +444,6 @@ const eventosStrip = eventosProximos.filter((e) => e._id !== eventoDestacado?._i
     }
     .callout-metric-num {
       font-size: 0.95rem;
-    }
-    .callout-metric-detail {
-      display: none;
     }
   }
 

@@ -11,13 +11,16 @@ const heroImg = config?.cantonImageUrl ?? null;
 const heroImgAlt = config?.cantonImageAlt ?? 'Vista del cantón Antonio Ante';
 const altitud = `${fmt(ALTITUD_CANTON_M)} m s. n. m.`;
 
+// Solo atractivos con respaldo público (Municipio, Ministerio de Cultura,
+// PDOT parroquiales, prensa) — ver el comentario de `parishes.ts`.
 const atractivos = [
   {
     nombre: 'Expo Atuntaqui',
-    categoria: 'Textil',
+    categoria: 'Moda',
     descripcion:
-      'La feria textil más importante del norte del Ecuador: moda, confección, artesanías y gastronomía en las calles de Atuntaqui, cada año durante el feriado de Carnaval.',
+      'Cada Carnaval, más de 160 expositores, desfiles y patio gastronómico en el centro de Atuntaqui. El resto del año, más de 150 almacenes de ropa hecha en el cantón.',
     emoji: '🧵',
+    href: '/parroquias/atuntaqui/',
     color: 'bg-blue-50 border-blue-200',
     accentColor: 'text-blue-700',
   },
@@ -25,60 +28,104 @@ const atractivos = [
     nombre: 'Fábrica Imbabura',
     categoria: 'Patrimonio',
     descripcion:
-      'Ícono de la industria textil ecuatoriana, inaugurada en la década de 1920 en Andrade Marín. Hoy es un complejo cultural y museo que narra la historia industrial del país.',
+      'Construida en 1924 en Andrade Marín, es el único Patrimonio Cultural Industrial del Ecuador. Hoy es complejo cultural y museo, con entrada gratuita.',
     emoji: '🏭',
+    href: '/parroquias/andrade-marin/',
     color: 'bg-amber-50 border-amber-200',
     accentColor: 'text-amber-700',
   },
   {
-    nombre: 'Chaltura — Capital del Cuy',
-    categoria: 'Gastronomía',
+    nombre: 'Tren Tayta Imbabura',
+    categoria: 'Experiencia',
     descripcion:
-      'El destino gastronómico del cantón. El cuy asado y el hornado de Chaltura son un referente culinario de la Sierra ecuatoriana.',
-    emoji: '🍽️',
-    color: 'bg-red-50 border-red-200',
-    accentColor: 'text-red-700',
-  },
-  {
-    nombre: 'Paisajes de Imbaya',
-    categoria: 'Naturaleza',
-    descripcion:
-      'Valles agrícolas, quebradas y miradores en la parroquia más extensa del cantón. Ideal para caminatas y pesca deportiva.',
-    emoji: '🏞️',
+      'Sale de Ibarra y termina en la antigua Fábrica Imbabura: la forma más bonita de llegar a Andrade Marín. Consulta los horarios antes de viajar.',
+    emoji: '🚂',
+    href: '/parroquias/andrade-marin/',
     color: 'bg-teal-50 border-teal-200',
     accentColor: 'text-teal-700',
   },
   {
-    nombre: 'Festival de la Confraternidad — Natabuela',
-    categoria: 'Cultura',
+    nombre: 'Chaltura, capital del cuy',
+    categoria: 'Gastronomía',
     descripcion:
-      'Celebración del pueblo indígena Natabuela con música, danza y trajes típicos: una experiencia cultural auténtica.',
-    emoji: '🎊',
+      'Cuy frito en paila con papas, tostado, mote y choclo, en la ruta del cuy y el Complejo La Hornilla.',
+    emoji: '🍽️',
+    href: '/parroquias/chaltura/',
+    color: 'bg-red-50 border-red-200',
+    accentColor: 'text-red-700',
+  },
+  {
+    nombre: 'Inti Raymi',
+    categoria: 'Cultura viva',
+    descripcion:
+      'En junio, Natabuela y las comunidades de San Roque celebran la Fiesta del Sol con danzas, música y chicha de jora.',
+    emoji: '☀️',
+    href: '/parroquias/natabuela/',
     color: 'bg-purple-50 border-purple-200',
     accentColor: 'text-purple-700',
   },
   {
-    nombre: 'Mercado Artesanal',
-    categoria: 'Artesanías',
+    nombre: 'Tejidos de San Roque',
+    categoria: 'Artesanía',
     descripcion:
-      'Tejidos, bordados y artesanías propias de las comunidades del cantón. Souvenirs únicos elaborados a mano por artesanos locales.',
-    emoji: '🎨',
+      'Tapices de cabuya tejidos en telares de madera, ponchos y chalinas de lana, en las faldas del Imbabura.',
+    emoji: '🧶',
+    href: '/parroquias/san-roque/',
     color: 'bg-orange-50 border-orange-200',
     accentColor: 'text-orange-700',
   },
 ];
 
-const estadisticas = [
-  { valor: '+85k', descripcion: 'Visitantes en la Expo 2026' },
-  { valor: `${fmt(ALTITUD_CANTON_M)} m`, descripcion: 'Altitud sobre el nivel del mar' },
-  { valor: '6', descripcion: 'Destinos en un solo cantón' },
+// Temporadas: las mismas fiestas que el GAD carga en la agenda (Sanity).
+const temporadas = [
+  {
+    cuando: 'Carnaval · febrero',
+    que: 'Expo Atuntaqui',
+    detalle: 'Moda, desfiles, patio gastronómico y comparsas en el centro de Atuntaqui.',
+    emoji: '🧵',
+  },
+  {
+    cuando: 'Marzo',
+    que: 'Fiestas de Cantonización',
+    detalle: 'Desfile, verbena popular y eventos culturales y deportivos en todo el cantón.',
+    emoji: '🎉',
+  },
+  {
+    cuando: 'Junio',
+    que: 'Inti Raymi',
+    detalle: 'La Fiesta del Sol con danzas, música y tradición en San Roque y Natabuela.',
+    emoji: '☀️',
+  },
+  {
+    cuando: 'Septiembre',
+    que: 'Feria Gastronómica de Chaltura',
+    detalle: 'Cuy frito en paila, fritada, helados y productos de la zona.',
+    emoji: '🍽️',
+  },
+];
+
+interface Estadistica {
+  valor: string;
+  descripcion: string;
+  /** Si está, la cifra sube de 0 a `hasta` al entrar en pantalla. */
+  contar?: { hasta: number; prefijo?: string; sufijo?: string };
+}
+const estadisticas: Estadistica[] = [
+  // El Universo, 2025. (La cifra de visitantes de la Expo no tiene fuente publicada.)
+  {
+    valor: '+150',
+    descripcion: 'Almacenes de ropa en Atuntaqui',
+    contar: { hasta: 150, prefijo: '+' },
+  },
+  { valor: '6', descripcion: 'Parroquias para recorrer', contar: { hasta: 6 } },
+  { valor: '1924', descripcion: 'Nace la Fábrica Imbabura, hoy museo' },
   { valor: '~2 h', descripcion: 'Desde Quito en carretera' },
 ];
 ---
 
 <BaseLayout
   title="Turismo"
-  description="Descubre el Cantón Antonio Ante, la Capital de la Moda de Ecuador. Expo Atuntaqui, gastronomía de Chaltura, Fábrica Imbabura, naturaleza y cultura."
+  description="Qué hacer en Antonio Ante, a dos horas de Quito: compras en Atuntaqui, la Fábrica Imbabura y el Tren Tayta Imbabura, cuy en Chaltura, Inti Raymi y tejidos de San Roque."
 >
   <!-- Hero editorial -->
   <section class="relative overflow-hidden" aria-labelledby="turismo-heading">
@@ -122,20 +169,25 @@ const estadisticas = [
 
         <h1
           id="turismo-heading"
-          class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight mb-6"
+          class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight mb-6 animate-entrada"
         >
           Descubre<br />
           <span class="text-brand-primary-soft">Antonio Ante</span>
         </h1>
 
-        <p class="text-white/80 text-lg lg:text-xl max-w-2xl leading-relaxed mb-10">
-          La <strong class="text-white">Capital de la Moda del Ecuador</strong>. Un cantón que
-          combina industria textil de talla mundial, gastronomía reconocida, patrimonio histórico y
-          naturaleza exuberante — todo en menos de 80 km².
+        <p
+          class="text-white/80 text-lg lg:text-xl max-w-2xl leading-relaxed mb-10 animate-entrada retardo-1"
+        >
+          La <strong class="text-white">Capital de la Moda del Ecuador</strong>. Llena la maleta en
+          los almacenes de Atuntaqui, almuerza cuy en Chaltura y recorre la fábrica donde empezó
+          todo, con el volcán Imbabura de fondo. Todo en menos de 80 km².
         </p>
 
         <!-- Pills de actividades -->
-        <div class="flex flex-wrap gap-2" aria-label="Tipos de turismo disponibles">
+        <div
+          class="flex flex-wrap gap-2 animate-entrada retardo-2"
+          aria-label="Tipos de turismo disponibles"
+        >
           {
             [
               '🧵 Moda & Textil',
@@ -154,7 +206,7 @@ const estadisticas = [
 
       {
         heroImg && (
-          <figure class="hidden lg:block m-0">
+          <figure class="hidden lg:block m-0 animate-entrada retardo-1">
             <img
               src={`${heroImg}?w=832&h=1040&fit=crop&auto=format&q=80`}
               srcset={`${heroImg}?w=416&h=520&fit=crop&auto=format&q=80 416w, ${heroImg}?w=832&h=1040&fit=crop&auto=format&q=80 832w`}
@@ -176,9 +228,16 @@ const estadisticas = [
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <ul class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center" role="list">
         {
-          estadisticas.map(({ valor, descripcion }) => (
+          estadisticas.map(({ valor, descripcion, contar }) => (
             <li>
-              <p class="text-2xl lg:text-3xl font-bold text-white leading-none mb-1">{valor}</p>
+              <p
+                class="text-2xl lg:text-3xl font-bold text-white leading-none mb-1 tabular-nums"
+                data-contar={contar?.hasta}
+                data-prefijo={contar?.prefijo}
+                data-sufijo={contar?.sufijo}
+              >
+                {valor}
+              </p>
               <p class="text-white/80 text-xs font-semibold uppercase tracking-wide">
                 {descripcion}
               </p>
@@ -203,20 +262,21 @@ const estadisticas = [
           Principales atractivos
         </h2>
         <p class="text-brand-dark/60 mt-3 max-w-xl mx-auto">
-          Seis experiencias únicas dentro del cantón más pequeño de Imbabura.
+          Seis planes en el cantón más pequeño de Imbabura: todo queda a minutos.
         </p>
       </div>
 
       <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list">
         {
-          atractivos.map(({ nombre, categoria, descripcion, emoji, color, accentColor }) => (
-            <li
-              class:list={[
-                'rounded-xl border p-6 transition-shadow duration-200 hover:shadow-md',
-                color,
-              ]}
-            >
-              <div class="flex items-start gap-4">
+          atractivos.map(({ nombre, categoria, descripcion, emoji, href, color, accentColor }) => (
+            <li>
+              <a
+                href={href}
+                class:list={[
+                  'flex h-full items-start gap-4 rounded-xl border p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-md',
+                  color,
+                ]}
+              >
                 <span class="text-3xl flex-shrink-0" aria-hidden="true">
                   {emoji}
                 </span>
@@ -226,8 +286,9 @@ const estadisticas = [
                   </p>
                   <h3 class="font-bold text-brand-dark text-base mb-2">{nombre}</h3>
                   <p class="text-sm text-brand-dark/65 leading-relaxed">{descripcion}</p>
+                  <p class:list={['text-sm font-semibold mt-3', accentColor]}>Ver más →</p>
                 </div>
-              </div>
+              </a>
             </li>
           ))
         }
@@ -235,8 +296,57 @@ const estadisticas = [
     </div>
   </section>
 
+  <!-- Cuándo venir: las fechas salen de la agenda real del cantón -->
+  <section
+    class="py-16 lg:py-20 bg-white border-t border-gray-100"
+    aria-labelledby="cuando-heading"
+  >
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <p class="text-brand-primary text-xs font-bold uppercase tracking-widest mb-2">
+          Calendario
+        </p>
+        <h2
+          id="cuando-heading"
+          class="font-display text-2xl lg:text-3xl font-bold text-brand-primary"
+        >
+          Cuándo venir
+        </h2>
+        <p class="text-brand-dark/60 mt-3 max-w-xl mx-auto">
+          Cualquier fin de semana es bueno para comprar y comer bien. Estas fechas, además, llenan
+          las calles de fiesta.
+        </p>
+      </div>
+      <ol class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" role="list">
+        {
+          temporadas.map(({ cuando, que, detalle, emoji }) => (
+            <li class="rounded-xl border border-gray-100 bg-brand-light p-5">
+              <p class="text-xs font-bold uppercase tracking-widest text-brand-secondary mb-2">
+                <span aria-hidden="true">{emoji}</span> {cuando}
+              </p>
+              <h3 class="font-bold text-brand-dark mb-1">{que}</h3>
+              <p class="text-sm text-brand-dark/65 leading-relaxed">{detalle}</p>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="text-center mt-8">
+        <a
+          href="/eventos/"
+          class="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:underline"
+        >
+          Ver fechas exactas en la agenda →
+        </a>
+      </p>
+    </div>
+  </section>
+
   <!-- Cómo llegar -->
-  <section class="py-16 bg-brand-accent border-t border-gray-100" aria-labelledby="llegar-heading">
+  <section
+    id="como-llegar"
+    class="py-16 bg-brand-accent border-t border-gray-100 scroll-mt-20"
+    aria-labelledby="llegar-heading"
+  >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div>
@@ -292,23 +402,23 @@ const estadisticas = [
         </div>
 
         <div class="bg-white rounded-xl border border-gray-100 p-6">
-          <h3 class="font-bold text-brand-primary mb-4 text-base">Coordenadas del cantón</h3>
+          <h3 class="font-bold text-brand-primary mb-4 text-base">Antes de venir</h3>
           <dl class="grid grid-cols-2 gap-4 text-sm mb-4">
             <div>
-              <dt class="text-brand-dark/50 font-medium">Latitud</dt>
-              <dd class="font-mono text-brand-dark font-semibold">0°19'41" N</dd>
+              <dt class="text-brand-dark/50 font-medium">Clima</dt>
+              <dd class="text-brand-dark font-semibold">14–22 °C, templado todo el año</dd>
             </div>
             <div>
-              <dt class="text-brand-dark/50 font-medium">Longitud</dt>
-              <dd class="font-mono text-brand-dark font-semibold">78°12'48" O</dd>
+              <dt class="text-brand-dark/50 font-medium">Qué llevar</dt>
+              <dd class="text-brand-dark font-semibold">Abrigo para la noche y protector solar</dd>
             </div>
             <div>
               <dt class="text-brand-dark/50 font-medium">Altitud</dt>
-              <dd class="font-mono text-brand-dark font-semibold">{altitud}</dd>
+              <dd class="text-brand-dark font-semibold">{altitud}</dd>
             </div>
             <div>
-              <dt class="text-brand-dark/50 font-medium">Temperatura</dt>
-              <dd class="font-mono text-brand-dark font-semibold">14–22°C</dd>
+              <dt class="text-brand-dark/50 font-medium">Desde Ibarra</dt>
+              <dd class="text-brand-dark font-semibold">A 15 minutos</dd>
             </div>
           </dl>
           <a
@@ -342,27 +452,34 @@ const estadisticas = [
   <!-- CTA final -->
   <section class="py-16 bg-brand-primary text-white" aria-label="Planifica tu visita">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="font-display text-2xl lg:text-3xl font-bold mb-4">
-        ¿Listo para visitar Antonio Ante?
-      </h2>
+      <h2 class="font-display text-2xl lg:text-3xl font-bold mb-4">Arma tu plan</h2>
       <p class="text-white/80 max-w-xl mx-auto mb-8">
-        Contáctanos para más información sobre eventos, hospedaje y actividades turísticas en el
-        cantón.
+        Mira qué hay en la agenda y elige por dónde empezar: compras en Atuntaqui, historia en
+        Andrade Marín o cocina tradicional en Chaltura.
       </p>
       <div class="flex flex-wrap justify-center gap-4">
         <a
-          href="/contacto/"
+          href="/eventos/"
           class="inline-flex items-center gap-2 px-6 py-3 bg-brand-secondary text-white font-semibold rounded-lg hover:opacity-90 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-brand-primary"
         >
-          Contáctanos
+          Ver la agenda
         </a>
         <a
           href="/parroquias/"
           class="inline-flex items-center gap-2 px-6 py-3 border-2 border-white/60 text-white font-semibold rounded-lg hover:border-white hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-primary"
         >
-          Ver parroquias
+          Elige tu parroquia
         </a>
       </div>
+      <p class="text-white/70 text-sm mt-6">
+        ¿Tienes una duda puntual?
+        <a href="/contacto/" class="underline hover:text-white">Escríbenos</a>.
+      </p>
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  import { iniciarContadores } from '@shared/utils/contadores';
+  iniciarContadores();
+</script>
