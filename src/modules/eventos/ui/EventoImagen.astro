@@ -88,6 +88,8 @@ const srcset = encaja ? srcsetRecorte(url, proporcion, dims, foco) : srcsetCompl
     inset: -12%;
     width: 124%;
     height: 124%;
+    /* El reset global (img { max-width: 100% }) lo cortaría y dejaría el borde derecho sin fondo. */
+    max-width: none;
     object-fit: cover;
     filter: blur(16px) saturate(1.15) brightness(0.85);
   }
